@@ -18,7 +18,6 @@ export class ReflectcordGateway {
     this.server.on("upgrade", (request, socket, head) => {
       console.log("upgrading connection");
 
-      // @ts-ignore
       // eslint-disable-next-line no-shadow
       this.websocketServer.handleUpgrade(request, socket, head, (socket) => {
         this.websocketServer.emit("connection", socket, request);
@@ -29,7 +28,7 @@ export class ReflectcordGateway {
       maxPayload: 4096,
       noServer: true,
     });
-    this.websocketServer.on("connect", Connection);
+    this.websocketServer.on("connection", Connection);
     // eslint-disable-next-line no-console
     this.websocketServer.on("error", console.error);
   }
