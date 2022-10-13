@@ -2,7 +2,7 @@ import { APIChannel } from "discord.js";
 import { Application } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
-import { Channel, User } from "../../../../common/models";
+import { Channel } from "../../../../common/models";
 import { createAPI } from "../../../../common/rvapi";
 
 export default (express: Application) => <Resource> {

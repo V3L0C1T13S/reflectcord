@@ -3,7 +3,9 @@ import { Application } from "express";
 import { Resource } from "express-automatic-routes";
 
 export default (express: Application) => <Resource> {
-  get: async (req, res) => {
-    res.json({ country_code: "US" });
+  post: async (req, res) => {
+    const { content } = req.body.payload_json;
+
+    res.sendStatus(204);
   },
 };
