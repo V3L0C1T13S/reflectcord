@@ -28,11 +28,21 @@ describe("api get requests", () => {
     expect(user.data.id === testUserId);
   });
 
-  test("self user data", async () => {
-    const user = await getFromAPI("users/@me");
-    const profile = await getFromAPI("users/@me/profile");
-    const channels = await getFromAPI("users/@me/channels");
-    expect(user.data.id && profile.data && channels.data);
+  describe("self user data", () => {
+    test("self public info", async () => {
+      const user = await getFromAPI("users/@me");
+      const profile = await getFromAPI("users/@me/profile");
+      expect(user.data.id && profile.data);
+    });
+    test("private info", async () => {
+      const channels = await getFromAPI("users/@me/channels");
+      const guilds = await getFromAPI("users/@me/guilds");
+      expect(channels.data && guilds.data);
+    });
+    test("developer info", async () => {
+      const bots = await getFromAPI("applications?with_team_applications=true");
+      expect(bots.data);
+    });
   });
 
   test("guild", async () => {
