@@ -1,6 +1,7 @@
 import { APIApplication } from "discord.js";
-import { Bot } from "revolt-api";
+import { Bot, BotResponse } from "revolt-api";
 import { QuarkConversion } from "../QuarkConversion";
+import { User } from "./user";
 
 export const Application: QuarkConversion<Bot, APIApplication> = {
   async to_quark(bot) {
@@ -40,5 +41,35 @@ export const Application: QuarkConversion<Bot, APIApplication> = {
         avatar: null,
       },
     };
+  },
+};
+
+export const OwnedApplication: QuarkConversion<BotResponse, APIApplication> = {
+  async to_quark(data) {
+    const { id, name } = data;
+
+    return {
+      bot: await Application.to_quark(data),
+      user: {
+        _id: id,
+        username: name,
+      },
+    };
+  },
+
+  async from_quark(data) {
+    const { bot, user } = data;
+
+    const discordUser = await User.from_quark(user);
+
+    const { username } = discordUser;
+
+    const app: APIApplication = {
+      ...await Application.from_quark(bot),
+      name: username,
+      description: user.profile?.content ?? "fixme",
+    };
+
+    return app;
   },
 };

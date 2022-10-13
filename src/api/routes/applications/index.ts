@@ -2,7 +2,7 @@ import { APIApplication } from "discord.js";
 import { Application, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
-import { Application as botApplication } from "../../../common/models";
+import { Application as botApplication, OwnedApplication } from "../../../common/models";
 import { createAPI } from "../../../common/rvapi";
 
 export default (express: Application) => <Resource> {
@@ -11,8 +11,17 @@ export default (express: Application) => <Resource> {
 
     const revoltBots = await api.get("/bots/@me") as API.OwnedBotsResponse;
 
-    const discordBots = await Promise.all(revoltBots.bots
-      .map((bot) => botApplication.from_quark(bot)));
+    const ownedRevoltBots: API.BotResponse[] = revoltBots.bots.map((bot) => {
+      const user = revoltBots.users.find((u) => u._id === bot._id)!;
+
+      return {
+        bot,
+        user,
+      };
+    });
+
+    const discordBots = await Promise.all(ownedRevoltBots
+      .map((bot) => OwnedApplication.from_quark(bot)));
 
     return res.json(discordBots);
   },
