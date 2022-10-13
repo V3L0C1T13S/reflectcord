@@ -1,5 +1,12 @@
 import {
-  APIGuild, GuildDefaultMessageNotifications, GuildExplicitContentFilter, GuildMFALevel, GuildNSFWLevel, GuildPremiumTier, GuildSystemChannelFlags, GuildVerificationLevel,
+  APIGuild,
+  GuildDefaultMessageNotifications,
+  GuildExplicitContentFilter,
+  GuildMFALevel,
+  GuildNSFWLevel,
+  GuildPremiumTier,
+  GuildSystemChannelFlags,
+  GuildVerificationLevel,
 } from "discord.js";
 import { Server } from "revolt-api";
 import { QuarkConversion } from "../QuarkConversion";
@@ -31,7 +38,7 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
 
   async from_quark(server) {
     const {
-      _id, name, owner, description,
+      _id, name, owner, description, icon,
     } = server;
 
     return {
@@ -68,8 +75,8 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
       premium_progress_bar_enabled: false,
       hub_type: null,
       discovery_splash: null,
-      icon_hash: null,
-      icon: null,
+      icon_hash: icon?._id ?? null,
+      icon: icon?._id ?? null,
       splash: null,
     };
   },

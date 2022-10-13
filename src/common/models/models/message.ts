@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
 import { APIMessage, MessageType } from "discord.js";
 import { Message as RevoltMessage } from "revolt-api";
+import { decodeTime } from "ulid";
 import { QuarkConversion } from "../QuarkConversion";
 
 export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
@@ -32,7 +33,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
         discriminator: "1",
         avatar: null,
       },
-      timestamp: Date.now().toString(),
+      timestamp: decodeTime(_id).toString(),
       edited_timestamp: null,
       tts: false,
       mention_everyone: false,
