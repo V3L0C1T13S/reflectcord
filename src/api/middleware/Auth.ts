@@ -19,8 +19,8 @@ export const NoAuthRoutes = [
   "/-/readyz",
   "/-/healthz",
   // Client analytics
-  "/science",
-  "/track",
+  // "/science",
+  // "/track",
   // Public policy pages
   "/policies/instance",
   // Asset delivery

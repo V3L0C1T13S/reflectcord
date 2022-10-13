@@ -90,7 +90,10 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
         }
       })(),
       name: (() => {
-        if (channel.channel_type === "DirectMessage" || channel.channel_type === "SavedMessages") {
+        if (channel.channel_type === "SavedMessages") {
+          return "Saved Messages";
+        }
+        if (channel.channel_type === "DirectMessage") {
           return "fixme";
         }
 

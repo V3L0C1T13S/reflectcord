@@ -15,10 +15,13 @@ export class ReflectcordGateway {
       });
     }
 
-    this.server.on("upgrade", (req, socket, head) => {
+    this.server.on("upgrade", (request, socket, head) => {
+      console.log("upgrading connection");
+
+      // @ts-ignore
       // eslint-disable-next-line no-shadow
-      this.websocketServer.handleUpgrade(req, socket, head, (socket) => {
-        this.websocketServer.emit("connection", socket, req);
+      this.websocketServer.handleUpgrade(request, socket, head, (socket) => {
+        this.websocketServer.emit("connection", socket, request);
       });
     });
 

@@ -2,16 +2,24 @@ import {
   NextFunction, Router, Response, Request,
 } from "express";
 import { join } from "path";
+import morgan from "morgan";
 import { Server } from "../common/utils/Server";
-import { Authentication, ErrorHandler } from "./middleware";
+import {
+  Authentication, BodyParser, Client, CORS, ErrorHandler,
+} from "./middleware";
 
 export class ReflectcordAPI extends Server {
   async start() {
+    this.app.use(CORS);
+    this.app.use(BodyParser({ inflate: true, limit: "10mb" }));
+
     const { app } = this;
     const api = Router(); // @ts-ignore
     this.app = api;
 
     api.use(Authentication);
+
+    this.registerRoutesDirectory(join(__dirname, "routes"));
 
     api.use("*", (error: any, req: Request, res: Response, next: NextFunction) => {
       if (error) return next(error);
@@ -21,8 +29,6 @@ export class ReflectcordAPI extends Server {
       });
       next();
     });
-
-    this.registerRoutesDirectory(join(__dirname, "routes"));
 
     this.app = app;
 
@@ -34,6 +40,7 @@ export class ReflectcordAPI extends Server {
     this.app.use("/api", api);
 
     this.app.use(ErrorHandler);
+    Client(this.app);
 
     await super.start();
   }

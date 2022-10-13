@@ -5,12 +5,12 @@ dotenv.config();
 
 export const TestingToken = process.env["testToken"];
 
-export function createAPI(token: string) {
+export function createAPI(token?: string) {
   return new API({
     authentication: {
-      revolt: {
+      revolt: token ? {
         token,
-      },
+      } : undefined,
     },
   });
 }
