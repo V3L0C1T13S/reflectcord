@@ -9,8 +9,6 @@ export default (express: Application) => <Resource> {
   post: async (req, res) => {
     const api = createAPI();
 
-    console.log(JSON.stringify(req.body));
-
     const revoltResponse = await api.post("/auth/account/create", {
       email: req.body.email,
       password: req.body.password,

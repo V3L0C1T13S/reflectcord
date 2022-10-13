@@ -18,7 +18,14 @@ export default (express: Application) => <Resource> {
   post: async (req, res: Response<APILoginResponse>) => {
     const api = createAPI(req.token);
 
-    const loginResponse = await loginToRevolt(api, req);
+    const loginResponse = await loginToRevolt(api, req).catch(() => {
+      res.status(500).json({
+        // @ts-ignore
+        code: 500,
+        message: "Revolt failed to login.",
+      });
+    });
+    if (!loginResponse) return;
 
     return res.json(await ResponseLogin.from_quark(loginResponse));
   },
