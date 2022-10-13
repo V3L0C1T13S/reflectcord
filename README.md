@@ -2,7 +2,7 @@
 
 REST and Websocket compatability layer for Discord->Revolt
 
-## TODO
+**TODO:**
 [ ] Websockets
-[ ] CDN
+[ ] CDN (in progress)
 [ ] Voice

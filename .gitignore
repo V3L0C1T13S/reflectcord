@@ -3,3 +3,4 @@
 /.env
 /coverage
 /assets/cache
+/cache
