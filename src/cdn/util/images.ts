@@ -36,15 +36,17 @@ export async function handleImgRequest(
   req: Request,
   res: Response,
   type: ImageType,
+  id?: string,
   autumn?: string,
 ) {
-  const { id } = req.params;
+  if (!id) return res.sendStatus(404);
 
   // Discord adds .png to the end, for some reason.
   const realId = id?.replace(/\.[^/.]+$/, "");
+  console.log(realId);
   if (!realId) return res.sendStatus(500);
 
-  const avatarData = await downloadImage("attachments", realId);
+  const avatarData = await downloadImage(type, realId);
   if (!avatarData) return res.sendStatus(404);
 
   return res.send(await avatarData);
