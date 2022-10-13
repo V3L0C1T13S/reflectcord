@@ -58,7 +58,7 @@ export const UserProfile: QuarkConversion<RevoltUserProfile, APIUserProfile> = {
       content: bio,
       background: banner ? {
         _id: banner,
-        tag: "",
+        tag: "avatars",
         filename: "banner.jpg",
         metadata: {
           type: "Image",

@@ -68,6 +68,7 @@ export const OwnedApplication: QuarkConversion<BotResponse, APIApplication> = {
       ...await Application.from_quark(bot),
       name: username,
       description: user.profile?.content ?? "fixme",
+      icon: user.avatar?._id ?? null,
     };
 
     return app;
