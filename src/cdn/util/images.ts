@@ -19,7 +19,11 @@ if (!existsSync(imageCacheDir)) {
 
 export async function downloadImage(type: ImageType, id: string, autumn = defaultAutumnURL) {
   const rvURL = `${autumn}/${type}/${id}`;
-  const imgDir = join(imageCacheDir, id);
+  const imgTypeCacheDir = join(imageCacheDir, type);
+
+  if (!existsSync(imgTypeCacheDir)) mkdirSync(imgTypeCacheDir);
+
+  const imgDir = join(imgTypeCacheDir, id);
   if (!existsSync(imgDir)) {
     console.log(`Downloading uncached ${type} ${id}`);
     const res = await (await fetch(rvURL)).buffer();
