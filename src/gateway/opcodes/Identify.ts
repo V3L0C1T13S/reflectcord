@@ -20,6 +20,7 @@ export async function onIdentify(this: WebSocket, data: Payload) {
 
   const readyData = {
     v: 8,
+    application: { id: "1" },
     user: { id: "1" },
     guilds: [],
   };
