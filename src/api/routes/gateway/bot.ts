@@ -14,7 +14,6 @@ export interface GatewayBotResponse {
 
 export default (express: Application) => <Resource> {
   get: (req, res: Response<GatewayBotResponse>) => {
-    console.log("Received request for gateway");
     res.json({
       url: "ws://localhost:3002",
       shards: 1,
