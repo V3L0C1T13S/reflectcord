@@ -8,8 +8,8 @@ import { createAPI } from "../../../../common/rvapi";
 async function getProfile(api: API.API, id: string) {
   // why cant it just be /users/@me/profile ???
   if (id === "@me") {
-    const rvUser = await api.get(`/users/${id}`);
-    const rvProfile = await api.get(`/users/${rvUser._id}/profile`) as API.UserProfile;
+    const accountInfo = await api.get("/auth/account/");
+    const rvProfile = await api.get(`/users/${accountInfo._id}/profile`) as API.UserProfile;
 
     return rvProfile;
   }

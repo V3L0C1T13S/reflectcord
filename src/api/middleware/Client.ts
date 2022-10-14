@@ -22,7 +22,7 @@ type CachedFile = {
 
 function applyEnv(html: string): string {
   const CDN_ENDPOINT = "http://localhost:3001";
-  const GATEWAY_ENDPOINT = "http://localhost:3002";
+  const GATEWAY_ENDPOINT = "ws://localhost:3002";
 
   if (CDN_ENDPOINT) {
     html = html.replace(/CDN_HOST: .+/, `CDN_HOST: \`${CDN_ENDPOINT}\`,`);

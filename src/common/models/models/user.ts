@@ -1,4 +1,4 @@
-import { User as RevoltUser, UserProfile as RevoltUserProfile } from "revolt-api";
+import { AccountInfo, User as RevoltUser, UserProfile as RevoltUserProfile } from "revolt-api";
 import { APIUser } from "discord.js";
 import { QuarkConversion } from "../QuarkConversion";
 
@@ -6,6 +6,11 @@ export type APIUserProfile = {
   bio: string | null,
   accent_color: any | null,
   banner: string | null,
+}
+
+export type revoltUserInfo = {
+  user: RevoltUser,
+  authInfo: AccountInfo;
 }
 
 export const User: QuarkConversion<RevoltUser, APIUser> = {
@@ -36,16 +41,14 @@ export const User: QuarkConversion<RevoltUser, APIUser> = {
       bot: !!user.bot,
       banner: user.profile?.background?._id ?? null,
       discriminator: "1",
-      email: null,
       flags: 0,
       id: user._id,
       locale: "en-US",
       mfa_enabled: false,
       username: user.username,
-      premium_type: 0,
       public_flags: 0,
       system: false,
-      verified: false,
+      verified: true, // all accounts on revolt are implicitly verified
     };
   },
 };
@@ -76,6 +79,28 @@ export const UserProfile: QuarkConversion<RevoltUserProfile, APIUserProfile> = {
       bio: profile.content ?? null,
       accent_color: null,
       banner: profile.background?._id ?? null,
+    };
+  },
+};
+
+/**
+ * Same as normal user, but includes additional info such as email.
+ */
+export const selfUser: QuarkConversion<revoltUserInfo, APIUser> = {
+  async to_quark(user) {
+    return {
+      user: await User.to_quark(user),
+      authInfo: {
+        email: user.email ?? "fixme",
+        _id: user.id,
+      },
+    };
+  },
+
+  async from_quark(user) {
+    return {
+      ...await User.from_quark(user.user),
+      email: user.authInfo.email,
     };
   },
 };

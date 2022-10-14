@@ -1,3 +1,4 @@
+import { GatewayOpcodes } from "discord.js";
 import { setHeartbeat } from "../util/Heartbeat";
 import { Send, Payload } from "../util";
 import { WebSocket } from "../Socket";
@@ -7,5 +8,5 @@ export async function onHeartbeat(this: WebSocket, data: Payload) {
 
   setHeartbeat(this);
 
-  await Send(this, { op: 11 });
+  await Send(this, { op: GatewayOpcodes.HeartbeatAck });
 }

@@ -10,13 +10,14 @@ import { Close } from "./Close";
 
 export async function Connection(this: ws.Server, socket: WebSocket, request: IncomingMessage) {
   try {
+    console.log("Hello there");
     // @ts-ignore
     socket.on("close", Close);
 
     // @ts-ignore
     socket.on("message", Message);
 
-    socket.encoding = "json";
+    socket.encoding = "etf";
 
     socket.version = 8;
     if (socket.version !== 8) return socket.close(GatewayCloseCodes.InvalidAPIVersion);

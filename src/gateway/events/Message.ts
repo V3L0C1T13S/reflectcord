@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
-import { unpack } from "erlpack";
 import { GatewayCloseCodes } from "discord.js";
+import erlpack from "erlpack";
 import { Payload } from "../util";
 import { WebSocket } from "../Socket";
 import { OPCodeHandlers } from "../opcodes";
@@ -8,7 +8,7 @@ import { OPCodeHandlers } from "../opcodes";
 export async function Message(this: WebSocket, buffer: Buffer) {
   let data: Payload;
 
-  if (this.encoding === "etf" && buffer instanceof Buffer) data = unpack(buffer);
+  if (this.encoding === "etf" && buffer instanceof Buffer) data = erlpack.unpack(buffer);
   else if (this.encoding === "json") {
     data = JSON.parse(buffer as unknown as string);
   } else {
@@ -16,9 +16,10 @@ export async function Message(this: WebSocket, buffer: Buffer) {
     return;
   }
 
+  // FIXME: This always triggers no matter what, even with correct hb
   if (data.s || data.t || (typeof data.d !== "number" && data.d)) {
     console.log("Invalid heartbeat...");
-    this.close(GatewayCloseCodes.DecodeError);
+    // this.close(GatewayCloseCodes.DecodeError);
   }
 
   const OPCodeHandler = OPCodeHandlers[data.op];

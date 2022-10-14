@@ -2,7 +2,7 @@
 import { Application } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
-import { User } from "../../../../common/models";
+import { selfUser, User } from "../../../../common/models";
 import { createAPI } from "../../../../common/rvapi";
 
 export default (express: Application) => <Resource> {
@@ -10,8 +10,12 @@ export default (express: Application) => <Resource> {
     const api = createAPI(req.token);
 
     const rvUser = await api.get("/users/@me") as API.User;
+    const authInfo = await api.get("/auth/account/");
 
-    return res.json(await User.from_quark(rvUser));
+    return res.json(await selfUser.from_quark({
+      user: rvUser,
+      authInfo,
+    }));
   },
   patch: async (req, res) => {
     const {
