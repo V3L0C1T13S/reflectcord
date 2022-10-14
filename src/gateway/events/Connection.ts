@@ -3,6 +3,7 @@ import { GatewayCloseCodes, GatewayOpcodes } from "discord.js";
 import { IncomingMessage } from "http";
 import ws from "ws";
 import { createDeflate } from "zlib";
+import { Client } from "revolt.js";
 import { Send, setHeartbeat } from "../util";
 import { WebSocket } from "../Socket";
 import { Message } from "./Message";
@@ -34,6 +35,8 @@ export async function Connection(this: ws.Server, socket: WebSocket, request: In
     socket.member_events = {};
     socket.permissions = {};
     socket.sequence = 0;
+
+    socket.rvClient = new Client();
 
     setHeartbeat(socket);
 

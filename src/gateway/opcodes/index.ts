@@ -12,5 +12,5 @@ export const OPCodeHandlers: { [key: number ]: OPCodeHandler } = {
   [GatewayOpcodes.Heartbeat]: onHeartbeat,
   [GatewayOpcodes.Identify]: onIdentify,
   [GatewayOpcodes.Resume]: onResume,
-  // [GatewayOpcodes.PresenceUpdate]: presenceUpdate,
+  [GatewayOpcodes.PresenceUpdate]: presenceUpdate,
 };

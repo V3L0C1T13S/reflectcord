@@ -1,4 +1,5 @@
 /* eslint-disable no-undef */
+import { Client } from "revolt.js";
 import WS from "ws";
 import { Deflate } from "zlib";
 
@@ -19,4 +20,5 @@ export interface WebSocket extends WS {
   events: Record<string, Function>;
   member_events: Record<string, Function>;
   listen_options: any;
+  rvClient: Client;
 }

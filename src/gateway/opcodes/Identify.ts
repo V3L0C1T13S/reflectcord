@@ -18,10 +18,15 @@ export async function onIdentify(this: WebSocket, data: Payload) {
     return this.close(GatewayCloseCodes.AuthenticationFailed);
   }
 
+  await this.rvClient.loginBot(token).catch(() => {
+    console.error("Revolt failed authentication");
+    return this.close(GatewayCloseCodes.AuthenticationFailed);
+  });
+
   const readyData = {
     v: 8,
-    application: { id: "1" },
-    user: { id: "1" },
+    application: { id: this.rvClient.user?._id },
+    user: { id: this.rvClient.user?._id },
     guilds: [],
   };
 
