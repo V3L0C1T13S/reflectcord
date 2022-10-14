@@ -1,10 +1,11 @@
+import { GatewayOpcodes } from "discord.js";
 import { Send, Payload } from "../util";
 import { WebSocket } from "../Socket";
 
 export async function onResume(this: WebSocket, data: Payload) {
-  console.log("FIXME resume unimpl.");
+  // FIXME: Stub
   await Send(this, {
-    op: 9,
+    op: GatewayOpcodes.InvalidSession,
     d: false,
   });
 }

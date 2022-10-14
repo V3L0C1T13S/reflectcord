@@ -17,7 +17,9 @@ export async function Connection(this: ws.Server, socket: WebSocket, request: In
     // @ts-ignore
     socket.on("message", Message);
 
-    socket.encoding = "etf";
+    const { searchParams } = new URL(`http://localhost${request.url}`);
+    // @ts-ignore
+    socket.encoding = searchParams.get("encoding") || "json";
 
     socket.version = 8;
     if (socket.version !== 8) return socket.close(GatewayCloseCodes.InvalidAPIVersion);
