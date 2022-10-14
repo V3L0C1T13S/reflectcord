@@ -21,7 +21,7 @@ type CachedFile = {
 }
 
 function applyEnv(html: string): string {
-  const CDN_ENDPOINT = "http://localhost:3001";
+  const CDN_ENDPOINT = "localhost:3001";
   const GATEWAY_ENDPOINT = "ws://localhost:3002";
 
   if (CDN_ENDPOINT) {

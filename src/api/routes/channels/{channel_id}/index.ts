@@ -13,7 +13,10 @@ export default (express: Application) => <Resource> {
 
     const api = createAPI(req.token);
 
-    const rvChannel = await api.get(`/channels/${channel_id}`) as API.Channel;
+    const rvChannel = await api.get(`/channels/${channel_id}`).catch(() => {
+      res.sendStatus(500);
+    }) as API.Channel;
+    if (!rvChannel) return;
 
     return res.json(await Channel.from_quark(rvChannel));
   },

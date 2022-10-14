@@ -1,6 +1,7 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-plusplus */
 import { GatewayDispatchEvents, GatewayOpcodes } from "discord.js";
+import { API } from "revolt.js";
 import {
   Application,
   Channel, Guild, Message, selfUser, User,
@@ -13,14 +14,29 @@ export async function startListener(this: WebSocket) {
   this.rvClient.on("packet", async (data) => {
     switch (data.type) {
       case "Ready": {
-        const guilds = await Promise.all(data.servers
-          .map((server) => Guild.from_quark(server)));
         const users = await Promise.all(data.users
           .map((user) => User.from_quark(user)));
         const channels = await Promise.all(data.channels
           .map((channel) => Channel.from_quark(channel)));
+        const guilds = await Promise.all(data.servers
+          .map(async (server) => {
+            const rvChannels = server.channels
+              .map((x) => data.channels.find((ch) => x === ch._id))
+              .filter((x) => x !== undefined) as API.Channel[];
+
+            return {
+              ...await Guild.from_quark(server),
+              channels: await Promise.all(rvChannels.map((ch) => Channel.from_quark(ch))),
+            };
+          }));
         const currentUser = data.users.find((x) => x.relationship === "User")!;
-        const currentUserDiscord = await User.from_quark(currentUser);
+        const currentUserDiscord = await selfUser.from_quark({
+          user: currentUser,
+          authInfo: {
+            _id: currentUser._id,
+            email: "fixme@gmail.com",
+          },
+        });
 
         const readyData = {
           v: 8,
@@ -33,13 +49,7 @@ export async function startListener(this: WebSocket) {
           },
           user: currentUserDiscord,
           user_settings: {},
-          guilds: guilds.map((x) => {
-            // @ts-ignore
-            x.hashes = {}; // @ts-ignore
-            x.guild_scheduled_events = []; // @ts-ignore
-            x.threads = [];
-            return x;
-          }),
+          guilds: [],
           guild_experiments: [],
           geo_ordered_rtc_regions: [],
           relationships: [],
@@ -55,10 +65,19 @@ export async function startListener(this: WebSocket) {
           },
           users,
           experiments, // ily fosscord
-          private_channels: channels,
+          private_channels: [],
           session_id: this.rvClient.session,
           friend_suggestion_count: 0,
           guild_join_requests: [],
+          connected_accounts: [],
+          analytics_token: "",
+          consents: {
+            personalization: {
+              consented: false, // never gonna fix this lol
+            },
+          },
+          country_code: "US",
+          merged_members: [],
         };
 
         await Send(this, {

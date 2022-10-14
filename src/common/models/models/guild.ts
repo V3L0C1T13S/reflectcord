@@ -10,6 +10,7 @@ import {
 } from "discord.js";
 import { Server } from "revolt-api";
 import { QuarkConversion } from "../QuarkConversion";
+import { Channel } from "./channel";
 
 export type DiscordPartialGuild = {
   id: string,

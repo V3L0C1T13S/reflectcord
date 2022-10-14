@@ -22,4 +22,5 @@ export interface WebSocket extends WS {
   member_events: Record<string, Function>;
   listen_options: any;
   rvClient: Client;
+  rvAPI: API;
 }

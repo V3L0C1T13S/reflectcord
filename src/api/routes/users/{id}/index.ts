@@ -12,7 +12,10 @@ export default (express: Application) => <Resource> {
 
     const api = createAPI(req.token);
 
-    const rvUser = await api.get(`/users/${id}`) as API.User;
+    const rvUser = await api.get(`/users/${id}`).catch(() => {
+      res.sendStatus(500);
+    }) as API.User;
+    if (!rvUser) return;
 
     return res.json(await User.from_quark(rvUser));
   },

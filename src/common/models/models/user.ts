@@ -1,5 +1,5 @@
 import { AccountInfo, User as RevoltUser, UserProfile as RevoltUserProfile } from "revolt-api";
-import { APIUser } from "discord.js";
+import { ActivityType, APIUser, PresenceData } from "discord.js";
 import { QuarkConversion } from "../QuarkConversion";
 
 export type APIUserProfile = {
@@ -102,5 +102,64 @@ export const selfUser: QuarkConversion<revoltUserInfo, APIUser> = {
       ...await User.from_quark(user.user),
       email: user.authInfo.email,
     };
+  },
+};
+
+export const Status: QuarkConversion<RevoltUser["status"], PresenceData> = {
+  async to_quark(status) {
+    return {
+      presence: (() => {
+        switch (status.status) {
+          case "online": {
+            return "Online";
+          }
+          case "idle": {
+            return "Idle";
+          }
+          case "dnd": {
+            return "Busy";
+          }
+          case "invisible": {
+            return "Invisible";
+          }
+          default: {
+            return null;
+          }
+        }
+      })(),
+    };
+  },
+
+  async from_quark(status) {
+    const discordStatus: PresenceData = {
+      status: (() => {
+        switch (status?.presence) {
+          case "Online": {
+            return "online";
+          }
+          case "Idle": {
+            return "idle";
+          }
+          case "Busy": {
+            return "dnd";
+          }
+          case "Invisible": {
+            return "invisible";
+          }
+          case "Focus": {
+            return "dnd";
+          }
+          default: {
+            throw new Error(`Unhandled status ${status?.presence}`);
+          }
+        }
+      })(),
+      activities: [{
+        name: status.text ?? "fixme", // @ts-ignore
+        type: ActivityType.Custom,
+      }],
+    };
+
+    return discordStatus;
   },
 };
