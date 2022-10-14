@@ -6,14 +6,12 @@ import { createDeflate } from "zlib";
 import { Send, setHeartbeat } from "../util";
 import { WebSocket } from "../Socket";
 import { Message } from "./Message";
+import { Close } from "./Close";
 
 export async function Connection(this: ws.Server, socket: WebSocket, request: IncomingMessage) {
   try {
-    console.log("someones here");
-
-    socket.on("close", () => {
-      console.log("closed");
-    });
+    // @ts-ignore
+    socket.on("close", Close);
 
     // @ts-ignore
     socket.on("message", Message);
@@ -24,7 +22,7 @@ export async function Connection(this: ws.Server, socket: WebSocket, request: In
     if (socket.version !== 8) return socket.close(GatewayCloseCodes.InvalidAPIVersion);
 
     // @ts-ignore
-    socket.compress = "";
+    socket.compress = "zlib-stream";
     if (socket.compress) {
       if (socket.compress !== "zlib-stream") return socket.close(GatewayCloseCodes.DecodeError);
       socket.deflate = createDeflate({ chunkSize: 65535 });

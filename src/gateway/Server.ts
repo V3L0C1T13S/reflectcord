@@ -16,8 +16,6 @@ export class ReflectcordGateway {
     }
 
     this.server.on("upgrade", (request, socket, head) => {
-      console.log("upgrading connection");
-
       // eslint-disable-next-line no-shadow
       this.websocketServer.handleUpgrade(request, socket, head, (socket) => {
         this.websocketServer.emit("connection", socket, request);
