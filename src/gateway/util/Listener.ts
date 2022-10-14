@@ -1,6 +1,6 @@
 /* eslint-disable no-plusplus */
 import { GatewayDispatchEvents, GatewayOpcodes } from "discord.js";
-import { Channel, Message } from "../../common/models";
+import { Channel, Guild, Message } from "../../common/models";
 import { WebSocket } from "../Socket";
 import { Send } from "./send";
 
@@ -19,16 +19,23 @@ export async function startListener(this: WebSocket) {
             guild_id: channel?.server_id,
           },
         });
-        console.log("sent message create");
         break;
       }
       case "ChannelCreate": {
-        const discordChannel = await Channel.from_quark(data);
         await Send(this, {
           op: GatewayOpcodes.Dispatch,
           t: GatewayDispatchEvents.ChannelCreate,
           s: this.sequence++,
-          d: discordChannel,
+          d: await Channel.from_quark(data),
+        });
+        break;
+      }
+      case "ServerCreate": {
+        await Send(this, {
+          op: GatewayOpcodes.Dispatch,
+          t: GatewayDispatchEvents.GuildCreate,
+          s: this.sequence++,
+          d: await Guild.from_quark(data.server),
         });
         break;
       }
