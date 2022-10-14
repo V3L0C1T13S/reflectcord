@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { GatewayCloseCodes } from "discord.js";
+import { GatewayCloseCodes, GatewayOpcodes } from "discord.js";
 import erlpack from "erlpack";
 import { Payload } from "../util";
 import { WebSocket } from "../Socket";
@@ -16,10 +16,11 @@ export async function Message(this: WebSocket, buffer: Buffer) {
     return;
   }
 
-  // FIXME: This always triggers no matter what, even with correct hb
-  if (data.s || data.t || (typeof data.d !== "number" && data.d)) {
+  if (data.op !== GatewayOpcodes.Heartbeat) {
+    // FIXME: Implement validation here
+  } else if (data.s || data.t || (typeof data.d !== "number" && data.d)) {
     console.log("Invalid heartbeat...");
-    // this.close(GatewayCloseCodes.DecodeError);
+    this.close(GatewayCloseCodes.DecodeError);
   }
 
   const OPCodeHandler = OPCodeHandlers[data.op];

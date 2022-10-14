@@ -1,4 +1,4 @@
-import { Payload } from "../util";
+import { Payload, Send } from "../util";
 import { WebSocket } from "../Socket";
 
 export async function presenceUpdate(this: WebSocket, data: Payload) {

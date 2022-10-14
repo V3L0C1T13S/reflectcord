@@ -1,4 +1,5 @@
 /* eslint-disable no-undef */
+import { API } from "revolt-api";
 import { Client } from "revolt.js";
 import WS from "ws";
 import { Deflate } from "zlib";

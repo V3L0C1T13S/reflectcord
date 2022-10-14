@@ -11,7 +11,6 @@ import { Close } from "./Close";
 
 export async function Connection(this: ws.Server, socket: WebSocket, request: IncomingMessage) {
   try {
-    console.log("Hello there");
     // @ts-ignore
     socket.on("close", Close);
 
