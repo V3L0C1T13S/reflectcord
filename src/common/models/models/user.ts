@@ -102,6 +102,7 @@ export const selfUser: QuarkConversion<revoltUserInfo, APIUser> = {
     return {
       ...await User.from_quark(user.user),
       email: user.authInfo.email,
+      phone_number: null,
     };
   },
 };

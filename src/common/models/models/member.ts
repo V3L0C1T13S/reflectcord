@@ -27,9 +27,10 @@ export const Member: QuarkConversion<RevoltMember, APIGuildMember> = {
       id: _id.user,
       joined_at,
       communication_disabled_until: timeout ?? null,
-      roles: [],
+      roles: member.roles ?? [],
       deaf: false,
       mute: false,
+      nick: nickname ?? null,
     };
   },
 };

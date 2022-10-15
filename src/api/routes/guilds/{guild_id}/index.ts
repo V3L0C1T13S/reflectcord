@@ -19,4 +19,8 @@ export default (express: Application) => <Resource> {
 
     return res.json(await Guild.from_quark(server));
   },
+  delete: (req, res) => {
+    // Don't implement. This is VERY dangerous ATM.
+    res.sendStatus(500);
+  },
 };
