@@ -14,8 +14,8 @@
   },
   "nodemonConfig": {
     "ignore": [
-      "./assets/*",
-      "./cache/*"
+      "./assets/**/*",
+      "./cache/**/*"
     ]
   },
   "dependencies": {

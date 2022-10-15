@@ -27,12 +27,24 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
       id: _id,
       channel_id: channel,
       content: content ?? "fixme",
-      author: {
-        username: "fixme",
-        id: author,
-        discriminator: "1",
-        avatar: null,
-      },
+      author: (() => {
+        if (message.system) {
+          if (message.system.type === "user_added" || message.system.type === "user_remove") {
+            return {
+              id: message.system.by,
+              username: "fixme",
+              discriminator: "1",
+              avatar: null,
+            };
+          }
+        }
+        return {
+          id: message.author,
+          username: "fixme",
+          discriminator: "1",
+          avatar: null,
+        };
+      })(),
       timestamp: decodeTime(_id).toString(),
       edited_timestamp: null,
       tts: false,

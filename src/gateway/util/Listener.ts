@@ -4,7 +4,7 @@ import { GatewayDispatchEvents, GatewayOpcodes } from "discord.js";
 import { API, Channel as rvChannel } from "revolt.js";
 import {
   Application,
-  Channel, Guild, Message, selfUser, User,
+  Channel, Guild, Member, Message, selfUser, User,
 } from "../../common/models";
 import { WebSocket } from "../Socket";
 import { Send } from "./send";
@@ -37,6 +37,7 @@ export async function startListener(this: WebSocket) {
               channels: await Promise.all(rvChannels.map((ch) => Channel.from_quark(ch))),
             };
           }));
+
         const currentUser = data.users.find((x) => x.relationship === "User")!;
         const currentUserDiscord = await selfUser.from_quark({
           user: currentUser,
@@ -45,6 +46,10 @@ export async function startListener(this: WebSocket) {
             email: "fixme@gmail.com",
           },
         });
+
+        const relationships = await Promise.all(data.users
+          .filter((u) => u.relationship === "Friend")
+          .map((u) => User.from_quark(u)));
 
         const readyData = {
           v: 8,
@@ -60,7 +65,12 @@ export async function startListener(this: WebSocket) {
           guilds,
           guild_experiments: [],
           geo_ordered_rtc_regions: [],
-          relationships: [],
+          relationships: relationships.map((x) => ({
+            id: x.id,
+            type: 0,
+            nickname: x.username,
+            user: x,
+          })),
           read_state: {
             entries: [],
             partial: false,
@@ -98,6 +108,9 @@ export async function startListener(this: WebSocket) {
         break;
       }
       case "Message": {
+        // We don't want to send Discord system stuff, since they dont have IDs
+        if (data.system) return;
+
         const discordMsg = await Message.from_quark(data);
         const channel = await this.rvClient.channels.get(data.channel);
         await Send(this, {
@@ -140,6 +153,10 @@ export async function startListener(this: WebSocket) {
           s: this.sequence++,
           d: await Guild.from_quark(data.server),
         });
+        break;
+      }
+      case "ChannelStopTyping": {
+        // Discord wont handle this no matter what
         break;
       }
       default: {

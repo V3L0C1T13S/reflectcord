@@ -33,6 +33,24 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
           last_message_id: channel.last_message_id ?? null,
         };
       }
+      case ChannelType.GroupDM: {
+        return {
+          channel_type: "Group",
+          _id: id,
+          active: true,
+          owner: channel.owner_id ?? "fixme",
+          name: channel.name ?? "fixme",
+          recipients: channel.recipients?.map((u) => u.id) ?? [],
+        };
+      }
+      case ChannelType.GuildVoice: {
+        return {
+          channel_type: "VoiceChannel",
+          _id: id,
+          server: channel.guild_id ?? "0",
+          name: channel.name ?? "fixme",
+        };
+      }
       default: {
         throw new Error(`Unhandled channel type ${type}`);
       }
@@ -41,17 +59,28 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
 
   async from_quark(channel) {
     return {
-      application_id: undefined,
+      // application_id: undefined,
       applied_tags: [] as string[],
+      available_tags: [],
+      default_reaction_emoji: null,
+      default_sort_order: null,
       bitrate: undefined,
-      default_auto_archive_duration: undefined,
       guild_id: (() => {
         if (channel.channel_type === "TextChannel" || channel.channel_type === "VoiceChannel") {
           return channel.server;
         }
-        return undefined;
+        return undefined as any;
       })(),
-      icon: undefined,
+      icon: (() => {
+        switch (channel.channel_type) {
+          case "Group": {
+            return channel.icon?._id;
+          }
+          default: {
+            return null;
+          }
+        }
+      })(),
       id: channel._id,
       invitable: undefined,
       type: ((): any => {
@@ -98,6 +127,19 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
         }
 
         return channel.name;
+      })(),
+      recipients: (() => {
+        switch (channel.channel_type) {
+          case "DirectMessage": {
+            return channel.recipients;
+          }
+          case "Group": {
+            return channel.recipients;
+          }
+          default: {
+            return [];
+          }
+        }
       })(),
     };
   },

@@ -1,7 +1,6 @@
 /* eslint-disable no-multi-assign */
 import { NextFunction, Request, Response } from "express";
-import { ApiError } from "../../common/utils/APIError";
-import { HTTPError } from "../../common/utils/HTTPError";
+import { ApiError, HTTPError, FieldError } from "../../common/utils";
 
 const EntityNotFoundErrorRegex = /"(\w+)"/;
 
@@ -12,7 +11,7 @@ export function ErrorHandler(error: Error, req: Request, res: Response, next: Ne
     let code = 400;
     let httpcode = code;
     let message = error?.toString();
-    const errors = undefined;
+    let errors;
 
     // eslint-disable-next-line no-multi-assign
     if (error instanceof HTTPError && error.code) code = httpcode = error.code;
@@ -23,6 +22,10 @@ export function ErrorHandler(error: Error, req: Request, res: Response, next: Ne
     } else if (error.name === "EntityNotFoundError") {
       message = `${error.message.match(EntityNotFoundErrorRegex)?.[1] || "Item"} could not be found`;
       code = httpcode = 404;
+    } else if (error instanceof FieldError) {
+      code = Number(error.code);
+      message = error.message;
+      errors = error.errors;
     } else {
       console.error(`[Error] ${code} ${req.url}\n`, errors || error, "\nbody:", req.body);
 

@@ -2,11 +2,11 @@ import {
   NextFunction, Router, Response, Request,
 } from "express";
 import { join } from "path";
-import morgan from "morgan";
 import { Server } from "../common/utils/Server";
 import {
   Authentication, BodyParser, Client, CORS, ErrorHandler,
 } from "./middleware";
+import "express-async-errors";
 
 export class ReflectcordAPI extends Server {
   async start() {

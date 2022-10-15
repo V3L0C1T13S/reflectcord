@@ -1,4 +1,5 @@
 /* eslint-disable camelcase */
+import { VoiceStateSchema } from "../../common/sparkle";
 import { WebSocket } from "../Socket";
 import { Payload } from "../util";
 

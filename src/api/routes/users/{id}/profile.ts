@@ -2,6 +2,7 @@
 import { Application } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
+import { HTTPError } from "../../../../common/utils";
 import { fetchUser } from ".";
 import { UserProfile } from "../../../../common/models";
 
@@ -28,13 +29,9 @@ export default (express: Application) => <Resource> {
 
     const api = res.rvAPI;
 
-    const user = await fetchUser(api, id).catch(() => {
-      res.sendStatus(500);
-    });
-    const rvProfile = await getProfile(api, id).catch(() => {
-      res.sendStatus(500);
-    });
-    if (!rvProfile) return;
+    const user = await fetchUser(api, id);
+    const rvProfile = await getProfile(api, id);
+    if (!rvProfile || !user) throw new HTTPError("User not found", 422);
 
     return res.json({
       connected_accounts: [],

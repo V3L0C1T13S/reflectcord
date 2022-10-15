@@ -1,6 +1,7 @@
 import { Application } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
+import { HTTPError } from "../../../../common/utils";
 import { User } from "../../../../common/models";
 
 export async function fetchUser(api: API.API, id: string) {
@@ -13,7 +14,7 @@ export default (express: Application) => <Resource> {
   get: async (req, res) => {
     const { id } = req.params;
 
-    if (!id) return res.sendStatus(422);
+    if (!id) throw new HTTPError("ID not supplied", 422);
 
     const rvUser = await fetchUser(res.rvAPI, id).catch(() => {
       res.sendStatus(500);
