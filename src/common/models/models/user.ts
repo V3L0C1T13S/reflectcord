@@ -49,6 +49,7 @@ export const User: QuarkConversion<RevoltUser, APIUser> = {
       public_flags: 0,
       system: false,
       verified: true, // all accounts on revolt are implicitly verified
+      premium_type: 2, // unlocks all nitro features
     };
   },
 };

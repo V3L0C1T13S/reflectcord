@@ -25,14 +25,14 @@ export const Application: QuarkConversion<Bot, APIApplication> = {
     } = bot;
     return {
       id: _id,
-      description: "fixme",
+      description: "",
       bot_public: bot.public,
       verify_key: "fixme",
       flags: 0,
       name: "fixme",
       icon: null,
       bot_require_code_grant: false,
-      summary: "fixme",
+      summary: "",
       team: null,
       owner: {
         id: owner,
@@ -67,8 +67,9 @@ export const OwnedApplication: QuarkConversion<BotResponse, APIApplication> = {
     const app: APIApplication = {
       ...await Application.from_quark(bot),
       name: username,
-      description: user.profile?.content ?? "fixme",
+      description: user.profile?.content ?? "",
       icon: user.avatar?._id ?? null,
+      summary: user.profile?.content ?? "",
     };
 
     return app;

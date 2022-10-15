@@ -2,7 +2,6 @@
 import { Application } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
-import { createAPI } from "../../../../common/rvapi";
 import { Guild } from "../../../../common/models";
 
 export default (express: Application) => <Resource> {
@@ -11,7 +10,7 @@ export default (express: Application) => <Resource> {
 
     if (!guild_id) return res.sendStatus(504);
 
-    const api = createAPI(req.token);
+    const api = res.rvAPI;
 
     const server = await api.get(`/servers/${guild_id}`).catch(() => {
       res.sendStatus(500);

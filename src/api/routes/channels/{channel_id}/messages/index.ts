@@ -3,15 +3,12 @@ import { Application } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
 import { Message } from "../../../../../common/models";
-import { createAPI } from "../../../../../common/rvapi";
 
 export default (express: Application) => <Resource> {
   get: async (req, res) => {
     const { channel_id } = req.params;
 
-    const api = createAPI(req.token);
-
-    const msgs = await api.get(`/channels/${channel_id}/messages`)
+    const msgs = await res.rvAPI.get(`/channels/${channel_id}/messages`)
       .catch(() => {
         res.sendStatus(500);
       }) as any;
@@ -23,9 +20,7 @@ export default (express: Application) => <Resource> {
     const { channel_id } = req.params;
     const { content } = JSON.parse(req.body.payload_json);
 
-    const api = createAPI(req.token);
-
-    const revoltResponse = await api.post(`/channels/${channel_id}/messages`, {
+    const revoltResponse = await res.rvAPI.post(`/channels/${channel_id}/messages`, {
       content,
     }).catch(() => {
       res.sendStatus(500);

@@ -111,6 +111,19 @@ export async function startListener(this: WebSocket) {
         });
         break;
       }
+      case "ChannelStartTyping": {
+        await Send(this, {
+          op: GatewayOpcodes.Dispatch,
+          t: GatewayDispatchEvents.TypingStart,
+          s: this.sequence++,
+          d: {
+            channel_id: data.id,
+            user_id: data.user,
+            timestamp: Date.now().toString(),
+          },
+        });
+        break;
+      }
       case "ChannelCreate": {
         await Send(this, {
           op: GatewayOpcodes.Dispatch,

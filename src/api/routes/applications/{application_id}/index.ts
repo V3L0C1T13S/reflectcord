@@ -4,25 +4,30 @@ import { Application, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
 import { Application as botApplication, OwnedApplication } from "../../../../common/models";
-import { createAPI } from "../../../../common/rvapi";
 
 export default (express: Application) => <Resource> {
   get: async (req, res: Response<APIApplication>) => {
     const { application_id } = req.params;
 
-    const api = createAPI(req.token);
+    const bot = await res.rvAPI.get(`/bots/${application_id}`).catch(() => {}) as API.BotResponse;
+    const profileInfo = await res.rvAPI.get(`/users/${bot.user._id}/profile`).catch(() => {}) as API.UserProfile;
+    if (!bot || !profileInfo) return res.sendStatus(500);
 
-    const bot = await api.get(`/bots/${application_id}`) as API.BotResponse;
-
-    return res.json(await OwnedApplication.from_quark(bot));
+    return res.json(await OwnedApplication.from_quark({
+      bot: bot.bot,
+      user: {
+        ...bot.user,
+        profile: {
+          content: profileInfo.content ?? null,
+        },
+      },
+    }));
   },
   patch: async (req, res) => {
     const { application_id } = req.params;
     if (!application_id) return;
 
-    const api = createAPI(req.token);
-
-    const revoltRes = await api.patch(`/bots/${application_id}`, {
+    const revoltRes = await res.rvAPI.patch(`/bots/${application_id}`, {
       description: req.body.description,
     }).catch(() => {
       res.sendStatus(500);

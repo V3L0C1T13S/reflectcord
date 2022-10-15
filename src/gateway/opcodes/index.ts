@@ -14,5 +14,5 @@ export const OPCodeHandlers: { [key: number ]: OPCodeHandler } = {
   [GatewayOpcodes.Identify]: onIdentify,
   [GatewayOpcodes.PresenceUpdate]: presenceUpdate,
   [GatewayOpcodes.Resume]: onResume,
-  14: lazyReq,
+  // 14: lazyReq,
 };

@@ -1,4 +1,6 @@
 import { NextFunction, Request, Response } from "express";
+import { API } from "revolt.js";
+import { createAPI } from "../../common/rvapi";
 import { HTTPError } from "../../common/utils/HTTPError";
 
 export const NoAuthRoutes = [
@@ -39,11 +41,17 @@ declare global {
             token: string;
             // rights: Rights;
         }
+        // eslint-disable-next-line no-shadow
+        interface Response {
+          rvAPI: API.API;
+        }
     }
 }
 
 export async function Authentication(req: Request, res: Response, next: NextFunction) {
   if (req.method === "OPTIONS") return res.sendStatus(204);
+
+  res.rvAPI = createAPI();
 
   const url = req.url.replace(API_PREFIX, "");
   if (url.startsWith("/invites") && req.method === "GET") return next();
@@ -58,6 +66,7 @@ export async function Authentication(req: Request, res: Response, next: NextFunc
 
   try {
     req.token = req.headers.authorization;
+    res.rvAPI = createAPI(req.token);
 
     return next();
   } catch (error: any) {

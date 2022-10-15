@@ -2,8 +2,8 @@
 import { Application } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
+import { fetchUser } from ".";
 import { UserProfile } from "../../../../common/models";
-import { createAPI } from "../../../../common/rvapi";
 
 async function getProfile(api: API.API, id: string) {
   // why cant it just be /users/@me/profile ???
@@ -24,13 +24,22 @@ export default (express: Application) => <Resource> {
     const { guild_id, with_mutuals } = req.query;
     const { id } = req.params;
 
-    if (!id) return res.sendStatus(504);
+    if (!id) return res.sendStatus(422);
 
-    const api = createAPI(req.token);
+    const api = res.rvAPI;
 
-    const rvProfile = await getProfile(api, id);
-    if (!rvProfile) return res.sendStatus(500);
+    const user = await fetchUser(api, id).catch(() => {
+      res.sendStatus(500);
+    });
+    const rvProfile = await getProfile(api, id).catch(() => {
+      res.sendStatus(500);
+    });
+    if (!rvProfile) return;
 
-    return res.json(await UserProfile.from_quark(rvProfile));
+    return res.json({
+      connected_accounts: [],
+      user,
+      user_profile: await UserProfile.from_quark(rvProfile),
+    });
   },
 };

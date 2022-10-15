@@ -9,11 +9,9 @@ export default (express: Application) => <Resource> {
   get: async (req, res) => {
     const { channel_id } = req.params;
 
-    if (!channel_id) return res.sendStatus(504);
+    if (!channel_id) return res.sendStatus(422);
 
-    const api = createAPI(req.token);
-
-    const rvChannel = await api.get(`/channels/${channel_id}`).catch(() => {
+    const rvChannel = await res.rvAPI.get(`/channels/${channel_id}`).catch(() => {
       res.sendStatus(500);
     }) as API.Channel;
     if (!rvChannel) return;
