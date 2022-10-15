@@ -3,6 +3,7 @@ import { WebSocket } from "../Socket";
 import { Payload } from "../util";
 import { onHeartbeat } from "./Heartbeat";
 import { onIdentify } from "./Identify";
+import { lazyReq } from "./lazyReq";
 import { presenceUpdate } from "./PresenceUpdate";
 import { onResume } from "./Resume";
 
@@ -13,4 +14,5 @@ export const OPCodeHandlers: { [key: number ]: OPCodeHandler } = {
   [GatewayOpcodes.Identify]: onIdentify,
   [GatewayOpcodes.PresenceUpdate]: presenceUpdate,
   [GatewayOpcodes.Resume]: onResume,
+  14: lazyReq,
 };

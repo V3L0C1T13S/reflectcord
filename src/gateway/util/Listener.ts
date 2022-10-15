@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-plusplus */
 import { GatewayDispatchEvents, GatewayOpcodes } from "discord.js";
-import { API } from "revolt.js";
+import { API, Channel as rvChannel } from "revolt.js";
 import {
   Application,
   Channel, Guild, Message, selfUser, User,
@@ -20,9 +20,17 @@ export async function startListener(this: WebSocket) {
           .map((channel) => Channel.from_quark(channel)));
         const guilds = await Promise.all(data.servers
           .map(async (server) => {
-            const rvChannels = server.channels
-              .map((x) => data.channels.find((ch) => x === ch._id))
-              .filter((x) => x !== undefined) as API.Channel[];
+            const rvChannels: API.Channel[] = server.channels
+              .map((x) => {
+                const ch = this.rvClient.channels.get(x)!;
+
+                return {
+                  _id: x,
+                  name: ch?.name ?? "fixme",
+                  channel_type: "TextChannel",
+                  server: ch?.server?._id ?? "fixme",
+                };
+              });
 
             return {
               ...await Guild.from_quark(server),
@@ -49,7 +57,7 @@ export async function startListener(this: WebSocket) {
           },
           user: currentUserDiscord,
           user_settings: {},
-          guilds: [],
+          guilds,
           guild_experiments: [],
           geo_ordered_rtc_regions: [],
           relationships: [],

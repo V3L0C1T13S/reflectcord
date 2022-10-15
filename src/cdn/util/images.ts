@@ -5,7 +5,7 @@ import {
 } from "fs";
 import { Request, Response } from "express";
 
-export type ImageType = "attachments" | "avatars"
+export type ImageType = "attachments" | "avatars" | "icons";
 
 export const imageCacheDir = join(__dirname, "../../../cache/autumn");
 

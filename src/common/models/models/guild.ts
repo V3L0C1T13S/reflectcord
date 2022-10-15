@@ -88,6 +88,7 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
       icon_hash: icon?._id ?? null,
       icon: icon?._id ?? null,
       splash: null,
+      guild_scheduled_events: [],
     };
   },
 };

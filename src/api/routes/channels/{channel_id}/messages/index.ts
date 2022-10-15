@@ -17,8 +17,7 @@ export default (express: Application) => <Resource> {
       }) as any;
     if (!msgs) return;
 
-    return res.json(await Promise.all(msgs.messages
-      .map((msg: any) => Message.from_quark(msg))));
+    return res.json([]);
   },
   post: async (req, res) => {
     const { channel_id } = req.params;
