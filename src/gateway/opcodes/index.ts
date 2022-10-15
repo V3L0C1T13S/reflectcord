@@ -6,6 +6,7 @@ import { onIdentify } from "./Identify";
 import { lazyReq } from "./lazyReq";
 import { presenceUpdate } from "./PresenceUpdate";
 import { onResume } from "./Resume";
+import { VSUpdate } from "./VS";
 
 export type OPCodeHandler = (this: WebSocket, data: Payload) => any;
 
@@ -14,5 +15,6 @@ export const OPCodeHandlers: { [key: number ]: OPCodeHandler } = {
   [GatewayOpcodes.Identify]: onIdentify,
   [GatewayOpcodes.PresenceUpdate]: presenceUpdate,
   [GatewayOpcodes.Resume]: onResume,
+  [GatewayOpcodes.VoiceStateUpdate]: VSUpdate,
   // 14: lazyReq,
 };

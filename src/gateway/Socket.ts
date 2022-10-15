@@ -23,4 +23,9 @@ export interface WebSocket extends WS {
   listen_options: any;
   rvClient: Client;
   rvAPI: API;
+  voiceInfo: {
+    self_deaf: boolean,
+    self_mute: boolean,
+    self_video: boolean,
+  }
 }
