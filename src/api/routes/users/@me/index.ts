@@ -2,22 +2,24 @@
 import { Application } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
+import { HTTPError } from "../../../../common/utils";
 import { selfUser, User } from "../../../../common/models";
-import { createAPI } from "../../../../common/rvapi";
+
+export async function getSelfUser(api: API.API) {
+  const rvUser = await api.get("/users/@me") as API.User;
+  const mfaInfo = await api.get("/auth/mfa/");
+  const authInfo = await api.get("/auth/account/");
+  if (!rvUser || !authInfo) throw new HTTPError("User info is not defined");
+
+  return selfUser.from_quark({
+    user: rvUser,
+    authInfo,
+    mfaInfo,
+  });
+}
 
 export default (express: Application) => <Resource> {
-  get: async (req, res) => {
-    const api = res.rvAPI;
-
-    const rvUser = await api.get("/users/@me").catch(() => {}) as API.User;
-    const authInfo = await api.get("/auth/account/").catch(() => {});
-    if (!rvUser || !authInfo) return res.sendStatus(500);
-
-    return res.json(await selfUser.from_quark({
-      user: rvUser,
-      authInfo,
-    }));
-  },
+  get: async (req, res) => res.json(await getSelfUser(res.rvAPI)),
   patch: async (req, res) => {
     const {
       username, email, password, new_password,

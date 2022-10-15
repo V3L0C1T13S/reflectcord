@@ -39,12 +39,14 @@ export async function startListener(this: WebSocket) {
           }));
 
         const currentUser = data.users.find((x) => x.relationship === "User")!;
+        const mfaInfo = await this.rvAPI.get("/auth/mfa/");
         const currentUserDiscord = await selfUser.from_quark({
           user: currentUser,
           authInfo: {
             _id: currentUser._id,
             email: "fixme@gmail.com",
           },
+          mfaInfo,
         });
 
         const relationships = await Promise.all(data.users

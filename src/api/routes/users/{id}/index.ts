@@ -16,10 +16,8 @@ export default (express: Application) => <Resource> {
 
     if (!id) throw new HTTPError("ID not supplied", 422);
 
-    const rvUser = await fetchUser(res.rvAPI, id).catch(() => {
-      res.sendStatus(500);
-    });
-    if (!rvUser) return;
+    const rvUser = await fetchUser(res.rvAPI, id);
+    if (!rvUser) throw new HTTPError("User not found", 500);
 
     return res.json(rvUser);
   },

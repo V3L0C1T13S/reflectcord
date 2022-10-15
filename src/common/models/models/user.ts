@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import { AccountInfo, User as RevoltUser, UserProfile as RevoltUserProfile } from "revolt-api";
 import { ActivityType, APIUser, PresenceData } from "discord.js";
 import { QuarkConversion } from "../QuarkConversion";
@@ -8,9 +9,19 @@ export type APIUserProfile = {
   banner: string | null,
 }
 
+export type MFAInfo = {
+  email_otp: boolean;
+  trusted_handover: boolean;
+  email_mfa: boolean;
+  totp_mfa: boolean;
+  security_key_mfa: boolean;
+  recovery_active: boolean
+}
+
 export type revoltUserInfo = {
   user: RevoltUser,
   authInfo: AccountInfo;
+  mfaInfo: MFAInfo;
 }
 
 export const User: QuarkConversion<RevoltUser, APIUser> = {
@@ -89,20 +100,33 @@ export const UserProfile: QuarkConversion<RevoltUserProfile, APIUserProfile> = {
  */
 export const selfUser: QuarkConversion<revoltUserInfo, APIUser> = {
   async to_quark(user) {
+    const mfa_enabled = user.mfa_enabled ?? false;
     return {
       user: await User.to_quark(user),
       authInfo: {
         email: user.email ?? "fixme",
         _id: user.id,
       },
+      mfaInfo: {
+        email_mfa: mfa_enabled,
+        email_otp: mfa_enabled,
+        trusted_handover: mfa_enabled,
+        totp_mfa: mfa_enabled,
+        security_key_mfa: mfa_enabled,
+        recovery_active: mfa_enabled,
+      },
     };
   },
 
   async from_quark(user) {
+    console.log(JSON.stringify(user.mfaInfo));
+    const mfa_enabled = Object.values(user.mfaInfo).some((v) => true);
+    console.log(mfa_enabled);
+
     return {
       ...await User.from_quark(user.user),
       email: user.authInfo.email,
-      phone_number: null,
+      mfa_enabled,
     };
   },
 };
