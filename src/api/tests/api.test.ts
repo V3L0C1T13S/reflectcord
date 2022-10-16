@@ -90,6 +90,27 @@ describe("api post requests", () => {
       content: "Hello World!",
     });
   });
+
+  describe("misc requests", () => {
+    test("track via science", async () => {
+      const res = await postToAPI("science", {
+        events: [{
+          properties: {
+            client_send_timestamp: Date.now(),
+            client_track_timestamp: Date.now(),
+            client_uuid: "AAAAAAAAAAA0PJAiaVet34MBAAAAAAAA",
+            has_session: true,
+            page_name: "applications",
+            previous_link_location: null,
+            previous_page_name: null,
+          },
+          type: "test_case",
+        }],
+      });
+
+      expect(res.status === 204);
+    });
+  });
 });
 
 describe("reflectcord get requests", () => {
