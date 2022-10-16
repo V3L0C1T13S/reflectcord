@@ -2,11 +2,9 @@
 /* eslint-disable no-plusplus */
 import { GatewayDispatchEvents, GatewayOpcodes } from "discord.js";
 import { API, Channel as rvChannel } from "revolt.js";
-import { TokenManager } from "../../common/utils";
 import { createAPI } from "../../common/rvapi";
 import {
-  Application,
-  Channel, Guild, Member, Message, selfUser, User,
+  Channel, Guild, Message, selfUser, User,
 } from "../../common/models";
 import { WebSocket } from "../Socket";
 import { Send } from "./send";
@@ -16,6 +14,15 @@ export async function startListener(this: WebSocket, token: string) {
   this.rvClient.on("packet", async (data) => {
     switch (data.type) {
       case "Ready": {
+        const currentUser = data.users.find((x) => x.relationship === "User")!;
+        if (currentUser.bot) {
+          this.rvAPI = createAPI(token);
+        } else {
+          this.rvAPI = createAPI({
+            token,
+          });
+        }
+
         const users = await Promise.all(data.users
           .map((user) => User.from_quark(user)));
         const channels = await Promise.all(data.channels
@@ -40,24 +47,16 @@ export async function startListener(this: WebSocket, token: string) {
             };
           }));
 
-        const currentUser = data.users.find((x) => x.relationship === "User")!;
         const mfaInfo = !currentUser.bot ? await this.rvAPI.get("/auth/mfa/") : null;
+        const authInfo = !currentUser.bot ? await this.rvAPI.get("/auth/account/") : null;
         const currentUserDiscord = await selfUser.from_quark({
           user: currentUser,
-          authInfo: {
+          authInfo: authInfo ?? {
             _id: currentUser._id,
             email: "fixme@gmail.com",
           },
           mfaInfo,
         });
-
-        if (currentUser.bot) {
-          this.rvAPI = createAPI(token);
-        } else {
-          this.rvAPI = createAPI({
-            token,
-          });
-        }
 
         const relationships = await Promise.all(data.users
           .filter((u) => u.relationship === "Friend")

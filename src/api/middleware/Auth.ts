@@ -71,7 +71,7 @@ export async function Authentication(req: Request, res: Response, next: NextFunc
     if (req.token.startsWith("Bot ")) {
       req.token = req.token.substring(4);
 
-      res.rvAPI = createAPI(req.token, true);
+      res.rvAPI = createAPI(req.token);
       res.fromBot = true;
     } else {
       res.rvAPI = createAPI({

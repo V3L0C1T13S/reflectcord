@@ -51,5 +51,8 @@ export async function handleImgRequest(
   const avatarData = await downloadImage(type, realId);
   if (!avatarData) return res.sendStatus(404);
 
-  return res.send(await avatarData);
+  res.set("Content-Type", "application/octet-stream");
+  res.set("Cache-Control", "public, max-age=31536000");
+
+  return res.send(avatarData);
 }
