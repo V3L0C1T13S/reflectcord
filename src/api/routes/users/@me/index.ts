@@ -8,12 +8,16 @@ import { selfUser, User } from "../../../../common/models";
 export async function getSelfUser(api: API.API) {
   const rvUser = await api.get("/users/@me") as API.User;
   const mfaInfo = !rvUser.bot ? await api.get("/auth/mfa/") : null;
-  const authInfo = await api.get("/auth/account/");
-  if (!rvUser || !authInfo) throw new HTTPError("User info is not defined");
+  const authInfo = !rvUser.bot ? await api.get("/auth/account/") : null;
+
+  if (!rvUser) throw new HTTPError("Revolt failed to get info");
 
   return selfUser.from_quark({
     user: rvUser,
-    authInfo,
+    authInfo: authInfo ?? {
+      _id: rvUser._id,
+      email: "fixme@gmail.com",
+    },
     mfaInfo,
   });
 }

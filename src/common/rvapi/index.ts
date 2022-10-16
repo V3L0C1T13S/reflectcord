@@ -1,16 +1,14 @@
-import { API } from "revolt-api";
+import { API, Options } from "revolt-api";
 import dotenv from "dotenv";
 
 dotenv.config();
 
 export const TestingToken = process.env["testToken"];
 
-export function createAPI(token?: string) {
+export function createAPI(token?: Options["authentication"]["revolt"], bot?: boolean) {
   return new API({
     authentication: {
-      revolt: token ? {
-        token,
-      } : undefined,
+      revolt: token,
     },
   });
 }

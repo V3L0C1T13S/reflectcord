@@ -3,11 +3,10 @@ import { Application, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
 import { Application as botApplication, OwnedApplication } from "../../../common/models";
-import { createAPI } from "../../../common/rvapi";
 
 export default (express: Application) => <Resource> {
   get: async (req, res) => {
-    const api = createAPI(req.token);
+    const api = res.rvAPI;
 
     const revoltBots = await api.get("/bots/@me") as API.OwnedBotsResponse;
 
@@ -34,7 +33,7 @@ export default (express: Application) => <Resource> {
         message: "You must set a name for your bot!",
       });
     }
-    const api = createAPI(req.token);
+    const api = res.rvAPI;
 
     const bot = await api.post("/bots/create", {
       name,

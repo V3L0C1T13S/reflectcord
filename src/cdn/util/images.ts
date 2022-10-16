@@ -4,12 +4,11 @@ import {
   existsSync, mkdirSync, readFileSync, writeFileSync,
 } from "fs";
 import { Request, Response } from "express";
+import { AutumnURL } from "../../common/constants";
 
 export type ImageType = "attachments" | "avatars" | "icons" | "backgrounds";
 
 export const imageCacheDir = join(__dirname, "../../../cache/autumn");
-
-export const defaultAutumnURL = "https://autumn.revolt.chat";
 
 if (!existsSync(imageCacheDir)) {
   mkdirSync(imageCacheDir, {
@@ -17,7 +16,7 @@ if (!existsSync(imageCacheDir)) {
   });
 }
 
-export async function downloadImage(type: ImageType, id: string, autumn = defaultAutumnURL) {
+export async function downloadImage(type: ImageType, id: string, autumn = AutumnURL) {
   const rvURL = `${autumn}/${type}/${id}`;
   const imgTypeCacheDir = join(imageCacheDir, type);
 

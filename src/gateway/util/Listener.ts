@@ -52,11 +52,11 @@ export async function startListener(this: WebSocket, token: string) {
         });
 
         if (currentUser.bot) {
-          TokenManager.createSession(token);
-          TokenManager.pushSession(token, this.rvClient.session);
-          console.log(token);
-          console.log(this.rvClient.session);
-          this.rvAPI = createAPI(this.rvClient.session);
+          this.rvAPI = createAPI(token);
+        } else {
+          this.rvAPI = createAPI({
+            token,
+          });
         }
 
         const relationships = await Promise.all(data.users

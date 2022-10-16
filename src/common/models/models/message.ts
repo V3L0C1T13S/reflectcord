@@ -1,8 +1,9 @@
 /* eslint-disable camelcase */
 import { APIMessage, APIUser, MessageType } from "discord.js";
-import { ChannelUnread, Message as RevoltMessage } from "revolt-api";
+import { Message as RevoltMessage } from "revolt-api";
 import { decodeTime } from "ulid";
 import { QuarkConversion } from "../QuarkConversion";
+import { Attachment } from "./attachment";
 import { Embed } from "./embed";
 
 export type APIMention = {
@@ -16,7 +17,7 @@ export type APIMention = {
 export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
   async to_quark(message) {
     const {
-      content, id, author, embeds, channel_id,
+      content, id, author, embeds, channel_id, attachments,
     } = message;
 
     return {
@@ -24,13 +25,14 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
       content,
       author: author.id,
       channel: channel_id,
-      embeds: await Promise.all(message.embeds.map((x) => Embed.to_quark(x))),
+      embeds: await Promise.all(embeds.map((x) => Embed.to_quark(x))),
+      attachments: await Promise.all(attachments.map((x) => Attachment.to_quark(x))),
     };
   },
 
   async from_quark(message) {
     const {
-      _id, channel, content, author,
+      _id, channel, content, author, attachments, embeds,
     } = message;
 
     return {
@@ -60,10 +62,12 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
       tts: false,
       mention_everyone: false,
       mentions: [],
-      attachments: [],
+      attachments: attachments
+        ? await Promise.all(attachments.map((x) => Attachment.from_quark(x)))
+        : [],
       mention_roles: [],
-      embeds: message.embeds
-        ? await Promise.all(message.embeds.map((x) => Embed.from_quark(x)))
+      embeds: embeds
+        ? await Promise.all(embeds.map((x) => Embed.from_quark(x)))
         : [],
       pinned: false,
       type: MessageType.Default,

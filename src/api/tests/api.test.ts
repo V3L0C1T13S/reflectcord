@@ -48,7 +48,9 @@ describe("api get requests", () => {
     test("self public info", async () => {
       const user = await getFromAPI("users/@me");
       const profile = await getFromAPI("users/@me/profile");
-      expect(user.data.id && profile.data);
+      expect(user.data.id
+        && profile.data
+        && user.data.email && user.data.username);
     });
     test("private info", async () => {
       const channels = await getFromAPI("users/@me/channels");
@@ -56,6 +58,9 @@ describe("api get requests", () => {
       expect(channels.data && guilds.data);
     });
     test("developer info", async () => {
+      // Bots cant do this, so we can just skip it.
+      if (TestingToken?.startsWith("Bot ")) return;
+
       const bots = await getFromAPI("applications?with_team_applications=true");
       expect(bots.data);
     });

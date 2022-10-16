@@ -20,4 +20,10 @@ export namespace TokenManager {
 
     tokens.set(token, []);
   }
+
+  export function removeSession(token: string, session: string) {
+    const sessions = getSessionsForToken(token);
+
+    sessions?.remove(session);
+  }
 }

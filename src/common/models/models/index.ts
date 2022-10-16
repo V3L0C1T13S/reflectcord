@@ -6,3 +6,4 @@ export * from "./message";
 export * from "./application";
 export * from "./member";
 export * from "./embed";
+export * from "./attachment";

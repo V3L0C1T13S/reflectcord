@@ -2,7 +2,6 @@
 import { Application, Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
-import { createAPI } from "../../../common/rvapi";
 import { APILoginResponse, DataLogin, ResponseLogin } from "../../../common/models";
 
 export async function loginToRevolt(api: API.API, req: Request) {
@@ -16,7 +15,7 @@ export async function loginToRevolt(api: API.API, req: Request) {
 
 export default (express: Application) => <Resource> {
   post: async (req, res: Response<APILoginResponse>) => {
-    const api = createAPI(req.token);
+    const api = res.rvAPI;
 
     const loginResponse = await loginToRevolt(api, req).catch(() => {
       res.status(500).json({
