@@ -27,7 +27,7 @@ export async function onIdentify(this: WebSocket, data: Payload) {
     },
   });
 
-  await startListener.call(this);
+  await startListener.call(this, token);
 
   await this.rvClient.loginBot(token).catch(() => {
     console.error("Revolt failed authentication");

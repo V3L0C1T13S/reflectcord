@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { API } from "revolt.js";
 import { createAPI } from "../../common/rvapi";
-import { HTTPError } from "../../common/utils/HTTPError";
+import { HTTPError, TokenManager } from "../../common/utils";
 
 export const NoAuthRoutes = [
   "/auth/login",
@@ -66,6 +66,13 @@ export async function Authentication(req: Request, res: Response, next: NextFunc
 
   try {
     req.token = req.headers.authorization;
+    // Bots emit this at the beginning to signify they're a bot token
+    if (req.token.startsWith("Bot ")) {
+      const session = TokenManager.getSessionsForToken(req.token.substring(4));
+      if (!session || !session[0]) return next(new HTTPError("Invalid session", 401));
+      // eslint-disable-next-line prefer-destructuring
+      req.token = session[0];
+    }
     res.rvAPI = createAPI(req.token);
 
     return next();

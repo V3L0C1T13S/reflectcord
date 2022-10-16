@@ -5,3 +5,4 @@ export * from "./auth";
 export * from "./message";
 export * from "./application";
 export * from "./member";
+export * from "./embed";

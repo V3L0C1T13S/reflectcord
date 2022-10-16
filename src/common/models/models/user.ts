@@ -119,8 +119,7 @@ export const selfUser: QuarkConversion<revoltUserInfo, APIUser> = {
   },
 
   async from_quark(user) {
-    const mfa_enabled = Object.values(user.mfaInfo ?? []).some((v) => true);
-    console.log(mfa_enabled);
+    const mfa_enabled = Object.values(user.mfaInfo ?? []).some((v) => v === true);
 
     return {
       ...await User.from_quark(user.user),

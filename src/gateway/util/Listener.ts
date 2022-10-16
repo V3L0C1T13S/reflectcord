@@ -2,6 +2,8 @@
 /* eslint-disable no-plusplus */
 import { GatewayDispatchEvents, GatewayOpcodes } from "discord.js";
 import { API, Channel as rvChannel } from "revolt.js";
+import { TokenManager } from "../../common/utils";
+import { createAPI } from "../../common/rvapi";
 import {
   Application,
   Channel, Guild, Member, Message, selfUser, User,
@@ -10,7 +12,7 @@ import { WebSocket } from "../Socket";
 import { Send } from "./send";
 import experiments from "./experiments.json";
 
-export async function startListener(this: WebSocket) {
+export async function startListener(this: WebSocket, token: string) {
   this.rvClient.on("packet", async (data) => {
     switch (data.type) {
       case "Ready": {
@@ -48,6 +50,14 @@ export async function startListener(this: WebSocket) {
           },
           mfaInfo,
         });
+
+        if (currentUser.bot) {
+          TokenManager.createSession(token);
+          TokenManager.pushSession(token, this.rvClient.session);
+          console.log(token);
+          console.log(this.rvClient.session);
+          this.rvAPI = createAPI(this.rvClient.session);
+        }
 
         const relationships = await Promise.all(data.users
           .filter((u) => u.relationship === "Friend")

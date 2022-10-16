@@ -3,6 +3,7 @@ import { APIMessage, APIUser, MessageType } from "discord.js";
 import { ChannelUnread, Message as RevoltMessage } from "revolt-api";
 import { decodeTime } from "ulid";
 import { QuarkConversion } from "../QuarkConversion";
+import { Embed } from "./embed";
 
 export type APIMention = {
   id: string,
@@ -23,6 +24,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
       content,
       author: author.id,
       channel: channel_id,
+      embeds: await Promise.all(message.embeds.map((x) => Embed.to_quark(x))),
     };
   },
 
@@ -60,7 +62,9 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
       mentions: [],
       attachments: [],
       mention_roles: [],
-      embeds: [],
+      embeds: message.embeds
+        ? await Promise.all(message.embeds.map((x) => Embed.from_quark(x)))
+        : [],
       pinned: false,
       type: MessageType.Default,
     };

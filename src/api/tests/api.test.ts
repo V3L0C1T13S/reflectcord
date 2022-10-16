@@ -18,6 +18,22 @@ async function getFromAPI(url: string) {
   return res;
 }
 
+async function postToAPI(url: string, data: any) {
+  const res = await axios({
+    method: "post",
+    url: `${apiURL}/${url}`,
+    headers: {
+      authorization: TestingToken,
+    },
+    data,
+  });
+
+  console.log(JSON.stringify(res.data));
+
+  return res;
+}
+
+// Make these things that you own, otherwise you'll get errors
 const testUserId = "01FT2S6N2MZPQ83FWTF00AEVVH";
 const testGuildId = "01FVHTJF0Q30ZJB8F77GXRTK4M";
 const testTextChannelId = "01FVHTJF0QC3GT3XM82M6EWF26";
@@ -65,6 +81,14 @@ describe("api get requests", () => {
       && gatewayBot.data.url === "ws://localhost:3002"
       && gatewayBot.data.shard,
     );
+  });
+});
+
+describe("api post requests", () => {
+  test("post message", async () => {
+    await postToAPI(`channels/${testTextChannelId}/messages`, {
+      content: "Hello World!",
+    });
   });
 });
 
