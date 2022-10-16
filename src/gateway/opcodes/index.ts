@@ -5,6 +5,7 @@ import { onHeartbeat } from "./Heartbeat";
 import { onIdentify } from "./Identify";
 import { lazyReq } from "./lazyReq";
 import { presenceUpdate } from "./PresenceUpdate";
+import { RequestGuildMembers } from "./RequestGuildMembers";
 import { onResume } from "./Resume";
 import { VSUpdate } from "./VS";
 
@@ -16,5 +17,6 @@ export const OPCodeHandlers: { [key: number ]: OPCodeHandler } = {
   [GatewayOpcodes.PresenceUpdate]: presenceUpdate,
   [GatewayOpcodes.Resume]: onResume,
   [GatewayOpcodes.VoiceStateUpdate]: VSUpdate,
+  [GatewayOpcodes.RequestGuildMembers]: RequestGuildMembers,
   14: lazyReq,
 };

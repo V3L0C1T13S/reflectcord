@@ -1,8 +1,16 @@
 /* eslint-disable camelcase */
-import { APIMessage, MessageType } from "discord.js";
-import { Message as RevoltMessage } from "revolt-api";
+import { APIMessage, APIUser, MessageType } from "discord.js";
+import { ChannelUnread, Message as RevoltMessage } from "revolt-api";
 import { decodeTime } from "ulid";
 import { QuarkConversion } from "../QuarkConversion";
+
+export type APIMention = {
+  id: string,
+  type: number,
+  content: string,
+  channel_id: string,
+  author: APIUser,
+};
 
 export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
   async to_quark(message) {
@@ -39,7 +47,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
           }
         }
         return {
-          id: message.author,
+          id: author,
           username: "fixme",
           discriminator: "1",
           avatar: null,

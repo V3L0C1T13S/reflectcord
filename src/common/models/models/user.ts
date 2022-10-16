@@ -21,7 +21,7 @@ export type MFAInfo = {
 export type revoltUserInfo = {
   user: RevoltUser,
   authInfo: AccountInfo;
-  mfaInfo: MFAInfo;
+  mfaInfo?: MFAInfo | null;
 }
 
 export const User: QuarkConversion<RevoltUser, APIUser> = {
@@ -119,8 +119,7 @@ export const selfUser: QuarkConversion<revoltUserInfo, APIUser> = {
   },
 
   async from_quark(user) {
-    console.log(JSON.stringify(user.mfaInfo));
-    const mfa_enabled = Object.values(user.mfaInfo).some((v) => true);
+    const mfa_enabled = Object.values(user.mfaInfo ?? []).some((v) => true);
     console.log(mfa_enabled);
 
     return {

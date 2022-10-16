@@ -39,7 +39,7 @@ export async function startListener(this: WebSocket) {
           }));
 
         const currentUser = data.users.find((x) => x.relationship === "User")!;
-        const mfaInfo = await this.rvAPI.get("/auth/mfa/");
+        const mfaInfo = !currentUser.bot ? await this.rvAPI.get("/auth/mfa/") : null;
         const currentUserDiscord = await selfUser.from_quark({
           user: currentUser,
           authInfo: {

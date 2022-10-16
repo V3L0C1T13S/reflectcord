@@ -7,7 +7,7 @@ import { selfUser, User } from "../../../../common/models";
 
 export async function getSelfUser(api: API.API) {
   const rvUser = await api.get("/users/@me") as API.User;
-  const mfaInfo = await api.get("/auth/mfa/");
+  const mfaInfo = !rvUser.bot ? await api.get("/auth/mfa/") : null;
   const authInfo = await api.get("/auth/account/");
   if (!rvUser || !authInfo) throw new HTTPError("User info is not defined");
 

@@ -12,12 +12,6 @@
     "lint": "eslint src/**/*.ts",
     "test": "jest"
   },
-  "nodemonConfig": {
-    "ignore": [
-      "./assets/**/*",
-      "./cache/**/*"
-    ]
-  },
   "dependencies": {
     "axios": "^1.1.2",
     "body-parser": "^1.20.1",
