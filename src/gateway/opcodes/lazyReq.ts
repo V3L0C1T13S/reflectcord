@@ -21,7 +21,6 @@ async function getMembers(this: WebSocket, guild_id: string, range: [number, num
 
   const members = await this.rvAPI.get(`/servers/${guild_id}/members`, {
     exclude_offline: true,
-    limit: range[1],
   }) as API.AllMemberResponse;
 
   let discordMember = await Promise.all(members.members
