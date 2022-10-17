@@ -1,6 +1,7 @@
 import { Channel as rvChannel } from "revolt-api";
 import { APIChannel, ChannelType } from "discord.js";
 import { QuarkConversion } from "../QuarkConversion";
+import { toSnowflake } from "../util";
 
 export const Channel: QuarkConversion<rvChannel, APIChannel> = {
   async to_quark(channel) {
@@ -58,6 +59,8 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
   },
 
   async from_quark(channel) {
+    const id = await toSnowflake(channel._id);
+
     return {
       // application_id: undefined,
       applied_tags: [] as string[],
@@ -73,15 +76,18 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
       })(),
       icon: (() => {
         switch (channel.channel_type) {
-          case "Group": {
-            return channel.icon?._id;
+          case "DirectMessage": {
+            return;
+          }
+          case "SavedMessages": {
+            return;
           }
           default: {
-            return null;
+            return channel.icon?._id;
           }
         }
       })(),
-      id: channel._id,
+      id,
       invitable: undefined,
       type: ((): any => {
         switch (channel.channel_type) {
@@ -105,7 +111,7 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
           }
         }
       })(),
-      last_message_id: (() => {
+      last_message_id: await (() => {
         switch (channel.channel_type) {
           case "VoiceChannel": {
             return null;
@@ -114,7 +120,8 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
             return null;
           }
           default: {
-            return channel.last_message_id ?? null;
+            if (!channel.last_message_id) return null;
+            return toSnowflake(channel.last_message_id);
           }
         }
       })(),
@@ -128,19 +135,15 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
 
         return channel.name;
       })(),
-      recipients: (() => {
-        switch (channel.channel_type) {
-          case "DirectMessage": {
-            return channel.recipients;
-          }
-          case "Group": {
-            return channel.recipients;
-          }
-          default: {
-            return [];
-          }
+      recipients: await (() => {
+        if (channel.channel_type === "DirectMessage" || channel.channel_type === "Group") {
+          return Promise.all(channel.recipients.map((x) => toSnowflake(x)));
         }
+
+        return;
       })(),
+      owner_id: undefined,
+      origin_channel_id: id,
     };
   },
 };

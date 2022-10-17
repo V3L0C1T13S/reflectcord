@@ -1,20 +1,24 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-plusplus */
-import { GatewayDispatchEvents, GatewayOpcodes } from "discord.js";
+import { GatewayCloseCodes, GatewayDispatchEvents, GatewayOpcodes } from "discord.js";
 import { API, Channel as rvChannel } from "revolt.js";
 import { createAPI } from "../../common/rvapi";
 import {
-  Channel, Guild, Message, selfUser, User,
+  Channel, Guild, Member, Message, selfUser, User,
 } from "../../common/models";
 import { WebSocket } from "../Socket";
 import { Send } from "./send";
 import experiments from "./experiments.json";
+import { toSnowflake } from "../../common/models/util";
+import { UserRelationshipType } from "../../common/sparkle";
 
 export async function startListener(this: WebSocket, token: string) {
   this.rvClient.on("packet", async (data) => {
     switch (data.type) {
       case "Ready": {
-        const currentUser = data.users.find((x) => x.relationship === "User")!;
+        const currentUser = data.users.find((x) => x.relationship === "User");
+        if (!currentUser) return this.close(GatewayCloseCodes.AuthenticationFailed);
+
         if (currentUser.bot) {
           this.rvAPI = createAPI(token);
         } else {
@@ -26,6 +30,7 @@ export async function startListener(this: WebSocket, token: string) {
         const users = await Promise.all(data.users
           .map((user) => User.from_quark(user)));
         const channels = await Promise.all(data.channels
+          .filter((channel) => channel.channel_type === "DirectMessage")
           .map((channel) => Channel.from_quark(channel)));
         const guilds = await Promise.all(data.servers
           .map(async (server) => {
@@ -58,6 +63,15 @@ export async function startListener(this: WebSocket, token: string) {
           mfaInfo,
         });
 
+        const members = await Promise.all(data.members.map((x) => Member.from_quark(x)));
+
+        const mergedMembers = members.map((member) => [{
+          ...member,
+          roles: member.roles,
+          settings: undefined,
+          guild: undefined,
+        }]);
+
         const relationships = await Promise.all(data.users
           .filter((u) => u.relationship === "Friend")
           .map((u) => User.from_quark(u)));
@@ -78,7 +92,7 @@ export async function startListener(this: WebSocket, token: string) {
           geo_ordered_rtc_regions: [],
           relationships: relationships.map((x) => ({
             id: x.id,
-            type: 0,
+            type: UserRelationshipType.Friends,
             nickname: x.username,
             user: x,
           })),
@@ -106,7 +120,7 @@ export async function startListener(this: WebSocket, token: string) {
             },
           },
           country_code: "US",
-          merged_members: [],
+          merged_members: mergedMembers,
         };
 
         await Send(this, {
@@ -130,7 +144,7 @@ export async function startListener(this: WebSocket, token: string) {
           s: this.sequence++,
           d: {
             ...discordMsg,
-            guild_id: channel?.server_id,
+            guild_id: channel?.server_id ? await toSnowflake(channel.server_id) : null,
           },
         });
         break;
@@ -141,8 +155,8 @@ export async function startListener(this: WebSocket, token: string) {
           t: GatewayDispatchEvents.TypingStart,
           s: this.sequence++,
           d: {
-            channel_id: data.id,
-            user_id: data.user,
+            channel_id: await toSnowflake(data.id),
+            user_id: await toSnowflake(data.user),
             timestamp: Date.now().toString(),
           },
         });

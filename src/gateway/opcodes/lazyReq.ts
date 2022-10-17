@@ -32,6 +32,12 @@ async function getMembers(this: WebSocket, guild_id: string, range: [number, num
     .map((m) => m.roles)
     .flat()
     .unique((r) => r);
+  roles.push(
+    roles.splice(
+      roles.findIndex((x) => x === guild_id),
+      1,
+    )[0]!,
+  );
 
   for (const role of roles) {
     // @ts-ignore

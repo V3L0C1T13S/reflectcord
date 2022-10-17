@@ -3,8 +3,10 @@ import { APIMessage, APIUser, MessageType } from "discord.js";
 import { Message as RevoltMessage } from "revolt-api";
 import { decodeTime } from "ulid";
 import { QuarkConversion } from "../QuarkConversion";
+import { toSnowflake } from "../util";
 import { Attachment } from "./attachment";
 import { Embed } from "./embed";
+import { User } from "./user";
 
 export type APIMention = {
   id: string,
@@ -35,9 +37,14 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
       _id, channel, content, author, attachments, embeds,
     } = message;
 
+    const authorUser = await User.from_quark({
+      _id: author,
+      username: "fixme",
+    });
+
     return {
-      id: _id,
-      channel_id: channel,
+      id: (await toSnowflake(_id)).toString(),
+      channel_id: await toSnowflake(channel),
       content: content ?? "fixme",
       author: (() => {
         if (message.system) {
@@ -50,12 +57,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
             };
           }
         }
-        return {
-          id: author,
-          username: "fixme",
-          discriminator: "1",
-          avatar: null,
-        };
+        return authorUser;
       })(),
       timestamp: decodeTime(_id).toString(),
       edited_timestamp: null,

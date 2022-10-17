@@ -3,7 +3,8 @@ import { APIEmbed } from "discord.js";
 import { Application, Request } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
-import { Embed, Message } from "../../../../../common/models";
+import { fromSnowflake } from "../../../../../common/models/util";
+import { Message, SendableEmbed } from "../../../../../common/models";
 import { HTTPError } from "../../../../../common/utils";
 
 type discordMessageSend = {
@@ -16,7 +17,9 @@ export default (express: Application) => <Resource> {
     const limit = parseInt(req.query.limit ?? "50", 10);
     const { channel_id } = req.params;
 
-    const msgs = await res.rvAPI.get(`/channels/${channel_id}/messages`, {
+    const rvId = await fromSnowflake(channel_id);
+
+    const msgs = await res.rvAPI.get(`/channels/${rvId}/messages`, {
       limit,
     }) as API.Message[];
     if (!msgs) return;
@@ -25,10 +28,13 @@ export default (express: Application) => <Resource> {
   },
   post: async (req: Request<any, any, discordMessageSend>, res) => {
     const { channel_id } = req.params;
-    const { content } = req.body;
+    const { content, embeds } = req.body;
 
-    const revoltResponse = await res.rvAPI.post(`/channels/${channel_id}/messages`, {
+    const rvId = await fromSnowflake(channel_id);
+
+    const revoltResponse = await res.rvAPI.post(`/channels/${rvId}/messages`, {
       content: content ?? " ",
+      embeds: embeds ? await Promise.all(embeds.map((x) => SendableEmbed.to_quark(x))) : null,
     }) as API.Message;
     if (!revoltResponse) return;
 

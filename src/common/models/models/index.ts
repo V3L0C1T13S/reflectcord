@@ -7,3 +7,4 @@ export * from "./application";
 export * from "./member";
 export * from "./embed";
 export * from "./attachment";
+export * from "./role";

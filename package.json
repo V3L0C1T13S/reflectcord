@@ -27,6 +27,7 @@
     "mongodb": "^4.10.0",
     "morgan": "^1.10.0",
     "node-fetch": "^2.6.7",
+    "nodejs-snowflake": "^2.0.1",
     "proxy-agent": "^5.0.0",
     "revolt-api": "^0.5.5-4",
     "revolt.js": "^6.0.18",

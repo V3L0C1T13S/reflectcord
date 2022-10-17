@@ -8,11 +8,14 @@ import {
   Authentication, BodyParser, Client, CORS, ErrorHandler,
 } from "./middleware";
 import "express-async-errors";
+import { DbManager } from "../common/db";
 
 export class ReflectcordAPI extends Server {
   async start() {
     this.app.use(CORS);
     this.app.use(BodyParser({ inflate: true, limit: "10mb" }));
+
+    await DbManager.client.connect();
 
     const { app } = this;
     const api = Router(); // @ts-ignore

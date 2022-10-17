@@ -18,14 +18,14 @@ export const Attachment: QuarkConversion<API.File, APIAttachment> = {
   },
 
   async from_quark(attachment) {
-    const { _id } = attachment;
+    const { _id, size } = attachment;
 
     const url = `http://localhost:3001/attachments/${_id}`;
 
     return {
       id: _id,
       filename: "image.png",
-      size: attachment.size,
+      size,
       url,
       proxy_url: url,
     };

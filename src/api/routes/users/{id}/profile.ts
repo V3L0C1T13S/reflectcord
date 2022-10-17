@@ -5,6 +5,7 @@ import { API } from "revolt.js";
 import { HTTPError } from "../../../../common/utils";
 import { fetchUser } from ".";
 import { UserProfile } from "../../../../common/models";
+import { fromSnowflake } from "../../../../common/models/util";
 
 async function getProfile(api: API.API, id: string) {
   // why cant it just be /users/@me/profile ???
@@ -27,10 +28,12 @@ export default (express: Application) => <Resource> {
 
     if (!id) return res.sendStatus(422);
 
+    const rvId = await fromSnowflake(id);
+
     const api = res.rvAPI;
 
-    const user = await fetchUser(api, id);
-    const rvProfile = await getProfile(api, id);
+    const user = await fetchUser(api, rvId);
+    const rvProfile = await getProfile(api, rvId);
     if (!rvProfile || !user) throw new HTTPError("User not found", 422);
 
     return res.json({

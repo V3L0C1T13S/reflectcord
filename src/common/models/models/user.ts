@@ -2,6 +2,7 @@
 import { AccountInfo, User as RevoltUser, UserProfile as RevoltUserProfile } from "revolt-api";
 import { ActivityType, APIUser, PresenceData } from "discord.js";
 import { QuarkConversion } from "../QuarkConversion";
+import { toSnowflake } from "../util";
 
 export type APIUserProfile = {
   bio: string | null,
@@ -47,18 +48,16 @@ export const User: QuarkConversion<RevoltUser, APIUser> = {
 
   async from_quark(user) {
     return {
+      id: await toSnowflake(user._id),
       accent_color: null,
       avatar: user.avatar?._id ?? null,
       bot: !!user.bot,
       banner: user.profile?.background?._id ?? null,
       discriminator: "1",
       flags: 0,
-      id: user._id,
       locale: "en-US",
-      mfa_enabled: false,
       username: user.username,
       public_flags: 0,
-      system: false,
       verified: true, // all accounts on revolt are implicitly verified
       premium_type: 2, // unlocks all nitro features
     };
@@ -151,6 +150,7 @@ export const Status: QuarkConversion<RevoltUser["status"], PresenceData> = {
           }
         }
       })(),
+      text: status.activities ? status.activities[0]?.name ?? null : null,
     };
   },
 
@@ -174,12 +174,13 @@ export const Status: QuarkConversion<RevoltUser["status"], PresenceData> = {
             return "dnd";
           }
           default: {
-            throw new Error(`Unhandled status ${status?.presence}`);
+            console.warn(`Unhandled status ${status?.presence}`);
+            return "invisible";
           }
         }
       })(),
       activities: [{
-        name: status.text ?? "fixme", // @ts-ignore
+        name: status?.text ?? "fixme", // @ts-ignore
         type: ActivityType.Custom,
       }],
     };

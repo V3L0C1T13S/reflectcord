@@ -69,6 +69,7 @@ export async function Authentication(req: Request, res: Response, next: NextFunc
     req.token = req.headers.authorization;
     // Bots emit this at the beginning to signify they're a bot token
     if (req.token.startsWith("Bot ")) {
+      console.log("Request is from bot");
       req.token = req.token.substring(4);
 
       res.rvAPI = createAPI(req.token);

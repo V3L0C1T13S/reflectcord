@@ -3,6 +3,7 @@ import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
 import { HTTPError } from "../../../../common/utils";
 import { User } from "../../../../common/models";
+import { fromSnowflake } from "../../../../common/models/util";
 
 export async function fetchUser(api: API.API, id: string) {
   const rvUser = await api.get(`/users/${id}`) as API.User;
@@ -16,7 +17,9 @@ export default (express: Application) => <Resource> {
 
     if (!id) throw new HTTPError("ID not supplied", 422);
 
-    const rvUser = await fetchUser(res.rvAPI, id);
+    const rvId = await fromSnowflake(id);
+
+    const rvUser = await fetchUser(res.rvAPI, rvId);
     if (!rvUser) throw new HTTPError("User not found", 500);
 
     return res.json(rvUser);

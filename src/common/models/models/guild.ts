@@ -2,6 +2,7 @@ import {
   APIGuild,
   GuildDefaultMessageNotifications,
   GuildExplicitContentFilter,
+  GuildFeature,
   GuildMFALevel,
   GuildNSFWLevel,
   GuildPremiumTier,
@@ -10,7 +11,8 @@ import {
 } from "discord.js";
 import { Server } from "revolt-api";
 import { QuarkConversion } from "../QuarkConversion";
-import { Channel } from "./channel";
+import { toSnowflake } from "../util";
+import { Role } from "./role";
 
 export type DiscordPartialGuild = {
   id: string,
@@ -52,9 +54,9 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
     } = server;
 
     return {
-      id: _id,
+      id: await toSnowflake(_id),
       name,
-      owner_id: owner,
+      owner_id: await toSnowflake(owner),
       description: description ?? null,
       region: "0",
       afk_channel_id: null,
@@ -64,9 +66,14 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
       verification_level: GuildVerificationLevel.None,
       default_message_notifications: GuildDefaultMessageNotifications.AllMessages,
       explicit_content_filter: GuildExplicitContentFilter.Disabled,
-      roles: [],
+      roles: server.roles ? await Promise.all(Object.values(server.roles)
+        .map((x) => Role.from_quark(x))) : [],
       emojis: [],
-      features: [],
+      features: [
+        GuildFeature.Banner,
+        GuildFeature.AnimatedBanner,
+        GuildFeature.AnimatedIcon,
+      ],
       mfa_level: GuildMFALevel.None,
       application_id: null,
       system_channel_id: null,
@@ -139,7 +146,7 @@ export const PartialGuild: QuarkConversion<Server, DiscordPartialGuild> = {
     const { _id, name, icon } = data;
 
     return {
-      id: _id,
+      id: await toSnowflake(_id),
       name,
       icon: icon?._id ?? null,
       owner: false,
