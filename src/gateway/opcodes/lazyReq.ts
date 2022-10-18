@@ -6,6 +6,7 @@ import { API } from "revolt.js";
 import { Member } from "../../common/models";
 import { Send, Payload } from "../util";
 import { WebSocket } from "../Socket";
+import { fromSnowflake } from "../../common/models/util";
 
 function partition<T>(array: T[], isValid: Function) {
   // @ts-ignore
@@ -105,10 +106,13 @@ export async function lazyReq(this: WebSocket, data: Payload) {
   const channel_id = Object.keys(channels)[0];
   if (!channel_id) return;
 
+  const rvChannelId = await fromSnowflake(channel_id);
+  const rvServerId = await fromSnowflake(guild_id);
+
   const ranges = channels![channel_id];
   if (!Array.isArray(ranges)) throw new Error("Not a valid Array");
 
-  const ops = await getMembers.call(this, guild_id, [0, 99]);
+  const ops = await getMembers.call(this, rvServerId, [0, 99]);
   const member_count = ops.members.length;
 
   const { groups } = ops;

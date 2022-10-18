@@ -2,6 +2,7 @@ import { Channel as rvChannel } from "revolt-api";
 import { APIChannel, ChannelType } from "discord.js";
 import { QuarkConversion } from "../QuarkConversion";
 import { toSnowflake } from "../util";
+import { User } from "./user";
 
 export const Channel: QuarkConversion<rvChannel, APIChannel> = {
   async to_quark(channel) {
@@ -58,7 +59,7 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
     }
   },
 
-  async from_quark(channel) {
+  async from_quark(channel, excludedUser?: string) {
     const id = await toSnowflake(channel._id);
 
     return {
@@ -137,13 +138,18 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
       })(),
       recipients: await (() => {
         if (channel.channel_type === "DirectMessage" || channel.channel_type === "Group") {
-          return Promise.all(channel.recipients.map((x) => toSnowflake(x)));
+          const excludedRecipients = channel.recipients.filter((x) => x !== excludedUser);
+          return Promise.all(excludedRecipients.map((x) => User.from_quark({
+            _id: x,
+            username: "fixme",
+          })));
         }
 
         return;
       })(),
       owner_id: undefined,
       origin_channel_id: id,
+      created_at: Date.now(),
     };
   },
 };

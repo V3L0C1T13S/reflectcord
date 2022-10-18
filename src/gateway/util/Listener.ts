@@ -31,7 +31,7 @@ export async function startListener(this: WebSocket, token: string) {
           .map((user) => User.from_quark(user)));
         const channels = await Promise.all(data.channels
           .filter((channel) => channel.channel_type === "DirectMessage")
-          .map((channel) => Channel.from_quark(channel)));
+          .map((channel) => Channel.from_quark(channel, currentUser._id)));
         const guilds = await Promise.all(data.servers
           .map(async (server) => {
             const rvChannels: API.Channel[] = server.channels
@@ -108,7 +108,7 @@ export async function startListener(this: WebSocket, token: string) {
           },
           users,
           experiments, // ily fosscord
-          private_channels: [],
+          private_channels: channels,
           session_id: this.rvClient.session,
           friend_suggestion_count: 0,
           guild_join_requests: [],

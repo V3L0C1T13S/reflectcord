@@ -27,12 +27,13 @@ export default (express: Application) => <Resource> {
 
     if (!recipient_id && !recipients) throw new HTTPError("Malformed request", 244);
 
-    const user = recipient_id;
+    const user = recipient_id ?? recipients ? recipients![0] : null;
     if (!user) throw new HTTPError("Must dm at least one user", 244);
 
     const userId = await fromSnowflake(user);
+    const selfUser = await res.rvAPI.get("/auth/account/");
     const channel = await res.rvAPI.get(`/users/${userId}/dm`) as API.Channel;
 
-    res.json(await Channel.from_quark(channel));
+    res.json(await Channel.from_quark(channel, selfUser._id));
   },
 };
