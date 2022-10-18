@@ -116,6 +116,8 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
       icon: icon?._id ?? null,
       splash: null,
       guild_scheduled_events: [],
+      // @ts-ignore
+      joined_at: Date.now().toString(),
     };
   },
 };
@@ -158,8 +160,6 @@ export const PartialGuild: QuarkConversion<Server, DiscordPartialGuild> = {
         premium_progress_bar_enabled: false,
         hub_type: null,
         splash: null,
-        // @ts-ignore
-        joined_at: Date.now().toString(),
       }),
     };
   },
