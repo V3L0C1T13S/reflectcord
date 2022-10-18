@@ -7,7 +7,7 @@ import { fetchUser } from ".";
 import { UserProfile } from "../../../../common/models";
 import { fromSnowflake } from "../../../../common/models/util";
 
-async function getProfile(api: API.API, id: string) {
+export async function getProfile(api: API.API, id: string) {
   // why cant it just be /users/@me/profile ???
   if (id === "@me") {
     const accountInfo = await api.get("/auth/account/");
