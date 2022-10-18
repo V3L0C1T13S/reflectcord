@@ -41,8 +41,9 @@ export async function startListener(this: WebSocket, token: string) {
                 return {
                   _id: x,
                   name: ch?.name ?? "fixme",
-                  channel_type: "TextChannel",
-                  server: ch?.server?._id ?? "fixme",
+                  description: ch?.description ?? "fixme",
+                  channel_type: ch?.channel_type as any ?? "TextChannel",
+                  server: ch?.server_id ?? "fixme",
                 };
               });
 
@@ -134,19 +135,20 @@ export async function startListener(this: WebSocket, token: string) {
       }
       case "Message": {
         // We don't want to send Discord system stuff, since they dont have IDs
-        if (data.system?.type) return;
+        if (!data.system) {
+          const discordMsg = await Message.from_quark(data);
+          const channel = await this.rvClient.channels.get(data.channel);
+          await Send(this, {
+            op: GatewayOpcodes.Dispatch,
+            t: GatewayDispatchEvents.MessageCreate,
+            s: this.sequence++,
+            d: {
+              ...discordMsg,
+              guild_id: channel?.server_id ? await toSnowflake(channel.server_id) : null,
+            },
+          });
+        } else console.log("message is system message");
 
-        const discordMsg = await Message.from_quark(data);
-        const channel = await this.rvClient.channels.get(data.channel);
-        await Send(this, {
-          op: GatewayOpcodes.Dispatch,
-          t: GatewayDispatchEvents.MessageCreate,
-          s: this.sequence++,
-          d: {
-            ...discordMsg,
-            guild_id: channel?.server_id ? await toSnowflake(channel.server_id) : null,
-          },
-        });
         break;
       }
       case "ChannelStartTyping": {

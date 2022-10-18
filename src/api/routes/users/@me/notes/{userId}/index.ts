@@ -52,7 +52,7 @@ export default (express: Application) => <Resource> {
     const user = await fetchUser(res.rvAPI, ulid);
 
     const newNote = await notes.findOneAndUpdate(
-      { owner_id: selfUser._id },
+      { owner_id: selfUser._id, "note.user_id": user.id },
       {
         $setOnInsert: {
           owner_id: selfUser._id,

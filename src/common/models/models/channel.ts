@@ -1,15 +1,60 @@
 import { Channel as rvChannel } from "revolt-api";
-import { APIChannel, ChannelType } from "discord.js";
+import { APIChannel, ChannelType as discordChannelType } from "discord.js";
 import { QuarkConversion } from "../QuarkConversion";
 import { toSnowflake } from "../util";
 import { User } from "./user";
+
+export const ChannelType: QuarkConversion<rvChannel["channel_type"], discordChannelType> = {
+  async to_quark(type) {
+    switch (type) {
+      case discordChannelType.DM: {
+        return "DirectMessage";
+      }
+      case discordChannelType.GroupDM: {
+        return "Group";
+      }
+      case discordChannelType.GuildText: {
+        return "TextChannel";
+      }
+      case discordChannelType.GuildVoice: {
+        return "VoiceChannel";
+      }
+      default: {
+        return "TextChannel";
+      }
+    }
+  },
+
+  async from_quark(type) {
+    switch (type) {
+      case "DirectMessage": {
+        return discordChannelType.DM;
+      }
+      case "SavedMessages": {
+        return discordChannelType.DM;
+      }
+      case "Group": {
+        return discordChannelType.GroupDM;
+      }
+      case "TextChannel": {
+        return discordChannelType.GuildText;
+      }
+      case "VoiceChannel": {
+        return discordChannelType.GuildVoice;
+      }
+      default: {
+        throw new Error("Unhandled type");
+      }
+    }
+  },
+};
 
 export const Channel: QuarkConversion<rvChannel, APIChannel> = {
   async to_quark(channel) {
     const { id, type } = channel;
 
     switch (type) {
-      case ChannelType.GuildText: {
+      case discordChannelType.GuildText: {
         return {
           channel_type: "TextChannel",
           _id: id,
@@ -26,7 +71,7 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
           nsfw: channel.nsfw ?? false,
         };
       }
-      case ChannelType.DM: {
+      case discordChannelType.DM: {
         return {
           channel_type: "DirectMessage",
           _id: id,
@@ -35,7 +80,7 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
           last_message_id: channel.last_message_id ?? null,
         };
       }
-      case ChannelType.GroupDM: {
+      case discordChannelType.GroupDM: {
         return {
           channel_type: "Group",
           _id: id,
@@ -45,7 +90,7 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
           recipients: channel.recipients?.map((u) => u.id) ?? [],
         };
       }
-      case ChannelType.GuildVoice: {
+      case discordChannelType.GuildVoice: {
         return {
           channel_type: "VoiceChannel",
           _id: id,
@@ -90,28 +135,7 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
       })(),
       id,
       invitable: undefined,
-      type: ((): any => {
-        switch (channel.channel_type) {
-          case "DirectMessage": {
-            return ChannelType.DM;
-          }
-          case "SavedMessages": {
-            return ChannelType.DM;
-          }
-          case "Group": {
-            return ChannelType.GroupDM;
-          }
-          case "TextChannel": {
-            return ChannelType.GuildText;
-          }
-          case "VoiceChannel": {
-            return ChannelType.GuildVoice;
-          }
-          default: {
-            throw new Error("Unhandled type");
-          }
-        }
-      })(),
+      type: await ChannelType.from_quark(channel.channel_type) as any,
       last_message_id: await (() => {
         switch (channel.channel_type) {
           case "VoiceChannel": {
