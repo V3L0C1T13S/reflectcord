@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import { APIChannel } from "discord.js";
 import { Application, Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
@@ -7,7 +8,9 @@ import { HTTPError } from "../../../../common/utils";
 import { Channel } from "../../../../common/models";
 
 export type dmChannelReq = {
-  recipients: string[],
+  name?: string,
+  recipients?: string[],
+  recipient_id?: string,
 }
 
 export default (express: Application) => <Resource> {
@@ -20,10 +23,11 @@ export default (express: Application) => <Resource> {
     return res.json(discordDMS);
   },
   post: async (req: Request<any, any, dmChannelReq>, res) => {
-    const { recipients } = req.body;
-    if (recipients.length > 1) throw new HTTPError("Only single-user dms are supported.", 244);
+    const { recipients, recipient_id } = req.body;
 
-    const user = recipients[0];
+    if (!recipient_id && !recipients) throw new HTTPError("Malformed request", 244);
+
+    const user = recipient_id;
     if (!user) throw new HTTPError("Must dm at least one user", 244);
 
     const userId = await fromSnowflake(user);
