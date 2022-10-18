@@ -1,6 +1,8 @@
 /* eslint-disable camelcase */
-import { Application } from "express";
+import { Application, Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
+import { API } from "revolt.js";
+import { fetchUser } from "../../../{id}";
 import { HTTPError } from "../../../../../../common/utils";
 import { fromSnowflake } from "../../../../../../common/models/util";
 import { DbManager } from "../../../../../../common/db";
@@ -9,27 +11,66 @@ export type noteRequest = {
   note: string,
 };
 
-export type noteResponse = {
+export type userNote = {
   user_id: string,
   note_user_id: string,
   note: string,
 }
 
+export type noteResponse = userNote;
+
+export type noteStorage = {
+  owner_id: string,
+  note: userNote,
+}
+
 const notes = DbManager.client.db("reflectcord")
-  .collection("notes");
+  .collection<noteStorage>("notes");
 
 export default (express: Application) => <Resource> {
-  get: (req, res) => {
-    // FIXME
-    throw new HTTPError("Unknown User", 10013);
-  },
-  put: async (req, res) => {
+  get: async (req, res: Response<noteResponse>) => {
     const { userId } = req.params;
-    if (!userId) throw new HTTPError("ID cannot be empty", 244);
+    if (!userId) throw new HTTPError("Invalid user");
 
-    // FIXME: this lets you make notes on anything with a valid snowflake.
-    // Not a big issue ATM, but just know that its a problem that exists.
-    const ulid = fromSnowflake(userId);
-    if (!ulid) throw new HTTPError("User does not exist.", 400);
+    const selfUser = await res.rvAPI.get("/auth/account/");
+
+    const note = await notes.findOne({ owner_id: selfUser._id, "note.user_id": userId });
+    if (!note) throw new HTTPError("Unknown User", 10013);
+
+    res.json(note.note);
+  },
+  put: async (req: Request<any, any, noteRequest>, res: Response<noteResponse>) => {
+    const { userId } = req.params;
+    const { note } = req.body;
+    if (!userId || !note) throw new HTTPError("Invalid request", 422);
+
+    const ulid = await fromSnowflake(userId);
+    if (!ulid) throw new HTTPError("User does not exist.");
+
+    const selfUser = await res.rvAPI.get("/auth/account/");
+
+    const user = await fetchUser(res.rvAPI, ulid);
+
+    const newNote = await notes.findOneAndUpdate(
+      { owner_id: selfUser._id },
+      {
+        $setOnInsert: {
+          owner_id: selfUser._id,
+        },
+        $set: {
+          note: {
+            user_id: user.id,
+            note_user_id: user.id,
+            note,
+          },
+        },
+      },
+
+      { upsert: true },
+    );
+
+    if (!newNote.value) throw new HTTPError("Note failed to update", 500);
+
+    res.json(newNote.value.note);
   },
 };
