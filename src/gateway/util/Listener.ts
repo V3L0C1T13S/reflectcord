@@ -134,7 +134,7 @@ export async function startListener(this: WebSocket, token: string) {
       }
       case "Message": {
         // We don't want to send Discord system stuff, since they dont have IDs
-        if (data.system) return;
+        if (data.system?.type) return;
 
         const discordMsg = await Message.from_quark(data);
         const channel = await this.rvClient.channels.get(data.channel);
