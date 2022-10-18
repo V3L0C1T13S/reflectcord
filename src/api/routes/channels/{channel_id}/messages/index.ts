@@ -12,6 +12,8 @@ type discordMessageSend = {
   embeds?: APIEmbed[],
 };
 
+export type sendReq = Request<any, any, discordMessageSend>;
+
 export default (express: Application) => <Resource> {
   get: async (req: Request<any, any, any, { limit: string }>, res) => {
     const limit = parseInt(req.query.limit ?? "50", 10);
@@ -26,7 +28,7 @@ export default (express: Application) => <Resource> {
 
     return res.json(await Promise.all(msgs.map((m) => Message.from_quark(m))));
   },
-  post: async (req: Request<any, any, discordMessageSend>, res) => {
+  post: async (req: sendReq, res) => {
     const { channel_id } = req.params;
     const { content, embeds } = req.body;
 

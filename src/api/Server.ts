@@ -9,6 +9,7 @@ import {
 } from "./middleware";
 import "express-async-errors";
 import { DbManager } from "../common/db";
+import { enableLogging } from "../common/constants";
 
 export class ReflectcordAPI extends Server {
   async start() {
@@ -21,7 +22,7 @@ export class ReflectcordAPI extends Server {
     const api = Router(); // @ts-ignore
     this.app = api;
 
-    this.app.use(morgan("combined"));
+    if (enableLogging) this.app.use(morgan("combined"));
 
     api.use(Authentication);
 

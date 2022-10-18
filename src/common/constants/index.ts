@@ -9,3 +9,5 @@ export const AutumnURL = process.env["AUTUMN_URL"] ?? "https://autumn.revolt.cha
 export const mongoURL = process.env["MONGO_URL"] ?? "mongodb://localhost:27017/reflectcord";
 
 export const discordEpoch = process.env["DISCORD_EPOCH"] ?? "1420070400000";
+
+export const enableLogging = process.env["ENABLE_LOGGING"] ?? false;
