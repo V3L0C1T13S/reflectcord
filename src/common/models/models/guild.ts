@@ -1,5 +1,6 @@
 import {
   APIGuild,
+  APIRole,
   GuildDefaultMessageNotifications,
   GuildExplicitContentFilter,
   GuildFeature,
@@ -53,8 +54,10 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
       _id, name, owner, description, icon,
     } = server;
 
+    const id = await toSnowflake(_id);
+
     return {
-      id: await toSnowflake(_id),
+      id,
       name,
       owner_id: await toSnowflake(owner),
       description: description ?? null,
@@ -66,8 +69,25 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
       verification_level: GuildVerificationLevel.None,
       default_message_notifications: GuildDefaultMessageNotifications.AllMessages,
       explicit_content_filter: GuildExplicitContentFilter.Disabled,
-      roles: server.roles ? await Promise.all(Object.values(server.roles)
-        .map((x) => Role.from_quark(x))) : [],
+      roles: await (async () => {
+        const roleStub: APIRole[] = [];
+        roleStub[0] = {
+          id,
+          name: "@everyone",
+          color: 0,
+          hoist: false,
+          position: 0,
+          permissions: "2251804225",
+          managed: false,
+          mentionable: true,
+        };
+
+        const roles = server.roles ? await Promise.all(Object.values(server.roles)
+          .map((x) => Role.from_quark(x))) : [];
+        roles.forEach((x) => roleStub.push(x));
+
+        return roleStub;
+      })(),
       emojis: [],
       features: [
         GuildFeature.Banner,
@@ -138,6 +158,8 @@ export const PartialGuild: QuarkConversion<Server, DiscordPartialGuild> = {
         premium_progress_bar_enabled: false,
         hub_type: null,
         splash: null,
+        // @ts-ignore
+        joined_at: Date.now().toString(),
       }),
     };
   },
