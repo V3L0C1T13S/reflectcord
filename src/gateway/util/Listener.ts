@@ -151,6 +151,19 @@ export async function startListener(this: WebSocket, token: string) {
 
         break;
       }
+      case "MessageDelete": {
+        await Send(this, {
+          op: GatewayOpcodes.Dispatch,
+          t: GatewayDispatchEvents.MessageDelete,
+          s: this.sequence++,
+          d: await Message.from_quark({
+            _id: data.id,
+            channel: data.channel,
+            author: "0",
+          }),
+        });
+        break;
+      }
       case "ChannelStartTyping": {
         await Send(this, {
           op: GatewayOpcodes.Dispatch,
@@ -170,6 +183,20 @@ export async function startListener(this: WebSocket, token: string) {
           t: GatewayDispatchEvents.ChannelCreate,
           s: this.sequence++,
           d: await Channel.from_quark(data),
+        });
+        break;
+      }
+      case "ChannelDelete": {
+        await Send(this, {
+          op: GatewayOpcodes.Dispatch,
+          t: GatewayDispatchEvents.ChannelDelete,
+          s: this.sequence++,
+          d: await Channel.from_quark({
+            _id: data.id,
+            channel_type: "DirectMessage",
+            active: false,
+            recipients: [],
+          }),
         });
         break;
       }

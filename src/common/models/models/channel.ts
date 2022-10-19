@@ -174,6 +174,11 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
       owner_id: undefined,
       origin_channel_id: id,
       created_at: Date.now(),
+      nsfw: (() => {
+        if (channel.channel_type !== "TextChannel") return false;
+
+        return !!channel.nsfw;
+      })(),
     };
   },
 };
