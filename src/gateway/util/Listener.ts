@@ -4,7 +4,7 @@ import { GatewayCloseCodes, GatewayDispatchEvents, GatewayOpcodes } from "discor
 import { API, Channel as rvChannel } from "revolt.js";
 import { createAPI } from "../../common/rvapi";
 import {
-  Channel, Guild, Member, Message, selfUser, User,
+  Channel, Guild, Member, Message, Relationship, selfUser, User,
 } from "../../common/models";
 import { WebSocket } from "../Socket";
 import { Send } from "./send";
@@ -74,8 +74,11 @@ export async function startListener(this: WebSocket, token: string) {
         }]);
 
         const relationships = await Promise.all(data.users
-          .filter((u) => u.relationship === "Friend")
-          .map((u) => User.from_quark(u)));
+          .filter((u) => u.relationship !== "None" && u.relationship !== "User")
+          .map(async (u) => ({
+            type: await Relationship.from_quark(u.relationship ?? "Friend"),
+            user: await User.from_quark(u),
+          })));
 
         const readyData = {
           v: 8,
@@ -92,10 +95,10 @@ export async function startListener(this: WebSocket, token: string) {
           guild_experiments: [],
           geo_ordered_rtc_regions: [],
           relationships: relationships.map((x) => ({
-            id: x.id,
-            type: UserRelationshipType.Friends,
-            nickname: x.username,
-            user: x,
+            id: x.user.id,
+            type: x.type,
+            nickname: x.user.username,
+            user: x.user,
           })),
           read_state: {
             entries: [],
@@ -151,16 +154,37 @@ export async function startListener(this: WebSocket, token: string) {
 
         break;
       }
+      case "MessageUpdate": {
+        if (!data.data._id || !data.data.author) return;
+
+        await Send(this, {
+          op: GatewayOpcodes.Dispatch,
+          t: GatewayDispatchEvents.MessageUpdate,
+          s: this.sequence++,
+          d: await Message.from_quark({
+            _id: data.data._id, // FIXME: this might crash if undef.
+            channel: data.channel,
+            author: data.data.author,
+            content: data.data.content ?? null,
+            embeds: data.data.embeds ?? null,
+            attachments: data.data.attachments ?? null,
+            system: data.data.system ?? null,
+            masquerade: data.data.masquerade ?? null,
+            edited: data.data.edited ?? null,
+          }),
+        });
+        break;
+      }
       case "MessageDelete": {
         await Send(this, {
           op: GatewayOpcodes.Dispatch,
           t: GatewayDispatchEvents.MessageDelete,
           s: this.sequence++,
-          d: await Message.from_quark({
-            _id: data.id,
-            channel: data.channel,
-            author: "0",
-          }),
+          d: {
+            id: data.id,
+            channel_id: data.channel,
+            // guild_id: null // FIXME
+          },
         });
         break;
       }
@@ -206,6 +230,18 @@ export async function startListener(this: WebSocket, token: string) {
           t: GatewayDispatchEvents.GuildCreate,
           s: this.sequence++,
           d: await Guild.from_quark(data.server),
+        });
+        break;
+      }
+      case "ServerDelete": {
+        await Send(this, {
+          op: GatewayOpcodes.Dispatch,
+          t: GatewayDispatchEvents.GuildDelete,
+          s: this.sequence++,
+          d: {
+            id: data.id,
+            unavailable: true,
+          },
         });
         break;
       }
