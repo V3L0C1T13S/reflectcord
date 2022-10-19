@@ -1,6 +1,9 @@
 /* eslint-disable camelcase */
-import { AccountInfo, User as RevoltUser, UserProfile as RevoltUserProfile } from "revolt-api";
+import {
+  AccountInfo, RelationshipStatus, User as RevoltUser, UserProfile as RevoltUserProfile,
+} from "revolt-api";
 import { ActivityType, APIUser, PresenceData } from "discord.js";
+import { UserRelationshipType } from "../../sparkle";
 import { QuarkConversion } from "../QuarkConversion";
 import { toSnowflake } from "../util";
 
@@ -174,6 +177,7 @@ export const Status: QuarkConversion<RevoltUser["status"], PresenceData> = {
             return "dnd";
           }
           default: {
+            // eslint-disable-next-line no-console
             console.warn(`Unhandled status ${status?.presence}`);
             return "invisible";
           }
@@ -186,5 +190,50 @@ export const Status: QuarkConversion<RevoltUser["status"], PresenceData> = {
     };
 
     return discordStatus;
+  },
+};
+
+export const Relationship: QuarkConversion<RelationshipStatus, UserRelationshipType> = {
+  async to_quark(type) {
+    switch (type) {
+      case UserRelationshipType.Blocked: {
+        return "Blocked";
+      }
+      case UserRelationshipType.Friends: {
+        return "Friend";
+      }
+      case UserRelationshipType.Incoming: {
+        return "Incoming";
+      }
+      case UserRelationshipType.Outgoing: {
+        return "Outgoing";
+      }
+      default: {
+        return "None";
+      }
+    }
+  },
+
+  async from_quark(type) {
+    switch (type) {
+      case "Blocked": {
+        return UserRelationshipType.Blocked;
+      }
+      case "BlockedOther": {
+        return UserRelationshipType.Blocked;
+      }
+      case "Friend": {
+        return UserRelationshipType.Friends;
+      }
+      case "Incoming": {
+        return UserRelationshipType.Incoming;
+      }
+      case "Outgoing": {
+        return UserRelationshipType.Outgoing;
+      }
+      default: {
+        return UserRelationshipType.Friends;
+      }
+    }
   },
 };

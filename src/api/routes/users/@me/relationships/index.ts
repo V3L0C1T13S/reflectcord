@@ -5,7 +5,7 @@ import { Application } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
 import { UserRelationshipType } from "../../../../../common/sparkle";
-import { User } from "../../../../../common/models";
+import { Relationship, User } from "../../../../../common/models";
 import { HTTPError } from "../../../../../common/utils";
 
 export default (express: Application) => <Resource> {
@@ -14,7 +14,7 @@ export default (express: Application) => <Resource> {
     const selfInfo = await res.rvAPI.get(`/users/${selfId._id}`) as API.User;
 
     const friends = selfInfo.relations
-      ?.filter((x) => x.status === "Friend") ?? [];
+      ?.filter((x) => x.status !== "None" && x.status !== "User") ?? [];
 
     const friendProfiles: API.User[] = [];
 
@@ -23,13 +23,18 @@ export default (express: Application) => <Resource> {
     }
 
     const convertedProfiles = await Promise.all(friendProfiles
-      .map((x) => User.from_quark(x)));
+      .map(async (x) => ({
+        user: await User.from_quark(x),
+        relationship: x.relationship
+          ? await Relationship.from_quark(x.relationship)
+          : UserRelationshipType.Friends,
+      })));
 
     const relations = convertedProfiles.map((x) => ({
-      id: x.id,
-      type: UserRelationshipType.Friends,
+      id: x.user.id,
+      type: x.relationship,
       nickname: null,
-      user: x,
+      user: x.user,
     }));
 
     res.json(relations);

@@ -8,9 +8,13 @@ export enum UserRelationshipType {
 }
 
 export type UserRelations = {
-  id?: string;
-  username?: string;
-  avatar?: string | null;
-  discriminator?: string;
-  public_flags?: number | undefined;
+  id?: string,
+  username?: string,
+  avatar?: string | null,
+  discriminator?: string,
+  public_flags?: number | undefined,
+}
+
+export type SendFriendRequestData = {
+  username: string,
 }

@@ -1,18 +1,15 @@
 /* eslint-disable camelcase */
-import { APIEmbed } from "discord.js";
+import { RESTPostAPIChannelMessageJSONBody } from "discord.js";
 import { Application, Request } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
 import { fromSnowflake } from "../../../../../common/models/util";
-import { Message, SendableEmbed, User } from "../../../../../common/models";
+import {
+  Message, MessageSendData, SendableEmbed, User,
+} from "../../../../../common/models";
 import { HTTPError } from "../../../../../common/utils";
 
-type discordMessageSend = {
-  content?: string,
-  embeds?: APIEmbed[],
-};
-
-export type sendReq = Request<any, any, discordMessageSend>;
+export type sendReq = Request<any, any, RESTPostAPIChannelMessageJSONBody>;
 
 export type rvMsgWithUsers = {
   messages: API.Message[];
@@ -48,14 +45,13 @@ export default (express: Application) => <Resource> {
   },
   post: async (req: sendReq, res) => {
     const { channel_id } = req.params;
-    const { content, embeds } = req.body;
 
     const rvId = await fromSnowflake(channel_id);
 
-    const revoltResponse = await res.rvAPI.post(`/channels/${rvId}/messages`, {
-      content: content ?? " ",
-      embeds: embeds ? await Promise.all(embeds.map((x) => SendableEmbed.to_quark(x))) : null,
-    }) as API.Message;
+    const revoltResponse = await res.rvAPI.post(
+      `/channels/${rvId}/messages`,
+      await MessageSendData.to_quark(req.body),
+    ) as API.Message;
     if (!revoltResponse) return;
 
     return res.json(await Message.from_quark(revoltResponse));

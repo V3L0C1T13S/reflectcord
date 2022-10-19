@@ -1,3 +1,4 @@
+import { AddUndefinedToPossiblyUndefinedPropertiesOfInterface } from "discord-api-types/utils/internals";
 import { APIEmbed } from "discord.js";
 import { API } from "revolt.js";
 import { AutumnURL } from "../../constants";
@@ -52,7 +53,10 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
   },
 };
 
-export const SendableEmbed: QuarkConversion<API.SendableEmbed, APIEmbed> = {
+export const SendableEmbed: QuarkConversion<
+  API.SendableEmbed,
+  AddUndefinedToPossiblyUndefinedPropertiesOfInterface<APIEmbed>
+> = {
   async to_quark(embed) {
     const {
       title, description, url, fields, footer, color,

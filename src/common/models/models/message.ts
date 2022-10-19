@@ -1,11 +1,14 @@
 /* eslint-disable camelcase */
-import { APIMessage, APIUser, MessageType } from "discord.js";
+import {
+  APIMessage, APIUser, MessageType, RESTPostAPIChannelMessageJSONBody,
+} from "discord.js";
 import { Message as RevoltMessage } from "revolt-api";
+import { API } from "revolt.js";
 import { decodeTime } from "ulid";
 import { QuarkConversion } from "../QuarkConversion";
-import { toSnowflake } from "../util";
+import { fromSnowflake, toSnowflake } from "../util";
 import { Attachment } from "./attachment";
-import { Embed } from "./embed";
+import { Embed, SendableEmbed } from "./embed";
 import { User } from "./user";
 
 export type APIMention = {
@@ -50,7 +53,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
         if (message.system) {
           if (message.system.type === "user_added" || message.system.type === "user_remove") {
             return {
-              id: message.system.by,
+              id: message.system.id,
               username: "fixme",
               discriminator: "1",
               avatar: null,
@@ -60,7 +63,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
         return authorUser;
       })(),
       timestamp: new Date(decodeTime(_id)).toISOString(),
-      edited_timestamp: null,
+      edited_timestamp: message.edited ?? null,
       tts: false,
       mention_everyone: false,
       mentions: [],
@@ -73,6 +76,31 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
         : [],
       pinned: false,
       type: MessageType.Default,
+    };
+  },
+};
+
+export const MessageSendData: QuarkConversion<
+  API.DataMessageSend,
+  RESTPostAPIChannelMessageJSONBody
+> = {
+  async to_quark(data) {
+    const { content, embeds } = data;
+
+    return {
+      content: content ?? " ",
+      embeds: embeds ? await Promise.all(embeds.map((x) => SendableEmbed.to_quark(x))) : null,
+    };
+  },
+
+  async from_quark(data) {
+    const { content, embeds } = data;
+
+    return {
+      content: content ?? "** **",
+      embeds: embeds
+        ? await Promise.all(embeds.map((x) => SendableEmbed.from_quark(x)))
+        : undefined,
     };
   },
 };

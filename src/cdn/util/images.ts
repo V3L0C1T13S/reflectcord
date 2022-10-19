@@ -4,6 +4,8 @@ import {
   existsSync, mkdirSync, readFileSync, writeFileSync,
 } from "fs";
 import { Request, Response } from "express";
+import FormData from "form-data";
+import axios from "axios";
 import { AutumnURL } from "../../common/constants";
 
 export type ImageType = "attachments" | "avatars" | "icons" | "backgrounds";
@@ -16,8 +18,8 @@ if (!existsSync(imageCacheDir)) {
   });
 }
 
-export async function downloadImage(type: ImageType, id: string, autumn = AutumnURL) {
-  const rvURL = `${autumn}/${type}/${id}`;
+export async function downloadImage(type: ImageType, id: string) {
+  const rvURL = `${AutumnURL}/${type}/${id}`;
   const imgTypeCacheDir = join(imageCacheDir, type);
 
   if (!existsSync(imgTypeCacheDir)) mkdirSync(imgTypeCacheDir);
@@ -35,12 +37,32 @@ export async function downloadImage(type: ImageType, id: string, autumn = Autumn
   return cachedImage;
 }
 
+export type revoltAttachmentResponse = {
+  id: string;
+}
+
+export async function uploadFile(
+  type: ImageType,
+  file: { name: string; file: Buffer },
+  contentType: string,
+) {
+  const data = new FormData();
+  data.append("file", file.file, { filename: file.name, contentType });
+
+  const response = await (axios.post<revoltAttachmentResponse>(
+    `${AutumnURL}/${type}`,
+    data,
+    { headers: data.getHeaders() },
+  ));
+
+  return response.data.id;
+}
+
 export async function handleImgRequest(
   req: Request,
   res: Response,
   type: ImageType,
   id?: string,
-  autumn?: string,
 ) {
   if (!id) return res.sendStatus(404);
 
@@ -56,3 +78,5 @@ export async function handleImgRequest(
 
   return res.send(avatarData);
 }
+
+export async function handleImgUpload(req: Request, res: Response, type: ImageType) {}
