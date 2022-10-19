@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable camelcase */
 import {
   APIMessage, APIUser, MessageType, RESTPostAPIChannelMessageJSONBody,
@@ -9,6 +10,7 @@ import { QuarkConversion } from "../QuarkConversion";
 import { fromSnowflake, toSnowflake } from "../util";
 import { Attachment } from "./attachment";
 import { Embed, SendableEmbed } from "./embed";
+import { PartialEmoji } from "./emoji";
 import { User } from "./user";
 
 export type APIMention = {
@@ -37,7 +39,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
 
   async from_quark(message) {
     const {
-      _id, channel, content, author, attachments, embeds,
+      _id, channel, content, author, attachments, embeds, reactions,
     } = message;
 
     const authorUser = await User.from_quark({
@@ -76,6 +78,25 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
         : [],
       pinned: false,
       type: MessageType.Default,
+      reactions: await (async () => {
+        if (!reactions) return [];
+
+        const discordEmojis = await Promise.all(Object.entries(reactions)
+          .map(([value, key]) => PartialEmoji.from_quark({
+            _id: value,
+            creator_id: "0",
+            parent: {
+              type: "Detached",
+            },
+            name: "fixme",
+          })));
+
+        return Promise.all(discordEmojis.map((x) => ({
+          count: 0,
+          me: false,
+          emoji: x,
+        })));
+      })(),
     };
   },
 };

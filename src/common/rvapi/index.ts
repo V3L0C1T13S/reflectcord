@@ -14,3 +14,5 @@ export function createAPI(token?: Options["authentication"]["revolt"]) {
     },
   });
 }
+
+export * from "./images";

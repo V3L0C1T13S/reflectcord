@@ -15,3 +15,5 @@ export const enableLogging = process.env["ENABLE_LOGGING"] ?? false;
 export const revoltBaseURL = process.env["REVOLT_BASE_URL"] ?? "https://revolt.chat";
 
 export const revoltApiURL = process.env["REVOLT_API_URL"] ?? "https://api.revolt.chat";
+
+export const revoltJanuaryURL = process.env["REVOLT_JANUARY_URL"] ?? "https://jan.revolt.chat";

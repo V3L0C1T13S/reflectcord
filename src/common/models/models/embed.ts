@@ -1,8 +1,8 @@
 import { AddUndefinedToPossiblyUndefinedPropertiesOfInterface } from "discord-api-types/utils/internals";
 import { APIEmbed } from "discord.js";
 import { API } from "revolt.js";
-import { AutumnURL } from "../../constants";
-import { hexToRgb, hexToRgbCode, rgbToHex } from "../../utils";
+import { proxyFile } from "../../rvapi";
+import { hexToRgbCode, rgbToHex } from "../../utils";
 import { QuarkConversion } from "../QuarkConversion";
 
 export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
@@ -28,10 +28,12 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
       if (embed.colour) discordEmbed.color = hexToRgbCode(embed.colour) ?? 0;
       if (embed.type === "Text") {
         if (embed.media) {
-          const imgUrl = `${AutumnURL}/attachments/${embed.media._id}`;
+          const imgUrl = `http://localhost:3001/attachments/${embed.media._id}`;
           discordEmbed.image = {
             url: imgUrl,
             proxy_url: imgUrl,
+            width: embed.media.metadata.type === "Image" ? embed.media.metadata.width : 0,
+            height: embed.media.metadata.type === "Image" ? embed.media.metadata.height : 0,
           };
         }
       } else if (embed.image || embed.video) {
@@ -43,16 +45,18 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
         if (embed.image) {
           mediaInfo.width = embed.image.width;
           mediaInfo.height = embed.image.height;
-          mediaInfo.url = embed.image.url;
+          mediaInfo.url = proxyFile(embed.image.url);
 
           discordEmbed.image = mediaInfo;
         } else if (embed.video) {
           mediaInfo.width = embed.video.width;
           mediaInfo.height = embed.video.height;
-          mediaInfo.url = embed.video.url;
+          mediaInfo.url = proxyFile(embed.video.url);
 
           discordEmbed.video = mediaInfo;
         }
+
+        mediaInfo.url = proxyFile(mediaInfo.url);
       }
     } else {
       const mediaInfo = {

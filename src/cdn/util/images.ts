@@ -8,7 +8,7 @@ import FormData from "form-data";
 import axios from "axios";
 import { AutumnURL } from "../../common/constants";
 
-export type ImageType = "attachments" | "avatars" | "icons" | "backgrounds";
+export type ImageType = "attachments" | "avatars" | "icons" | "backgrounds" | "emojis";
 
 export const imageCacheDir = join(__dirname, "../../../cache/autumn");
 
