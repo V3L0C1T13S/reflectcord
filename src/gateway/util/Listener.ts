@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-plusplus */
 import { GatewayCloseCodes, GatewayDispatchEvents, GatewayOpcodes } from "discord.js";
-import { API, Channel as rvChannel } from "revolt.js";
+import { API } from "revolt.js";
 import { createAPI } from "../../common/rvapi";
 import {
   Channel, Guild, Member, Message, Relationship, selfUser, User,
@@ -10,7 +10,6 @@ import { WebSocket } from "../Socket";
 import { Send } from "./send";
 import experiments from "./experiments.json";
 import { toSnowflake } from "../../common/models/util";
-import { UserRelationshipType } from "../../common/sparkle";
 
 export async function startListener(this: WebSocket, token: string) {
   this.rvClient.on("packet", async (data) => {
@@ -181,8 +180,8 @@ export async function startListener(this: WebSocket, token: string) {
           t: GatewayDispatchEvents.MessageDelete,
           s: this.sequence++,
           d: {
-            id: data.id,
-            channel_id: data.channel,
+            id: await toSnowflake(data.id),
+            channel_id: await toSnowflake(data.channel),
             // guild_id: null // FIXME
           },
         });
@@ -239,7 +238,7 @@ export async function startListener(this: WebSocket, token: string) {
           t: GatewayDispatchEvents.GuildDelete,
           s: this.sequence++,
           d: {
-            id: data.id,
+            id: await toSnowflake(data.id),
             unavailable: true,
           },
         });

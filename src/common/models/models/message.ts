@@ -85,16 +85,22 @@ export const MessageSendData: QuarkConversion<
   RESTPostAPIChannelMessageJSONBody
 > = {
   async to_quark(data) {
-    const { content, embeds } = data;
+    const { content, embeds, message_reference } = data;
 
     return {
       content: content ?? " ",
       embeds: embeds ? await Promise.all(embeds.map((x) => SendableEmbed.to_quark(x))) : null,
+      replies: message_reference ? [{
+        id: await fromSnowflake(message_reference.message_id),
+        mention: data.allowed_mentions?.replied_user ?? false,
+      }] : null,
     };
   },
 
   async from_quark(data) {
-    const { content, embeds } = data;
+    const { content, embeds, replies } = data;
+
+    const reply = replies ? replies[0] : null;
 
     return {
       content: content ?? "** **",
