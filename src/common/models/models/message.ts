@@ -59,7 +59,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
         }
         return authorUser;
       })(),
-      timestamp: decodeTime(_id).toString(),
+      timestamp: new Date(decodeTime(_id)).toISOString(),
       edited_timestamp: null,
       tts: false,
       mention_everyone: false,

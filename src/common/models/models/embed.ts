@@ -1,5 +1,6 @@
 import { APIEmbed } from "discord.js";
 import { API } from "revolt.js";
+import { AutumnURL } from "../../constants";
 import { hexToRgb, hexToRgbCode, rgbToHex } from "../../utils";
 import { QuarkConversion } from "../QuarkConversion";
 
@@ -21,6 +22,27 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
         return {
           title: embed.title ?? "",
           description: embed.description ?? "",
+          image: embed.media ? {
+            url: `${AutumnURL}/attachments/${embed.media._id}`,
+          } : null as any,
+        };
+      }
+      case "Website": {
+        return {
+          title: embed.title ?? "",
+          description: embed.description ?? "",
+          url: embed.url ?? "",
+        };
+      }
+      case "Video": {
+        return {
+          title: "Video",
+          url: embed.url,
+          video: {
+            url: embed.url,
+            width: embed.width,
+            height: embed.height,
+          },
         };
       }
       default: {

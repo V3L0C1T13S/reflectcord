@@ -22,14 +22,23 @@ export const Attachment: QuarkConversion<API.File, APIAttachment> = {
 
     const url = `http://localhost:3001/attachments/${_id}`;
 
-    const { width, height } = attachment.metadata.type === "Image" ? attachment.metadata : {
-      width: 0,
-      height: 0,
-    };
+    const { width, height } = (() => {
+      if (attachment.metadata.type === "Image" || attachment.metadata.type === "Video") {
+        return {
+          width: attachment.metadata.width,
+          height: attachment.metadata.height,
+        };
+      }
+
+      return {
+        width: null,
+        height: null,
+      };
+    })();
 
     return {
       id: _id,
-      filename: "image.png",
+      filename: attachment.filename,
       size,
       url,
       proxy_url: url,

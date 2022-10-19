@@ -100,7 +100,7 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
       system_channel_flags: GuildSystemChannelFlags.SuppressGuildReminderNotifications,
       rules_channel_id: null,
       max_presences: null,
-      max_members: 10000,
+      max_members: 100000,
       vanity_url_code: null,
       banner: null,
       premium_tier: GuildPremiumTier.None,
