@@ -148,17 +148,9 @@ export const Status: QuarkConversion<RevoltUser["status"], internalStatus> = {
     const text = (() => {
       if (!activity?.type) return null;
 
-      switch (activity.type as ActivityType) {
-        case ActivityType.Custom: {
-          return `${activity.state}`;
-        }
-        case ActivityType.Playing: {
-          return `${activity.name}`;
-        }
-        default: {
-          return null;
-        }
-      }
+      if (activity.type as ActivityType !== ActivityType.Custom) return `${activity.name}`;
+
+      return `${activity.state}`;
     })();
 
     return {
