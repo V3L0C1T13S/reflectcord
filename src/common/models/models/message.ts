@@ -39,7 +39,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
 
   async from_quark(message) {
     const {
-      _id, channel, content, author, attachments, embeds, reactions,
+      _id, channel, content, author, attachments, embeds, reactions, replies, mentions,
     } = message;
 
     const authorUser = await User.from_quark({
@@ -47,9 +47,13 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
       username: "fixme",
     });
 
-    return {
+    const channel_id = await toSnowflake(channel);
+
+    const reply = replies ? replies[0] : null;
+
+    const discordMessage: APIMessage = {
       id: (await toSnowflake(_id)).toString(),
-      channel_id: await toSnowflake(channel),
+      channel_id,
       content: content ?? "fixme",
       author: (() => {
         if (message.system) {
@@ -68,7 +72,10 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
       edited_timestamp: message.edited ?? null,
       tts: false,
       mention_everyone: false,
-      mentions: [],
+      mentions: mentions ? await Promise.all(mentions.map(() => User.from_quark({
+        _id: message.author,
+        username: "fixme",
+      }))) : [],
       attachments: attachments
         ? await Promise.all(attachments.map((x) => Attachment.from_quark(x)))
         : [],
@@ -77,7 +84,24 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
         ? await Promise.all(embeds.map((x) => Embed.from_quark(x)))
         : [],
       pinned: false,
-      type: MessageType.Default,
+      type: (() => {
+        if (reply) {
+          return MessageType.Reply;
+        }
+
+        if (message.system) {
+          switch (message.system.type) {
+            case "user_joined": {
+              return MessageType.UserJoin;
+            }
+            default: {
+              return MessageType.Default;
+            }
+          }
+        }
+
+        return MessageType.Default;
+      })(),
       reactions: await (async () => {
         if (!reactions) return [];
 
@@ -98,6 +122,16 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
         })));
       })(),
     };
+
+    if (reply) {
+      // FIXME: Missing guild id
+      discordMessage.message_reference = {
+        message_id: reply,
+        channel_id,
+      };
+    }
+
+    return discordMessage;
   },
 };
 
