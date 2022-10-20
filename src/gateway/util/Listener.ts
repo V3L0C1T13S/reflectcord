@@ -2,7 +2,7 @@
 /* eslint-disable no-plusplus */
 import { GatewayCloseCodes, GatewayDispatchEvents, GatewayOpcodes } from "discord.js";
 import { API } from "revolt.js";
-import { createAPI } from "../../common/rvapi";
+import { APIWrapper, createAPI } from "../../common/rvapi";
 import {
   Channel, Guild, Member, Message, Relationship, selfUser, User,
 } from "../../common/models";
@@ -25,6 +25,7 @@ export async function startListener(this: WebSocket, token: string) {
             token,
           });
         }
+        this.rvAPIWrapper = new APIWrapper(this.rvAPI);
 
         const users = await Promise.all(data.users
           .map((user) => User.from_quark(user)));
@@ -139,6 +140,7 @@ export async function startListener(this: WebSocket, token: string) {
         // We don't want to send Discord system stuff, since they dont have IDs
         if (!data.system) {
           const discordMsg = await Message.from_quark(data);
+          const author = await this.rvAPIWrapper.users.getUser(data.author);
           const channel = await this.rvClient.channels.get(data.channel);
           await Send(this, {
             op: GatewayOpcodes.Dispatch,
@@ -146,6 +148,7 @@ export async function startListener(this: WebSocket, token: string) {
             s: this.sequence++,
             d: {
               ...discordMsg,
+              author: author.discord,
               guild_id: channel?.server_id ? await toSnowflake(channel.server_id) : null,
             },
           });

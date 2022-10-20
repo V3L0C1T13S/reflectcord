@@ -3,6 +3,7 @@ import { API } from "revolt-api";
 import { Client } from "revolt.js";
 import WS from "ws";
 import { Deflate } from "zlib";
+import { APIWrapper } from "../common/rvapi";
 
 export interface WebSocket extends WS {
   version: number;
@@ -23,6 +24,7 @@ export interface WebSocket extends WS {
   listen_options: any;
   rvClient: Client;
   rvAPI: API;
+  rvAPIWrapper: APIWrapper;
   voiceInfo: {
     self_deaf: boolean,
     self_mute: boolean,
