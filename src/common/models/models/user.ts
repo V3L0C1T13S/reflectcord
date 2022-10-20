@@ -2,7 +2,9 @@
 import {
   AccountInfo, RelationshipStatus, User as RevoltUser, UserProfile as RevoltUserProfile,
 } from "revolt-api";
-import { ActivityType, APIUser, PresenceData } from "discord.js";
+import {
+  ActivitiesOptions, ActivityType, APIUser, PresenceData,
+} from "discord.js";
 import { UserRelationshipType } from "../../sparkle";
 import { QuarkConversion } from "../QuarkConversion";
 import { toSnowflake } from "../util";
@@ -131,8 +133,34 @@ export const selfUser: QuarkConversion<revoltUserInfo, APIUser> = {
   },
 };
 
-export const Status: QuarkConversion<RevoltUser["status"], PresenceData> = {
+export type internalActivity = ActivitiesOptions & {
+  state?: string,
+  type?: ActivityType,
+}
+
+export type internalStatus = PresenceData & {
+  activities?: internalActivity[],
+}
+
+export const Status: QuarkConversion<RevoltUser["status"], internalStatus> = {
   async to_quark(status) {
+    const activity = status.activities?.[0] as internalActivity;
+    const text = (() => {
+      if (!activity?.type) return null;
+
+      switch (activity.type as ActivityType) {
+        case ActivityType.Custom: {
+          return `${activity.state}`;
+        }
+        case ActivityType.Playing: {
+          return `${activity.name}`;
+        }
+        default: {
+          return null;
+        }
+      }
+    })();
+
     return {
       presence: (() => {
         switch (status.status) {
@@ -153,7 +181,7 @@ export const Status: QuarkConversion<RevoltUser["status"], PresenceData> = {
           }
         }
       })(),
-      text: status.activities ? status.activities[0]?.name ?? null : null,
+      text,
     };
   },
 
