@@ -72,8 +72,8 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
       edited_timestamp: message.edited ?? null,
       tts: false,
       mention_everyone: false,
-      mentions: mentions ? await Promise.all(mentions.map(() => User.from_quark({
-        _id: message.author,
+      mentions: mentions ? await Promise.all(mentions.map((x) => User.from_quark({
+        _id: x,
         username: "fixme",
       }))) : [],
       attachments: attachments
