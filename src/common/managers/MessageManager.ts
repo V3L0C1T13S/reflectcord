@@ -21,13 +21,14 @@ export class MessageManager extends BaseManager {
     };
   }
 
-  async sendMessage(channel: string, data: RESTPostAPIChannelMessageJSONBody) {
+  async sendMessage(channel: string, data: API.DataMessageSend) {
     const revoltResponse = await this.rvAPI.post(
       `/channels/${channel}/messages`,
-      await MessageSendData.to_quark(data),
+      data,
     ) as API.Message;
 
     const discordMessage = await Message.from_quark(revoltResponse);
+    const selfUser = await this.apiWrapper.users.getSelf();
 
     return {
       revolt: {
@@ -35,6 +36,7 @@ export class MessageManager extends BaseManager {
       },
       discord: {
         ...discordMessage,
+        author: await User.from_quark(selfUser),
       },
     };
   }

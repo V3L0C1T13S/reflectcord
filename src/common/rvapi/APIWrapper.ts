@@ -11,7 +11,7 @@ export class APIWrapper {
   constructor(api: API.API) {
     this.rvAPI = api;
 
-    this.messages = new MessageManager(api);
-    this.users = new UserManager(api);
+    this.messages = new MessageManager(this);
+    this.users = new UserManager(this);
   }
 }

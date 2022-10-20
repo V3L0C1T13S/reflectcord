@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
-import { RESTPostAPIChannelMessageJSONBody } from "discord.js";
-import { Application, Request } from "express";
+import { APIMessage, RESTPostAPIChannelMessageJSONBody } from "discord.js";
+import { Application, Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
 import { fromSnowflake } from "../../../../../common/models/util";
@@ -43,17 +43,16 @@ export default (express: Application) => <Resource> {
 
     return res.json(convMessages);
   },
-  post: async (req: sendReq, res) => {
+  post: async (req: sendReq, res: Response<APIMessage>) => {
     const { channel_id } = req.params;
 
     const rvId = await fromSnowflake(channel_id);
 
-    const revoltResponse = await res.rvAPI.post(
-      `/channels/${rvId}/messages`,
+    const msg = await res.rvAPIWrapper.messages.sendMessage(
+      rvId,
       await MessageSendData.to_quark(req.body),
-    ) as API.Message;
-    if (!revoltResponse) return;
+    );
 
-    return res.json(await Message.from_quark(revoltResponse));
+    return res.json(msg.discord);
   },
 };

@@ -1,9 +1,13 @@
 import { API } from "revolt.js";
+import { APIWrapper } from "../rvapi";
 
 export class BaseManager {
   rvAPI: API.API;
 
-  constructor(api: API.API) {
-    this.rvAPI = api;
+  apiWrapper: APIWrapper;
+
+  constructor(apiWrapper: APIWrapper) {
+    this.rvAPI = apiWrapper.rvAPI;
+    this.apiWrapper = apiWrapper;
   }
 }
