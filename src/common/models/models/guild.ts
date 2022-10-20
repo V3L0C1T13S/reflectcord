@@ -143,7 +143,7 @@ export const PartialGuild: QuarkConversion<Server, DiscordPartialGuild> = {
         explicit_content_filter: GuildExplicitContentFilter.Disabled,
         roles: [],
         emojis: [],
-        features: [],
+        features,
         mfa_level: GuildMFALevel.None,
         application_id: null,
         system_channel_id: null,
