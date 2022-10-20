@@ -21,6 +21,7 @@ export class ReflectcordCDN extends Server {
 
     this.registerRoutesDirectory(path.join(__dirname, "routes"));
 
+    // eslint-disable-next-line no-console
     console.log("CDN ON!");
     super.start();
   }

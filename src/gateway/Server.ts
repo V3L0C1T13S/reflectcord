@@ -34,6 +34,7 @@ export class ReflectcordGateway {
   async start() {
     if (!this.server.listening) {
       this.server.listen(this.port);
+      // eslint-disable-next-line no-console
       console.log("Gateway ON");
     }
   }
