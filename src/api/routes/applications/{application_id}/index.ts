@@ -5,12 +5,16 @@ import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
 import { HTTPError } from "../../../../common/utils";
 import { Application as botApplication, OwnedApplication } from "../../../../common/models";
+import { fromSnowflake } from "../../../../common/models/util";
 
 export default (express: Application) => <Resource> {
   get: async (req, res: Response<APIApplication>) => {
     const { application_id } = req.params;
+    if (!application_id) throw new HTTPError("Invalid appid");
 
-    const bot = await res.rvAPI.get(`/bots/${application_id}`) as API.BotResponse;
+    const appid = await fromSnowflake(application_id);
+
+    const bot = await res.rvAPI.get(`/bots/${appid}`) as API.BotResponse;
     const profileInfo = await res.rvAPI.get(`/users/${bot.user._id}/profile`) as API.UserProfile;
     if (!bot || !profileInfo) throw new HTTPError("Revolt failed to get bot", 500);
 
@@ -24,9 +28,11 @@ export default (express: Application) => <Resource> {
   },
   patch: async (req, res) => {
     const { application_id } = req.params;
-    if (!application_id) return;
+    if (!application_id) throw new HTTPError("Invalid appid");
 
-    const revoltRes = await res.rvAPI.patch(`/bots/${application_id}`, {
+    const appid = await fromSnowflake(application_id);
+
+    const revoltRes = await res.rvAPI.patch(`/bots/${appid}`, {
       description: req.body.description,
     }) as API.Bot;
     if (!revoltRes) return;

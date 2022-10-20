@@ -17,7 +17,7 @@ export default (express: Application) => <Resource> {
 
     if (!id) throw new HTTPError("ID not supplied", 422);
 
-    const rvId = await fromSnowflake(id);
+    const rvId = id !== "@me" ? await fromSnowflake(id) : "@me";
 
     const rvUser = await fetchUser(res.rvAPI, rvId);
     if (!rvUser) throw new HTTPError("User not found", 500);
