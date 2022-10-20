@@ -24,7 +24,7 @@ export type APIMention = {
 export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
   async to_quark(message) {
     const {
-      content, id, author, embeds, channel_id, attachments,
+      content, id, author, embeds, channel_id, attachments, message_reference,
     } = message;
 
     return {
@@ -34,6 +34,9 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
       channel: channel_id,
       embeds: await Promise.all(embeds.map((x) => Embed.to_quark(x))),
       attachments: await Promise.all(attachments.map((x) => Attachment.to_quark(x))),
+      replies: message_reference?.message_id
+        ? [message_reference.message_id]
+        : null,
     };
   },
 
