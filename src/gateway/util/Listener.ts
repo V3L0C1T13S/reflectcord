@@ -4,7 +4,7 @@ import { GatewayCloseCodes, GatewayDispatchEvents, GatewayOpcodes } from "discor
 import { API } from "revolt.js";
 import { APIWrapper, createAPI } from "../../common/rvapi";
 import {
-  Channel, Guild, Member, Message, Relationship, selfUser, User,
+  Channel, Guild, Member, Message, PartialEmoji, Relationship, selfUser, User,
 } from "../../common/models";
 import { WebSocket } from "../Socket";
 import { Send } from "./send";
@@ -186,6 +186,56 @@ export async function startListener(this: WebSocket, token: string) {
             id: await toSnowflake(data.id),
             channel_id: await toSnowflake(data.channel),
             // guild_id: null // FIXME
+          },
+        });
+        break;
+      }
+      case "MessageReact": {
+        const emoji = await this.rvAPI.get(`/custom/emoji/${data.emoji_id}`) as API.Emoji;
+        if (!emoji) return;
+
+        await Send(this, {
+          op: GatewayOpcodes.Dispatch,
+          t: GatewayDispatchEvents.MessageReactionAdd,
+          s: this.sequence++,
+          d: {
+            user_id: await toSnowflake(data.user_id),
+            channel_id: await toSnowflake(data.channel_id),
+            message_id: await toSnowflake(data.id),
+            emoji: await PartialEmoji.from_quark(emoji),
+          },
+        });
+        break;
+      }
+      case "MessageUnreact": {
+        const emoji = await this.rvAPI.get(`/custom/emoji/${data.emoji_id}`) as API.Emoji;
+        if (!emoji) return;
+
+        await Send(this, {
+          op: GatewayOpcodes.Dispatch,
+          t: GatewayDispatchEvents.MessageReactionRemove,
+          s: this.sequence++,
+          d: {
+            user_id: await toSnowflake(data.user_id),
+            channel_id: await toSnowflake(data.channel_id),
+            message_id: await toSnowflake(data.id),
+            emoji: await PartialEmoji.from_quark(emoji),
+          },
+        });
+        break;
+      }
+      case "MessageRemoveReaction": {
+        const emoji = await this.rvAPI.get(`/custom/emoji/${data.emoji_id}`) as API.Emoji;
+        if (!emoji) return;
+
+        await Send(this, {
+          op: GatewayOpcodes.Dispatch,
+          t: GatewayDispatchEvents.MessageReactionRemoveEmoji,
+          s: this.sequence++,
+          d: {
+            channel_id: await toSnowflake(data.channel_id),
+            message_id: await toSnowflake(data.id),
+            emoji: await PartialEmoji.from_quark(emoji),
           },
         });
         break;
