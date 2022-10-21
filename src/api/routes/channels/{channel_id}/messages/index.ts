@@ -23,11 +23,14 @@ export default (express: Application) => <Resource> {
     const { before } = req.query;
     const { channel_id } = req.params;
 
+    const beforeId = before ? await fromSnowflake(before) : null;
+
     const rvId = await fromSnowflake(channel_id);
 
     const msgs = await res.rvAPI.get(`/channels/${rvId}/messages`, {
       limit,
       include_users: true,
+      before: beforeId,
     }) as rvMsgWithUsers;
     if (!msgs) return;
 

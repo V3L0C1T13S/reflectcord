@@ -8,6 +8,7 @@ import { RequestGuildMembers } from "./RequestGuildMembers";
 import { onResume } from "./Resume";
 import { VSUpdate } from "./VS";
 import { GatewayOpcodes } from "../../common/sparkle";
+import { QueryApplicationCommands } from "./QueryApplicationCommands";
 
 export type OPCodeHandler = (this: WebSocket, data: Payload) => any;
 
@@ -19,4 +20,5 @@ export const OPCodeHandlers: { [key: number ]: OPCodeHandler } = {
   [GatewayOpcodes.VoiceStateUpdate]: VSUpdate,
   [GatewayOpcodes.RequestGuildMembers]: RequestGuildMembers,
   [GatewayOpcodes.LazyRequest]: lazyReq,
+  [GatewayOpcodes.QueryApplicationCommands]: QueryApplicationCommands,
 };

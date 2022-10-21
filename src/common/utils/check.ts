@@ -1,5 +1,6 @@
 /* eslint-disable no-param-reassign */
 import { NextFunction, Request, Response } from "express";
+import "missing-native-js-functions";
 import { HTTPError } from "./HTTPError";
 
 const OPTIONAL_PREFIX = "$";
@@ -104,7 +105,8 @@ export function instanceOf(type: any, value: any, { path = "", optional = false 
         optional: OPTIONAL,
       });
     });
-  } if (typeof type === "number" || typeof type === "string" || typeof type === "boolean") {
+  // eslint-disable-next-line no-else-return
+  } else if (typeof type === "number" || typeof type === "string" || typeof type === "boolean") {
     if (value === type) return true;
     throw new Error(`${path} must be ${value}`);
   } else if (typeof type === "bigint") {

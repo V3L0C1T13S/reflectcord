@@ -1,7 +1,10 @@
+import { ActivitySchema } from "./User";
+
 export const IdentifySchema = {
   token: String,
   $intents: String,
   $properties: Object,
+  $presence: ActivitySchema,
   $compress: Boolean,
   $large_threshold: Number,
   $shard: [Number, Number],

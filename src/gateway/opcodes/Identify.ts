@@ -4,9 +4,12 @@ import { startListener } from "../util/Listener";
 import { Payload } from "../util";
 import { WebSocket } from "../Socket";
 import { Logger } from "../../common/utils";
+import { check } from "./instanceOf";
+import { IdentifySchema } from "../../common/sparkle";
 
 export async function onIdentify(this: WebSocket, data: Payload) {
   clearTimeout(this.readyTimeout);
+  // check.call(this, IdentifySchema, data.d);
 
   Logger.log("Identifying");
 

@@ -15,6 +15,13 @@ export enum GatewayOpcodes {
    * Sent: This opcode is used to ping a voice server, whatever that means.
    * The functionality of this opcode isn't known well but non-user clients
    * should never send it.
+   *
+   * An example of what is usually sent to it is:
+   * {
+   *   delay: int,
+   *   speaking: boolean,
+   *   ssrc: int
+   * }
    */
   VoicePing = 5,
   Resume = DiscordjsOPCodes.Resume,
@@ -29,6 +36,10 @@ export enum GatewayOpcodes {
   GuildSync = 12,
   /**
    * Client wants to sync dm/group call
+   * Structure:
+   * {
+   *  channel_id: Snowflake
+   * }
    */
   CallSync = 13,
   /**

@@ -8,6 +8,8 @@ import { Send, Payload } from "../util";
 import { WebSocket } from "../Socket";
 import { fromSnowflake } from "../../common/models/util";
 import { Logger } from "../../common/utils";
+import { check } from "./instanceOf";
+import { LazyRequest } from "../../common/sparkle/schemas";
 
 function partition<T>(array: T[], isValid: Function) {
   // @ts-ignore
@@ -98,11 +100,12 @@ async function getMembers(this: WebSocket, guild_id: string, range: [number, num
 }
 
 export async function lazyReq(this: WebSocket, data: Payload) {
+  check.call(this, LazyRequest, data.d);
   const {
     guild_id, typing, channels, activities,
   } = data.d;
 
-  const channel_id = Object.keys(channels)[0];
+  const channel_id = Object.keys(channels || {}).first();
   if (!channel_id) return;
 
   const rvChannelId = await fromSnowflake(channel_id);
