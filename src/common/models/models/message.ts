@@ -72,12 +72,13 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
 
   async from_quark(message) {
     const {
-      _id, channel, content, author, attachments, embeds, reactions, replies, mentions,
+      _id, channel, content, author, attachments, embeds, reactions, replies, mentions, masquerade,
     } = message;
 
+    // Should we really support masquerading?
     const authorUser = await User.from_quark({
       _id: author,
-      username: "fixme",
+      username: masquerade?.name ?? "fixme",
     });
 
     const channel_id = await toSnowflake(channel);
@@ -99,6 +100,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
             };
           }
         }
+
         return authorUser;
       })(),
       timestamp: new Date(decodeTime(_id)).toISOString(),
