@@ -10,6 +10,44 @@ import { fromSnowflake } from "../../common/models/util";
 import { Logger } from "../../common/utils";
 import { check } from "./instanceOf";
 import { LazyRequest } from "../../common/sparkle/schemas";
+import "missing-native-js-functions";
+
+type LazyGroup = {
+  /** Group ID */
+  id: string,
+  /** Amount of members in this group */
+  count: number,
+};
+
+type OperatorType = "SYNC" | "INVALIDATE" | "DELETE" | "UPDATE";
+
+type LazyOperatorRange = [number, number];
+
+type SyncItem = {
+  group: LazyGroup,
+} | {
+  member: APIGuildMember,
+};
+
+type LazyOperator = {
+  op: OperatorType,
+  range?: LazyOperatorRange,
+  items: SyncItem[],
+  index: number,
+  item: SyncItem,
+};
+
+type SyncLazyOperator = Omit<LazyOperator, "range, index"> & {
+  op: "SYNC",
+};
+
+type LazyRequestEvent = {
+  /** The list being updated */
+  id: string,
+  guild_id: string,
+  ops: LazyOperator[],
+  groups: LazyGroup[];
+};
 
 function partition<T>(array: T[], isValid: Function) {
   // @ts-ignore
@@ -18,6 +56,98 @@ function partition<T>(array: T[], isValid: Function) {
     ([pass, fail], elem) => (isValid(elem) ? [[...pass, elem], fail] : [pass, [...fail, elem]]),
     [[], []],
   );
+}
+
+async function getMembersV2(this: WebSocket, guild_id: string, range: LazyOperatorRange) {
+  if (!Array.isArray(range) || range.length !== 2) throw new Error("invalid range");
+
+  const groups: LazyGroup[] = [];
+  const items: SyncItem[] = [];
+
+  const members = await this.rvAPI.get(`/servers/${guild_id}/members`, {
+    exclude_offline: true,
+  }) as API.AllMemberResponse;
+
+  let discordMembers = await Promise.all(members.members.map((x) => Member.from_quark(x)));
+
+  const memberRoles = discordMembers
+    .map((x) => x.roles)
+    .flat()
+    .unique((r) => r);
+  memberRoles.push(
+    memberRoles.splice(
+      memberRoles.findIndex((x) => x === guild_id),
+      1,
+    )[0]!,
+  );
+
+  const offlineItems: SyncItem[] = [];
+
+  memberRoles.forEach((role) => {
+    // @ts-ignore
+    const [role_members, other_members]: [APIGuildMember[], APIGuildMember[]] = partition(
+      discordMembers,
+      (m: APIGuildMember) => m.roles
+        .find((r) => r === role),
+    );
+    const group = {
+      count: role_members.length,
+      id: role === guild_id ? "online" : role,
+    };
+
+    items.push({ group });
+    groups.push(group);
+
+    role_members.forEach((member) => {
+      const userRoles = member.roles.filter((x) => x !== guild_id).map((x) => x);
+
+      const statusPriority = {
+        online: 0,
+        idle: 1,
+        dnd: 2,
+        invisible: 3,
+        offline: 4,
+      };
+
+      const session = {
+        status: "online",
+      };
+
+      const item = {
+        member: {
+          ...member,
+          roles: userRoles,
+          user: member.user,
+          presence: {
+            ...session,
+            activities: [],
+            user: { id: member.user?.id },
+          },
+        },
+      } as SyncItem;
+
+      items.push(item);
+    });
+    discordMembers = other_members;
+  });
+
+  if (offlineItems.length > 0) {
+    const group = {
+      count: offlineItems.length,
+      id: "offline",
+    };
+    items.push({ group });
+    groups.push(group);
+
+    items.push(...offlineItems);
+  }
+
+  return {
+    items,
+    groups,
+    range,
+    members: items.map((x) => ("member" in x ? x.member : undefined)).filter((x) => !!x),
+  };
 }
 
 async function getMembers(this: WebSocket, guild_id: string, range: [number, number]) {
@@ -114,7 +244,7 @@ export async function lazyReq(this: WebSocket, data: Payload) {
   const ranges = channels![channel_id];
   if (!Array.isArray(ranges)) throw new Error("Not a valid Array");
 
-  const ops = await getMembers.call(this, rvServerId, [0, 99]);
+  const ops = await getMembersV2.call(this, rvServerId, [0, 99]);
   const member_count = ops.members.length;
 
   const { groups } = ops;
