@@ -7,6 +7,7 @@ import { Member } from "../../common/models";
 import { Send, Payload } from "../util";
 import { WebSocket } from "../Socket";
 import { fromSnowflake } from "../../common/models/util";
+import { Logger } from "../../common/utils";
 
 function partition<T>(array: T[], isValid: Function) {
   // @ts-ignore
@@ -100,8 +101,6 @@ export async function lazyReq(this: WebSocket, data: Payload) {
   const {
     guild_id, typing, channels, activities,
   } = data.d;
-
-  console.log(JSON.stringify(channels));
 
   const channel_id = Object.keys(channels)[0];
   if (!channel_id) return;

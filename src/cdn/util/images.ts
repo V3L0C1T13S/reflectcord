@@ -7,6 +7,7 @@ import { Request, Response } from "express";
 import FormData from "form-data";
 import axios from "axios";
 import { AutumnURL } from "../../common/constants";
+import { Logger } from "../../common/utils";
 
 export type ImageType = "attachments" | "avatars" | "icons" | "backgrounds" | "emojis";
 
@@ -26,7 +27,7 @@ export async function downloadImage(type: ImageType, id: string) {
 
   const imgDir = join(imgTypeCacheDir, id);
   if (!existsSync(imgDir)) {
-    console.log(`Downloading uncached ${type} ${id}`);
+    Logger.log(`Downloading uncached ${type} ${id}`);
     const res = await (await fetch(rvURL)).buffer();
     writeFileSync(imgDir, res);
     return res;

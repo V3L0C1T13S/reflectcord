@@ -4,6 +4,7 @@ import erlpack from "erlpack";
 import { Payload } from "../util";
 import { WebSocket } from "../Socket";
 import { OPCodeHandlers } from "../opcodes";
+import { Logger } from "../../common/utils";
 
 export async function Message(this: WebSocket, buffer: Buffer) {
   let data: Payload;
@@ -12,14 +13,15 @@ export async function Message(this: WebSocket, buffer: Buffer) {
   else if (this.encoding === "json") {
     data = JSON.parse(buffer as unknown as string);
   } else {
-    console.log("Invalid gateway connection.");
+    Logger.log("Invalid gateway connection.");
     return;
   }
 
+  Logger.log(`Message: ${JSON.stringify(data)}`);
   if (data.op !== GatewayOpcodes.Heartbeat) {
     // FIXME: Implement validation here
   } else if (data.s || data.t || (typeof data.d !== "number" && data.d)) {
-    console.log("Invalid heartbeat...");
+    Logger.log("Invalid heartbeat");
     this.close(GatewayCloseCodes.DecodeError);
   }
 

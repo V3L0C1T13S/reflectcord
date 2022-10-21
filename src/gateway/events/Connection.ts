@@ -10,6 +10,7 @@ import { WebSocket } from "../Socket";
 import { Message } from "./Message";
 import { Close } from "./Close";
 import { APIWrapper } from "../../common/rvapi";
+import { Logger } from "../../common/utils";
 
 export async function Connection(this: ws.Server, socket: WebSocket, request: IncomingMessage) {
   try {
@@ -57,7 +58,7 @@ export async function Connection(this: ws.Server, socket: WebSocket, request: In
       1000 * 30,
     );
   } catch (e) {
-    console.error(e);
+    Logger.error(e);
     return socket.close(GatewayCloseCodes.UnknownError);
   }
 }

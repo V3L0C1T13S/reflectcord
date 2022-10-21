@@ -1,5 +1,6 @@
+import { Logger } from "../../common/utils";
 import { WebSocket } from "../Socket";
 
 export function RequestGuildMembers(this: WebSocket) {
-  console.log("Request guild members");
+  Logger.log("Request guild members");
 }

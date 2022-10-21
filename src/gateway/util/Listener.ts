@@ -10,6 +10,7 @@ import { WebSocket } from "../Socket";
 import { Send } from "./send";
 import experiments from "./experiments.json";
 import { toSnowflake } from "../../common/models/util";
+import { Logger } from "../../common/utils";
 
 export async function startListener(this: WebSocket, token: string) {
   this.rvClient.on("packet", async (data) => {
@@ -152,7 +153,7 @@ export async function startListener(this: WebSocket, token: string) {
               guild_id: channel?.server_id ? await toSnowflake(channel.server_id) : null,
             },
           });
-        } else console.log("message is system message");
+        } else Logger.log("message is system message");
 
         break;
       }
@@ -335,7 +336,7 @@ export async function startListener(this: WebSocket, token: string) {
         break;
       }
       default: {
-        console.log(`Unknown event type ${data.type}`);
+        Logger.warn(`Unknown event type ${data.type}`);
         break;
       }
     }

@@ -5,6 +5,7 @@ import fs from "fs";
 import path from "path";
 import fetch, { Headers, Response as FetchResponse } from "node-fetch";
 import axios from "axios";
+import { Logger } from "../../common/utils";
 
 const AssetsPath = path.join(__dirname, "..", "..", "..", "assets");
 
@@ -142,7 +143,7 @@ export function Client(app: Application) {
           return res.status(404).send("Not found");
         }
         // eslint-disable-next-line no-console
-        console.log(`[TestClient] Downloading file not yet cached! Asset file: ${req.params.file}`);
+        Logger.log(`[TestClient] Downloading file not yet cached! Asset file: ${req.params.file}`);
         response = await fetch(`https://discord.com/assets/${req.params.file}`, {
           agent,
           // @ts-ignore

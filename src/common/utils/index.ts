@@ -5,3 +5,4 @@ export * from "./HTTPError";
 export * from "./TokenManager";
 export * from "./Server";
 export * from "./color";
+export * from "./Logger";
