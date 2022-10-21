@@ -251,6 +251,24 @@ export async function startListener(this: WebSocket, token: string) {
         // Discord wont handle this no matter what
         break;
       }
+      /*
+      case "UserUpdate": {
+        if (!data.data._id) return;
+        console.log("user update");
+
+        await Send(this, {
+          op: GatewayOpcodes.Dispatch,
+          t: GatewayDispatchEvents.UserUpdate,
+          s: this.sequence++,
+          d: await User.from_quark({
+            _id: data.data._id,
+            username: data.data.username ?? "fixme",
+            flags: data.data.flags ?? null,
+          }),
+        });
+        break;
+      }
+      */
       default: {
         console.log(`Unknown event type ${data.type}`);
         break;

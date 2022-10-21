@@ -1,7 +1,11 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable camelcase */
 import {
-  APIMessage, APIUser, MessageType, RESTPostAPIChannelMessageJSONBody,
+  APIMessage,
+  APIUser,
+  MessageReference as DiscordMessageReference,
+  MessageType,
+  RESTPostAPIChannelMessageJSONBody,
 } from "discord.js";
 import { Message as RevoltMessage } from "revolt-api";
 import { API } from "revolt.js";
@@ -19,6 +23,32 @@ export type APIMention = {
   content: string,
   channel_id: string,
   author: APIUser,
+};
+
+type messageReferenceRevolt = {
+  id: string,
+  channel_id: string,
+  server?: string,
+}
+
+export const MessageReference: QuarkConversion<
+  messageReferenceRevolt,
+  DiscordMessageReference
+> = {
+  async to_quark(reference) {
+    return {
+      id: reference.messageId ?? "0",
+      channel_id: reference.channelId,
+    };
+  },
+
+  async from_quark(reference) {
+    return {
+      messageId: await toSnowflake(reference.id),
+      channelId: await toSnowflake(reference.channel_id),
+      guildId: reference.server ? await toSnowflake(reference.server) : undefined,
+    };
+  },
 };
 
 export const Message: QuarkConversion<RevoltMessage, APIMessage> = {

@@ -42,4 +42,10 @@ export class MessageManager extends BaseManager {
       },
     };
   }
+
+  async ack(channel:string, id: string) {
+    const res = await this.rvAPI.put(`/channels/${channel}/ack/${id}`);
+
+    return res;
+  }
 }
