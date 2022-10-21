@@ -1,4 +1,3 @@
-import { GatewayOpcodes } from "discord.js";
 import { WebSocket } from "../Socket";
 import { Payload } from "../util";
 import { onHeartbeat } from "./Heartbeat";
@@ -8,6 +7,7 @@ import { presenceUpdate } from "./PresenceUpdate";
 import { RequestGuildMembers } from "./RequestGuildMembers";
 import { onResume } from "./Resume";
 import { VSUpdate } from "./VS";
+import { GatewayOpcodes } from "../../common/sparkle";
 
 export type OPCodeHandler = (this: WebSocket, data: Payload) => any;
 
@@ -18,5 +18,5 @@ export const OPCodeHandlers: { [key: number ]: OPCodeHandler } = {
   [GatewayOpcodes.Resume]: onResume,
   [GatewayOpcodes.VoiceStateUpdate]: VSUpdate,
   [GatewayOpcodes.RequestGuildMembers]: RequestGuildMembers,
-  14: lazyReq,
+  [GatewayOpcodes.LazyRequest]: lazyReq,
 };
