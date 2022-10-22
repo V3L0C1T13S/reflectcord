@@ -6,8 +6,11 @@ import {
 import { Request, Response } from "express";
 import FormData from "form-data";
 import axios from "axios";
+import fileType from "file-type";
 import { AutumnURL } from "../../common/constants";
 import { Logger } from "../../common/utils";
+
+const DisallowedTypes = ["text/html", "text/mhtml", "multipart/related", "application/xhtml+xml"];
 
 export type ImageType = "attachments" | "avatars" | "icons" | "backgrounds" | "emojis";
 
@@ -74,7 +77,11 @@ export async function handleImgRequest(
   const avatarData = await downloadImage(type, realId);
   if (!avatarData) return res.sendStatus(404);
 
-  res.set("Content-Type", "application/octet-stream");
+  const bufferType = await fileType.fromBuffer(avatarData);
+
+  const mimeType = bufferType?.mime ?? "application/octet-stream";
+
+  res.set("Content-Type", mimeType);
   res.set("Cache-Control", "public, max-age=31536000");
 
   return res.send(avatarData);
