@@ -28,7 +28,7 @@ export default (express: Application) => <Resource> {
 
     if (!id) return res.sendStatus(422);
 
-    const rvId = await fromSnowflake(id);
+    const rvId = id !== "@me" ? await fromSnowflake(id) : "@me";
 
     const api = res.rvAPI;
 

@@ -2,6 +2,8 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+export * from "./tests";
+
 export const baseURL = "http://localhost:3000";
 
 export const AutumnURL = process.env["AUTUMN_URL"] ?? "https://autumn.revolt.chat";

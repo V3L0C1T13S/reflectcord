@@ -23,6 +23,7 @@
     "express": "^4.18.1",
     "express-async-errors": "^3.1.1",
     "express-automatic-routes": "^1.1.0",
+    "file-type": "^18.0.0",
     "form-data": "^4.0.0",
     "helmet": "^6.0.0",
     "missing-native-js-functions": "^1.2.18",

@@ -54,12 +54,13 @@ export const DataLogin: QuarkConversion<RevoltDataLogin, APILoginSchema> = {
     };
   },
 
-  async from_quark(data: any) {
-    const isMFA = data.mfa_ticket !== undefined;
+  async from_quark(data) {
+    const isMFA = ("mfa_ticket" in data);
+
     return {
-      login: isMFA ? undefined : data.email,
-      password: isMFA ? undefined : data.password,
-      captcha_key: isMFA ? undefined : data.captcha,
+      login: isMFA ? "fixme" : data.email,
+      password: isMFA ? "fixme" : data.password,
+      captcha_key: isMFA ? "fixme" : data.captcha ?? "fixme",
     };
   },
 };

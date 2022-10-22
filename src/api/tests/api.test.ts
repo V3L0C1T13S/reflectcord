@@ -2,7 +2,9 @@ import { describe, expect, test } from "@jest/globals";
 import axios from "axios";
 import { ChannelType } from "discord.js";
 import { TestingToken } from "../../common/rvapi";
-import { baseURL } from "../../common/constants";
+import {
+  baseURL, TestChannelId, TestServerId, TestUserId,
+} from "../../common/constants";
 
 const apiURL = `${baseURL}/api`;
 
@@ -33,15 +35,10 @@ async function postToAPI(url: string, data: any) {
   return res;
 }
 
-// Make these things that you own, otherwise you'll get errors
-const testUserId = "01FT2S6N2MZPQ83FWTF00AEVVH";
-const testGuildId = "01FVHTJF0Q30ZJB8F77GXRTK4M";
-const testTextChannelId = "01FVHTJF0QC3GT3XM82M6EWF26";
-
 describe("api get requests", () => {
   test("user", async () => {
-    const user = await getFromAPI(`users/${testUserId}`);
-    expect(user.data.id === testUserId);
+    const user = await getFromAPI(`users/${TestUserId}`);
+    expect(user.data.id === TestUserId);
   });
 
   describe("self user data", () => {
@@ -67,13 +64,13 @@ describe("api get requests", () => {
   });
 
   test("guild", async () => {
-    const guild = await getFromAPI(`guilds/${testGuildId}`);
-    expect(guild.data.id === testGuildId);
+    const guild = await getFromAPI(`guilds/${TestServerId}`);
+    expect(guild.data.id === TestServerId);
   });
 
   test("text channel", async () => {
-    const textChannel = await getFromAPI(`channels/${testTextChannelId}`);
-    expect(textChannel.data.id === testTextChannelId
+    const textChannel = await getFromAPI(`channels/${TestChannelId}`);
+    expect(textChannel.data.id === TestChannelId
       && textChannel.data.type === ChannelType.GuildText);
   });
 
@@ -91,7 +88,7 @@ describe("api get requests", () => {
 
 describe("api post requests", () => {
   test("post message", async () => {
-    await postToAPI(`channels/${testTextChannelId}/messages`, {
+    await postToAPI(`channels/${TestChannelId}/messages`, {
       content: "Hello World!",
     });
   });
@@ -103,7 +100,7 @@ describe("api post requests", () => {
           properties: {
             client_send_timestamp: Date.now(),
             client_track_timestamp: Date.now(),
-            client_uuid: "AAAAAAAAAAA0PJAiaVet34MBAAAAAAAA",
+            client_uuid: "AAAAAAAAAAAAAAAAAAAAAAAAAA00AAWX",
             has_session: true,
             page_name: "applications",
             previous_link_location: null,
