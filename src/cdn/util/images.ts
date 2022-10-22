@@ -62,6 +62,20 @@ export async function uploadFile(
   return response.data.id;
 }
 
+export async function getMimeType(file: Buffer) {
+  const fallback = "application/octet-stream";
+
+  const bufferType = await fileType.fromBuffer(file);
+
+  let mimeType = bufferType?.mime ?? fallback;
+
+  if (DisallowedTypes.includes(mimeType)) {
+    mimeType = fallback;
+  }
+
+  return mimeType;
+}
+
 export async function handleImgRequest(
   req: Request,
   res: Response,
@@ -77,9 +91,7 @@ export async function handleImgRequest(
   const avatarData = await downloadImage(type, realId);
   if (!avatarData) return res.sendStatus(404);
 
-  const bufferType = await fileType.fromBuffer(avatarData);
-
-  const mimeType = bufferType?.mime ?? "application/octet-stream";
+  const mimeType = await getMimeType(avatarData);
 
   res.set("Content-Type", mimeType);
   res.set("Cache-Control", "public, max-age=31536000");

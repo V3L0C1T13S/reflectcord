@@ -15,6 +15,8 @@ export default (express: Application) => <Resource> {
 
     await res.rvAPIWrapper.messages.ack(rvChannelId, rvMsgId);
 
-    res.sendStatus(204);
+    res.json({
+      token: null,
+    });
   },
 };
