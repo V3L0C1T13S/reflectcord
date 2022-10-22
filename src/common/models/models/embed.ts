@@ -60,7 +60,7 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
       }
     } else {
       const mediaInfo = {
-        url: embed.url,
+        url: proxyFile(embed.url),
         width: embed.width,
         height: embed.height,
       };
