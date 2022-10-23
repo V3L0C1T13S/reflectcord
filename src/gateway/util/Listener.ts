@@ -335,6 +335,9 @@ export async function startListener(this: WebSocket, token: string) {
         });
         break;
       }
+      case "Pong": {
+        break;
+      }
       default: {
         Logger.warn(`Unknown event type ${data.type}`);
         break;

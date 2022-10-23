@@ -4,6 +4,36 @@ import { QuarkConversion } from "../QuarkConversion";
 import { toSnowflake } from "../util";
 import { User } from "./user";
 
+export const ChannelCreateType: QuarkConversion<"Text" | "Voice", discordChannelType> = {
+  async to_quark(type) {
+    switch (type) {
+      case discordChannelType.GuildText: {
+        return "Text";
+      }
+      case discordChannelType.GuildVoice: {
+        return "Voice";
+      }
+      default: {
+        return "Text";
+      }
+    }
+  },
+
+  async from_quark(type) {
+    switch (type) {
+      case "Text": {
+        return discordChannelType.GuildText;
+      }
+      case "Voice": {
+        return discordChannelType.GuildVoice;
+      }
+      default: {
+        return discordChannelType.GuildText;
+      }
+    }
+  },
+};
+
 export const ChannelType: QuarkConversion<rvChannel["channel_type"], discordChannelType> = {
   async to_quark(type) {
     switch (type) {
