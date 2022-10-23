@@ -63,9 +63,17 @@ describe("api get requests", () => {
     });
   });
 
-  test("guild", async () => {
-    const guild = await getFromAPI(`guilds/${TestServerId}`);
-    expect(guild.data.id === TestServerId);
+  describe("guild tests", () => {
+    test("test guild", async () => {
+      const guild = await getFromAPI(`guilds/${TestServerId}`);
+      expect(guild.data.id === TestServerId);
+    });
+
+    test("members", async () => {
+      const members = await getFromAPI(`guilds/${TestServerId}/members`);
+
+      expect(Array.isArray(members.data));
+    });
   });
 
   test("text channel", async () => {
