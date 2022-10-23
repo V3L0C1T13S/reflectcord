@@ -4,13 +4,12 @@ import {
   AccountInfo, RelationshipStatus, User as RevoltUser, UserProfile as RevoltUserProfile,
 } from "revolt-api";
 import {
-  ActivitiesOptions, ActivityType, APIUser, PresenceData, UserFlags, BitField,
+  ActivitiesOptions, ActivityType, APIUser, PresenceData, UserFlags, BitField, UserFlagsBitField,
 } from "discord.js";
 import { Badges } from "../../rvapi";
 import { UserRelationshipType } from "../../sparkle";
 import { QuarkConversion } from "../QuarkConversion";
 import { toSnowflake } from "../util";
-import { Logger } from "../../utils";
 
 export type APIUserProfile = {
   bio: string | null,
@@ -39,15 +38,14 @@ export const PublicFlags: QuarkConversion<Badges, UserFlags> = {
   },
 
   async from_quark(flags) {
-    const discordFlags = 0;
+    const bf = new UserFlagsBitField();
 
-    const field = new BitField();
+    if (flags & Badges.Developer) bf.add("Staff");
+    if (flags & Badges.ResponsibleDisclosure) bf.add("BugHunterLevel2");
+    if (flags & Badges.Supporter) bf.add("PremiumEarlySupporter");
+    if (flags & Badges.PlatformModeration) bf.add("CertifiedModerator");
 
-    if (flags & Badges.Developer) field.add(1, 0);
-
-    if (flags & Badges.ResponsibleDisclosure) field.add(1, 3);
-
-    return field.bitfield;
+    return bf.bitfield;
   },
 };
 
@@ -73,6 +71,8 @@ export const User: QuarkConversion<RevoltUser, APIUser> = {
   },
 
   async from_quark(user) {
+    const flags = user.badges ? await PublicFlags.from_quark(user.badges) : 0;
+
     return {
       id: await toSnowflake(user._id),
       accent_color: null,
@@ -80,10 +80,10 @@ export const User: QuarkConversion<RevoltUser, APIUser> = {
       bot: !!user.bot,
       banner: user.profile?.background?._id ?? null,
       discriminator: "1",
-      flags: 0,
+      flags,
       locale: "en-US",
       username: user.username,
-      public_flags: user.flags ? await PublicFlags.from_quark(user.flags) : 0,
+      public_flags: flags,
       verified: true, // all accounts on revolt are implicitly verified
       premium_type: 2, // unlocks all nitro features
     };

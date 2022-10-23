@@ -158,7 +158,7 @@ export async function startListener(this: WebSocket, token: string) {
         break;
       }
       case "MessageUpdate": {
-        if (!data.data._id || !data.data.author) return;
+        if (!data.data._id || !data.data.author || ("system" in data)) return;
 
         await Send(this, {
           op: GatewayOpcodes.Dispatch,
