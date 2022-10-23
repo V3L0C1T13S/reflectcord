@@ -1,13 +1,24 @@
 /* eslint-disable camelcase */
-import { HTTPError } from "common/utils";
-import { APIGuildCreateRole } from "discord.js";
-import { Application, Request } from "express";
+import { APIGuildCreateRole, APIRole } from "discord.js";
+import { Application, Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
-import { Role } from "../../../../../common/models";
+import { HTTPError } from "../../../../../common/utils";
+import { Guild, Role } from "../../../../../common/models";
 import { fromSnowflake } from "../../../../../common/models/util";
 
 export default (express: Application) => <Resource> {
+  get: async (req, res: Response<APIRole[]>) => {
+    const { guild_id } = req.params;
+
+    if (!guild_id) throw new HTTPError("Invalid params");
+
+    const serverId = await fromSnowflake(guild_id);
+
+    const server = await res.rvAPI.get(`/servers/${serverId}`) as API.Server;
+
+    res.json((await Guild.from_quark(server)).roles);
+  },
   post: async (req: Request<any, any, APIGuildCreateRole>, res) => {
     const {
       name, permissions, color, hoist, icon, unicode_emoji, mentionable,
