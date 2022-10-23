@@ -1,3 +1,4 @@
+/* eslint-disable no-bitwise */
 import {
   APIGuild,
   APIRole,
@@ -56,6 +57,17 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
 
     const id = await toSnowflake(_id);
 
+    const features = [
+      GuildFeature.Banner,
+      GuildFeature.AnimatedBanner,
+      GuildFeature.AnimatedIcon,
+    ];
+
+    if (server.flags) {
+      if (server.flags & 1) features.push(GuildFeature.Partnered);
+      if (server.flags & 2) features.push(GuildFeature.Verified);
+    }
+
     return {
       id,
       name,
@@ -89,11 +101,7 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
         return roleStub;
       })(),
       emojis: [],
-      features: [
-        GuildFeature.Banner,
-        GuildFeature.AnimatedBanner,
-        GuildFeature.AnimatedIcon,
-      ],
+      features,
       mfa_level: GuildMFALevel.None,
       application_id: null,
       system_channel_id: null,
