@@ -190,7 +190,7 @@ export const MessageSendData: QuarkConversion<
   async from_quark(data) {
     const { content, embeds, replies } = data;
 
-    const reply = replies ? replies[0] : null;
+    const reply = replies?.[0] ?? null;
 
     return {
       content: content ?? "** **",
