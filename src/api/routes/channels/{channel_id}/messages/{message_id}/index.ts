@@ -12,7 +12,7 @@ export default (express: Application) => <Resource> {
   get: async (req, res: Response<APIMessage>) => {
     const { channel_id, message_id } = req.params;
 
-    if (!channel_id || !message_id) throw new HTTPError("Malformed body", 244);
+    if (!channel_id || !message_id) throw new HTTPError("Malformed body", 422);
 
     const rvChannel = await fromSnowflake(channel_id);
     const rvMsgId = await fromSnowflake(message_id);
@@ -24,7 +24,7 @@ export default (express: Application) => <Resource> {
   patch: async (req: sendReq, res) => {
     const { channel_id, message_id } = req.params;
 
-    if (!channel_id || !message_id) throw new HTTPError("Malformed body", 244);
+    if (!channel_id || !message_id) throw new HTTPError("Malformed body", 422);
 
     const rvChannel = await fromSnowflake(channel_id);
     const rvMsgId = await fromSnowflake(message_id);
@@ -37,5 +37,17 @@ export default (express: Application) => <Resource> {
     }) as API.Message;
 
     return res.json(await Message.from_quark(rvMessage));
+  },
+  delete: async (req, res) => {
+    const { channel_id, message_id } = req.params;
+
+    if (!channel_id || !message_id) throw new HTTPError("Malformed body", 422);
+
+    const rvChannel = await fromSnowflake(channel_id);
+    const rvMsgId = await fromSnowflake(message_id);
+
+    await res.rvAPI.delete(`/channels/${rvChannel}/messages/${rvMsgId}`);
+
+    res.sendStatus(204);
   },
 };
