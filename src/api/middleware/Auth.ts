@@ -17,14 +17,9 @@ export const NoAuthRoutes = [
   "/updates",
   "/downloads/",
   "/scheduled-maintenances/upcoming.json",
-  // Public kubernetes integration
-  "/-/readyz",
-  "/-/healthz",
   // Client analytics
   // "/science",
   // "/track",
-  // Public policy pages
-  "/policies/instance",
   // Asset delivery
   /\/guilds\/\d+\/widget\.(json|png)/,
 ];

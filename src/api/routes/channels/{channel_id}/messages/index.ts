@@ -18,12 +18,16 @@ export type rvMsgWithUsers = {
 }
 
 export default (express: Application) => <Resource> {
-  get: async (req: Request<any, any, any, { limit: string, before: string }>, res) => {
+  get: async (req: Request<any, any, any, {
+    limit: string, before: string, after: string, around: string
+  }>, res) => {
     const limit = parseInt(req.query.limit ?? "50", 10);
-    const { before } = req.query;
+    const { before, after, around } = req.query;
     const { channel_id } = req.params;
 
     const beforeId = before ? await fromSnowflake(before) : null;
+    const afterId = after ? await fromSnowflake(after) : null;
+    const aroundId = around ? await fromSnowflake(around) : null;
 
     const rvId = await fromSnowflake(channel_id);
 
@@ -31,6 +35,8 @@ export default (express: Application) => <Resource> {
       limit,
       include_users: true,
       before: beforeId,
+      after: afterId,
+      nearby: aroundId,
     }) as rvMsgWithUsers;
     if (!msgs) return;
 
