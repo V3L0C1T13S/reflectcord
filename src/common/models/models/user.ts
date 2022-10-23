@@ -1,13 +1,16 @@
+/* eslint-disable no-bitwise */
 /* eslint-disable camelcase */
 import {
   AccountInfo, RelationshipStatus, User as RevoltUser, UserProfile as RevoltUserProfile,
 } from "revolt-api";
 import {
-  ActivitiesOptions, ActivityType, APIUser, PresenceData,
+  ActivitiesOptions, ActivityType, APIUser, PresenceData, UserFlags, BitField,
 } from "discord.js";
+import { Badges } from "../../rvapi";
 import { UserRelationshipType } from "../../sparkle";
 import { QuarkConversion } from "../QuarkConversion";
 import { toSnowflake } from "../util";
+import { Logger } from "../../utils";
 
 export type APIUserProfile = {
   bio: string | null,
@@ -29,6 +32,24 @@ export type revoltUserInfo = {
   authInfo: AccountInfo;
   mfaInfo?: MFAInfo | null;
 }
+
+export const PublicFlags: QuarkConversion<Badges, UserFlags> = {
+  async to_quark(flags) {
+    return 0;
+  },
+
+  async from_quark(flags) {
+    const discordFlags = 0;
+
+    const field = new BitField();
+
+    if (flags & Badges.Developer) field.add(1, 0);
+
+    if (flags & Badges.ResponsibleDisclosure) field.add(1, 3);
+
+    return field.bitfield;
+  },
+};
 
 export const User: QuarkConversion<RevoltUser, APIUser> = {
   async to_quark(user) {
@@ -62,7 +83,7 @@ export const User: QuarkConversion<RevoltUser, APIUser> = {
       flags: 0,
       locale: "en-US",
       username: user.username,
-      public_flags: 0,
+      public_flags: user.flags ? await PublicFlags.from_quark(user.flags) : 0,
       verified: true, // all accounts on revolt are implicitly verified
       premium_type: 2, // unlocks all nitro features
     };
