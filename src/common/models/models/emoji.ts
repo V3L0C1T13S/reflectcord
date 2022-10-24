@@ -1,7 +1,7 @@
 import { APIPartialEmoji } from "discord.js";
 import { API } from "revolt.js";
 import { QuarkConversion } from "../QuarkConversion";
-import { fromSnowflake, toSnowflake } from "../util";
+import { toSnowflake } from "../util";
 
 export const PartialEmoji: QuarkConversion<API.Emoji, APIPartialEmoji> = {
   async to_quark(emoji) {
@@ -23,7 +23,7 @@ export const PartialEmoji: QuarkConversion<API.Emoji, APIPartialEmoji> = {
 
     return {
       name,
-      id: _id,
+      id: await toSnowflake(_id),
       animated: animated ?? false,
     };
   },
