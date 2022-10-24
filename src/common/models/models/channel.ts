@@ -1,8 +1,12 @@
 import { Channel as rvChannel } from "revolt-api";
-import { APIChannel, ChannelType as discordChannelType } from "discord.js";
+import {
+  APIChannel, APIOverwrite, ChannelType as discordChannelType, OverwriteData, OverwriteType,
+} from "discord.js";
+import { Logger } from "../../utils";
 import { QuarkConversion } from "../QuarkConversion";
 import { toSnowflake } from "../util";
 import { User } from "./user";
+import { convertPermNumber } from "./permissions";
 
 export const ChannelCreateType: QuarkConversion<"Text" | "Voice", discordChannelType> = {
   async to_quark(type) {
@@ -208,6 +212,43 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
         if (channel.channel_type !== "TextChannel") return false;
 
         return !!channel.nsfw;
+      })(),
+      permission_overwrites: await (async () => {
+        if (!("role_permissions" in channel)) return [];
+
+        const overrides = Object.entries(channel.role_permissions);
+
+        const discordOverrides: APIOverwrite[] = [];
+
+        const everyoneStub = {
+          id: await toSnowflake(channel.server),
+          type: OverwriteType.Role,
+          allow: "0",
+          deny: "0",
+        };
+
+        if (channel.default_permissions) {
+          everyoneStub.allow = convertPermNumber(channel.default_permissions.a).toString();
+          everyoneStub.deny = convertPermNumber(channel.default_permissions.d).toString();
+        }
+
+        discordOverrides.push(everyoneStub);
+
+        await Promise.all(overrides.map(async ([key, x]) => {
+          const roleId = await toSnowflake(key);
+          const type = OverwriteType.Role;
+          const allow = convertPermNumber(x.a).toString();
+          const deny = convertPermNumber(x.d).toString();
+
+          discordOverrides.push({
+            id: roleId,
+            type,
+            allow,
+            deny,
+          });
+        }));
+
+        return discordOverrides;
       })(),
     };
   },

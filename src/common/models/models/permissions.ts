@@ -1,12 +1,41 @@
-import { PermissionFlags, PermissionFlagsBits, PermissionsBitField } from "discord.js";
+import { PermissionFlagsBits, PermissionsBitField } from "discord.js";
 import { API, Permission } from "revolt.js";
 import Long from "long";
 import { QuarkConversion } from "../QuarkConversion";
 
-export const PermsMap: { [key: string]: typeof Permission } = {};
+export const PermsMap: Record<number, keyof typeof PermissionFlagsBits> = {
+  [Permission.AssignRoles]: "ManageRoles",
+  [Permission.BanMembers]: "BanMembers",
+  [Permission.ChangeNickname]: "ChangeNickname",
+  [Permission.Connect]: "Connect",
+  [Permission.DeafenMembers]: "DeafenMembers",
+  [Permission.GrantAllSafe]: "Administrator",
+  [Permission.InviteOthers]: "CreateInstantInvite",
+  [Permission.KickMembers]: "KickMembers",
+  [Permission.ManageChannel]: "ManageChannels",
+  [Permission.ManageCustomisation]: "ManageEmojisAndStickers",
+  [Permission.ManageMessages]: "ManageMessages",
+  [Permission.ManageNicknames]: "ManageNicknames",
+  [Permission.ManageRole]: "ManageRoles",
+  [Permission.ManageServer]: "ManageGuild",
+  [Permission.ManageWebhooks]: "ManageWebhooks",
+  [Permission.MoveMembers]: "MoveMembers",
+  [Permission.MuteMembers]: "MuteMembers",
+  [Permission.React]: "AddReactions",
+  [Permission.ReadMessageHistory]: "ReadMessageHistory",
+  [Permission.SendEmbeds]: "EmbedLinks",
+  [Permission.SendMessage]: "SendMessages",
+  [Permission.Speak]: "Speak",
+  [Permission.TimeoutMembers]: "ModerateMembers",
+  [Permission.UploadFiles]: "AttachFiles",
+  [Permission.Video]: "UseVAD",
+  [Permission.ViewChannel]: "ViewChannel",
+};
 
 export type rvPermission = {
+  /** Allow */
   a: number;
+  /** Deny */
   d: number;
 }
 
@@ -20,46 +49,29 @@ export function bitwiseAndEq(a: number, ...b: number[]) {
   return value.and(a).eq(value);
 }
 
-// FIXME: Unclean as hell.
 export function convertPermNumber(rvPerms: number) {
   const perms = new PermissionsBitField();
 
-  if (bitwiseAndEq(rvPerms, Permission.AssignRoles)) perms.add("ManageRoles");
-  if (bitwiseAndEq(rvPerms, Permission.BanMembers)) perms.add("BanMembers");
-  if (bitwiseAndEq(rvPerms, Permission.ChangeNickname)) perms.add("ChangeNickname");
-  if (bitwiseAndEq(rvPerms, Permission.Connect)) perms.add("Connect");
-  if (bitwiseAndEq(rvPerms, Permission.DeafenMembers)) perms.add("DeafenMembers");
-  if (bitwiseAndEq(rvPerms, Permission.GrantAllSafe)) perms.add("Administrator");
-  if (bitwiseAndEq(rvPerms, Permission.InviteOthers)) perms.add("CreateInstantInvite");
-  if (bitwiseAndEq(rvPerms, Permission.KickMembers)) perms.add("KickMembers");
-  if (bitwiseAndEq(rvPerms, Permission.ManageChannel)) perms.add("ManageChannels");
-  if (bitwiseAndEq(rvPerms, Permission.ManageCustomisation)) perms.add("ManageEmojisAndStickers");
-  if (bitwiseAndEq(rvPerms, Permission.ManageMessages)) perms.add("ManageMessages");
-  if (bitwiseAndEq(rvPerms, Permission.ManageNicknames)) perms.add("ManageNicknames");
-  if (bitwiseAndEq(rvPerms, Permission.ManageRole)) perms.add("ManageRoles");
-  if (bitwiseAndEq(rvPerms, Permission.ManageServer)) perms.add("ManageGuild");
-  if (bitwiseAndEq(rvPerms, Permission.ManageWebhooks)) perms.add("ManageWebhooks");
-  if (bitwiseAndEq(rvPerms, Permission.MoveMembers)) perms.add("MoveMembers");
-  if (bitwiseAndEq(rvPerms, Permission.MuteMembers)) perms.add("MuteMembers");
-  if (bitwiseAndEq(rvPerms, Permission.React)) perms.add("AddReactions");
-  if (bitwiseAndEq(rvPerms, Permission.ReadMessageHistory)) perms.add("ReadMessageHistory");
-  if (bitwiseAndEq(rvPerms, Permission.SendEmbeds)) perms.add("EmbedLinks");
-  if (bitwiseAndEq(rvPerms, Permission.SendMessage)) perms.add("SendMessages");
-  if (bitwiseAndEq(rvPerms, Permission.Speak)) perms.add("Speak");
-  if (bitwiseAndEq(rvPerms, Permission.UploadFiles)) perms.add("AttachFiles");
-  if (bitwiseAndEq(rvPerms, Permission.Video)) perms.add("UseVAD");
-  if (bitwiseAndEq(rvPerms, Permission.ViewChannel)) perms.add("ViewChannel");
+  Object.entries(PermsMap).forEach(([rvPerm, discordPerm]) => {
+    if (bitwiseAndEq(rvPerms, rvPerm.toNumber())) {
+      perms.add(discordPerm);
+    }
+  });
 
   return perms.bitfield;
 }
 
+export function calculatePermissions(perm: rvPermission) {
+  let calculated = Long.fromNumber(0);
+
+  calculated = calculated.or(perm.a)
+    .and(Long.fromNumber(perm.d).not());
+
+  return calculated.toNumber();
+}
+
 export function calculateRolePermission(role: API.Role) {
-  let perm = Long.fromNumber(0);
-
-  perm = perm.or(role.permissions.a)
-    .and(Long.fromNumber(role.permissions.d).not());
-
-  return perm.toNumber();
+  return calculatePermissions(role.permissions);
 }
 
 export const Permissions: QuarkConversion<rvPermission, bigint> = {
@@ -81,7 +93,7 @@ export const Permissions: QuarkConversion<rvPermission, bigint> = {
   },
 
   async from_quark(permission) {
-    const rvPerm = permission.a;
+    const rvPerm = calculatePermissions(permission);
 
     return convertPermNumber(rvPerm);
   },

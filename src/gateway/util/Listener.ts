@@ -37,15 +37,20 @@ export async function startListener(this: WebSocket, token: string) {
           .map(async (server) => {
             const rvChannels: API.Channel[] = server.channels
               .map((x) => {
-                const ch = this.rvClient.channels.get(x)!;
+                const ch = this.rvClient.channels.get(x);
 
-                return {
+                const channel: API.Channel = {
                   _id: x,
                   name: ch?.name ?? "fixme",
                   description: ch?.description ?? "fixme",
                   channel_type: ch?.channel_type as any ?? "TextChannel",
                   server: ch?.server_id ?? "fixme",
+                  default_permissions: ch?.default_permissions ?? null,
                 };
+
+                if (ch?.role_permissions) channel.role_permissions = ch.role_permissions;
+
+                return channel;
               });
 
             return {

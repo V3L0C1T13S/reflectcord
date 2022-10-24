@@ -12,7 +12,7 @@ import { Logger } from "../../common/utils";
 
 const DisallowedTypes = ["text/html", "text/mhtml", "multipart/related", "application/xhtml+xml"];
 
-export type ImageType = "attachments" | "avatars" | "icons" | "backgrounds" | "emojis";
+export type ImageType = "attachments" | "avatars" | "icons" | "backgrounds" | "emojis" | "banners";
 
 export const imageCacheDir = join(__dirname, "../../../cache/autumn");
 
