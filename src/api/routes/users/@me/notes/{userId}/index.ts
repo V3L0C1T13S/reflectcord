@@ -4,7 +4,7 @@ import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
 import { fetchUser } from "../../../{id}";
 import { HTTPError } from "../../../../../../common/utils";
-import { fromSnowflake } from "../../../../../../common/models/util";
+import { fromSnowflake, toSnowflake } from "../../../../../../common/models/util";
 import { DbManager } from "../../../../../../common/db";
 
 export type noteRequest = {
@@ -56,13 +56,11 @@ export default (express: Application) => <Resource> {
       {
         $setOnInsert: {
           owner_id: selfUser._id,
+          "note.user_id": user.id,
+          "note.note_user_id": await toSnowflake(selfUser._id),
         },
         $set: {
-          note: {
-            user_id: user.id,
-            note_user_id: user.id,
-            note,
-          },
+          "note.note": note,
         },
       },
 
