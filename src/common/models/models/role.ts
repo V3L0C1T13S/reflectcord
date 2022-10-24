@@ -1,6 +1,8 @@
-import { APIRole } from "discord.js";
-import { API } from "revolt.js";
+import { APIRole, PermissionsBitField } from "discord.js";
+import { API, Permission } from "revolt.js";
+import { hexToRgbCode, Logger } from "../../utils";
 import { QuarkConversion } from "../QuarkConversion";
+import { bitwiseAndEq, Permissions } from "./permissions";
 
 export const Role: QuarkConversion<API.Role, APIRole> = {
   async to_quark(role) {
@@ -17,13 +19,19 @@ export const Role: QuarkConversion<API.Role, APIRole> = {
   },
 
   async from_quark(role) {
-    const { name } = role;
+    const { name, permissions } = role;
 
     return {
       name,
       id: "0", // FIXME
-      permissions: "0",
-      color: 0,
+      permissions: await (async () => {
+        const perms = await Permissions.from_quark(permissions);
+        Logger.log(`perms for ${role.name}: ${perms}`);
+        Logger.log(`original perms: ${role.permissions.a}`);
+
+        return perms.toString();
+      })(),
+      color: role.colour ? hexToRgbCode(role.colour) ?? 0 : 0,
       hoist: role.hoist ?? false,
       position: role.rank ?? 0,
       managed: false,

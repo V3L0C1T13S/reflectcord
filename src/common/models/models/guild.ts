@@ -14,6 +14,7 @@ import {
 import { Server } from "revolt-api";
 import { QuarkConversion } from "../QuarkConversion";
 import { toSnowflake } from "../util";
+import { convertPermNumber, Permissions } from "./permissions";
 import { Role } from "./role";
 
 export type DiscordPartialGuild = {
@@ -89,7 +90,7 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
           color: 0,
           hoist: false,
           position: 0,
-          permissions: "2251804225",
+          permissions: convertPermNumber(server.default_permissions).toString(),
           managed: false,
           mentionable: true,
         };
