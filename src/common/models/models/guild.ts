@@ -12,6 +12,7 @@ import {
   GuildVerificationLevel,
 } from "discord.js";
 import { Server } from "revolt-api";
+import { Logger } from "../../utils";
 import { QuarkConversion } from "../QuarkConversion";
 import { toSnowflake } from "../util";
 import { convertPermNumber, Permissions } from "./permissions";
@@ -84,7 +85,7 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
       explicit_content_filter: GuildExplicitContentFilter.Disabled,
       roles: await (async () => {
         const roleStub: APIRole[] = [];
-        roleStub[0] = {
+        const everyoneStub = {
           id,
           name: "@everyone",
           color: 0,
@@ -95,8 +96,15 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
           mentionable: true,
         };
 
-        const roles = server.roles ? await Promise.all(Object.values(server.roles)
-          .map((x) => Role.from_quark(x))) : [];
+        Logger.log(`everyone perms: ${everyoneStub.permissions}`);
+
+        roleStub[0] = everyoneStub;
+
+        const roles = server.roles ? await Promise.all(Object.entries(server.roles)
+          .map(async ([k, x]) => ({
+            ...await Role.from_quark(x),
+            id: await toSnowflake(k),
+          }))) : [];
         roles.forEach((x) => roleStub.push(x));
 
         return roleStub;
