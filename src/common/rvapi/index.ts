@@ -18,3 +18,4 @@ export function createAPI(token?: Options["authentication"]["revolt"]) {
 export * from "./images";
 export * from "./APIWrapper";
 export * from "./users";
+export * from "./discovery";

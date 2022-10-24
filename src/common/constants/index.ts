@@ -19,3 +19,10 @@ export const revoltBaseURL = process.env["REVOLT_BASE_URL"] ?? "https://revolt.c
 export const revoltApiURL = process.env["REVOLT_API_URL"] ?? "https://api.revolt.chat";
 
 export const revoltJanuaryURL = process.env["REVOLT_JANUARY_URL"] ?? "https://jan.revolt.chat";
+
+// FIXME: Dunno if we really want to use this since rvlt.gg is currently closed source.
+export const revoltDiscoveryURL = process.env["REVOLT_DISCOVERY_URL"] ?? "https://rvlt.gg";
+
+export const revoltDiscoveryVersion = "nKsSUueMPyZ7xLr6DxdlX";
+
+export const revoltDiscoveryDataURL = `${revoltDiscoveryURL}/_next/data/${revoltDiscoveryVersion}`;

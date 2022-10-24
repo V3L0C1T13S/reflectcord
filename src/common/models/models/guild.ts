@@ -66,7 +66,10 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
     ];
 
     if (server.flags) {
-      if (server.flags & 1) features.push(GuildFeature.Partnered);
+      if (server.flags & 1) {
+        features.push(GuildFeature.Partnered);
+        features.push(GuildFeature.Verified);
+      }
       if (server.flags & 2) features.push(GuildFeature.Verified);
     }
 
@@ -119,7 +122,7 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
       max_presences: null,
       max_members: 100000,
       vanity_url_code: null,
-      banner: `${server.banner?._id}/background/${server.banner?._id}` ?? null,
+      banner: server.banner ? `${server.banner?._id}/background/${server.banner?._id}` : null,
       premium_tier: GuildPremiumTier.None,
       premium_subscription_count: 0,
       preferred_locale: "en-US",
