@@ -12,9 +12,8 @@ export default (express: Application) => <Resource> {
 
     const channelId = await fromSnowflake(channel_id);
     const messageId = await fromSnowflake(message_id);
-    const emojiId = await fromSnowflake(emoji);
 
-    await res.rvAPI.delete(`/channels/${channelId}/messages/${messageId}/reactions/${emojiId}`);
+    await res.rvAPI.delete(`/channels/${channelId}/messages/${messageId}/reactions/${emoji}`);
 
     res.sendStatus(204);
   },
