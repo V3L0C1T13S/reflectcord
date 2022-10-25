@@ -2,5 +2,5 @@
     "execMap": {
         "ts": "ts-node"
     },
-    "ignore": ["cache/*", "assets/*"]
+    "watch": ["src/**/*.ts"]
 }
