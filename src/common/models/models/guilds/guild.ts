@@ -115,8 +115,6 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
           mentionable: true,
         };
 
-        Logger.log(`everyone perms: ${everyoneStub.permissions}`);
-
         roleStub[0] = everyoneStub;
 
         const roles = server.roles ? await Promise.all(Object.entries(server.roles)

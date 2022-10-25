@@ -26,8 +26,6 @@ export const Role: QuarkConversion<API.Role, APIRole> = {
       id: "0", // FIXME
       permissions: await (async () => {
         const perms = await Permissions.from_quark(permissions);
-        Logger.log(`perms for ${role.name}: ${perms}`);
-        Logger.log(`original perms: ${role.permissions.a}`);
 
         return perms.toString();
       })(),
