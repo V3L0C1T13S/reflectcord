@@ -6,7 +6,6 @@ import { GuildFeature } from "discord.js";
 import { ServerDiscoveryResponse } from "../../../common/rvapi";
 import { revoltDiscoveryDataURL } from "../../../common/constants";
 import { GuildDiscoveryInfo, GuildDiscoveryRequest } from "../../../common/sparkle";
-import { Guild } from "../../../common/models";
 import { toSnowflake } from "../../../common/models/util";
 
 export default () => <Resource> {
@@ -34,7 +33,7 @@ export default () => <Resource> {
           premium_subscription_count: 0,
           preferred_locale: "en-US",
           auto_removed: false,
-          primary_category_id: 1,
+          primary_category_id: 0,
           vanity_url_code: "fixme",
           is_published: false,
           keywords: x.tags,
