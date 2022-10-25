@@ -24,7 +24,35 @@ export type DiscordPartialGuild = {
   icon: string | null,
   owner: boolean,
   permissions: string,
-  features: [],
+  features: GuildFeature[],
+};
+
+export type revoltPartialServer = {
+  _id: Server["_id"],
+  name: Server["name"],
+  icon?: Server["icon"],
+  flags?: Server["flags"],
+  owner: Server["owner"]
+};
+
+export const stubFeatures = [
+  GuildFeature.Banner,
+  GuildFeature.AnimatedBanner,
+  GuildFeature.AnimatedIcon,
+];
+
+export function getServerFeatures(server: revoltPartialServer) {
+  const features = Array.from(stubFeatures);
+
+  if (server.flags) {
+    if (server.flags & 1) {
+      features.push(GuildFeature.Partnered);
+      features.push(GuildFeature.Verified);
+    }
+    if (server.flags & 2) features.push(GuildFeature.Verified);
+  }
+
+  return features;
 }
 
 export const Guild: QuarkConversion<Server, APIGuild> = {
@@ -59,19 +87,7 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
 
     const id = await toSnowflake(_id);
 
-    const features = [
-      GuildFeature.Banner,
-      GuildFeature.AnimatedBanner,
-      GuildFeature.AnimatedIcon,
-    ];
-
-    if (server.flags) {
-      if (server.flags & 1) {
-        features.push(GuildFeature.Partnered);
-        features.push(GuildFeature.Verified);
-      }
-      if (server.flags & 2) features.push(GuildFeature.Verified);
-    }
+    const features = getServerFeatures(server);
 
     return {
       id,
@@ -142,45 +158,16 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
   },
 };
 
-export const PartialGuild: QuarkConversion<Server, DiscordPartialGuild> = {
+export const PartialGuild: QuarkConversion<revoltPartialServer, DiscordPartialGuild> = {
   async to_quark(data) {
     const {
       id, name, icon, features,
     } = data;
 
     return {
-      ...await Guild.to_quark({
-        id,
-        name,
-        icon,
-        owner_id: "",
-        discovery_splash: null,
-        afk_channel_id: null,
-        region: "",
-        afk_timeout: 9999,
-        verification_level: GuildVerificationLevel.None,
-        default_message_notifications: GuildDefaultMessageNotifications.AllMessages,
-        explicit_content_filter: GuildExplicitContentFilter.Disabled,
-        roles: [],
-        emojis: [],
-        features,
-        mfa_level: GuildMFALevel.None,
-        application_id: null,
-        system_channel_id: null,
-        system_channel_flags: GuildSystemChannelFlags.SuppressGuildReminderNotifications,
-        rules_channel_id: null,
-        vanity_url_code: null,
-        description: null,
-        banner: null,
-        premium_tier: GuildPremiumTier.None,
-        public_updates_channel_id: null,
-        nsfw_level: GuildNSFWLevel.Default,
-        preferred_locale: "en-US",
-        stickers: [],
-        premium_progress_bar_enabled: false,
-        hub_type: null,
-        splash: null,
-      }),
+      _id: id,
+      name,
+      owner: "0",
     };
   },
 
@@ -193,7 +180,7 @@ export const PartialGuild: QuarkConversion<Server, DiscordPartialGuild> = {
       icon: icon?._id ?? null,
       owner: false,
       permissions: "",
-      features: [],
+      features: getServerFeatures(data),
     };
   },
 };

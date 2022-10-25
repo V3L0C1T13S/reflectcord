@@ -102,7 +102,7 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
             a: 0,
             d: 0,
           } as any,
-          nsfw: channel.nsfw ?? false,
+          nsfw: !!channel.nsfw,
         };
       }
       case discordChannelType.DM: {
@@ -119,7 +119,7 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
           channel_type: "Group",
           _id: id,
           active: true,
-          owner: channel.owner_id ?? "fixme",
+          owner: channel.owner_id ?? "0",
           name: channel.name ?? "fixme",
           recipients: channel.recipients?.map((u) => u.id) ?? [],
         };
@@ -143,7 +143,7 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
 
     return {
       // application_id: undefined,
-      applied_tags: [] as string[],
+      applied_tags: [],
       available_tags: [],
       default_reaction_emoji: null,
       default_sort_order: null,
@@ -205,7 +205,13 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
 
         return;
       })(),
-      owner_id: undefined,
+      owner_id: await (() => {
+        if (channel.channel_type === "Group") {
+          return toSnowflake(channel.owner);
+        }
+
+        return;
+      })(),
       origin_channel_id: id,
       created_at: Date.now(),
       nsfw: (() => {
