@@ -12,11 +12,11 @@ import {
   GuildVerificationLevel,
 } from "discord.js";
 import { Server } from "revolt-api";
-import { Logger } from "../../utils";
-import { QuarkConversion } from "../QuarkConversion";
-import { toSnowflake } from "../util";
-import { convertPermNumber, Permissions } from "./permissions";
-import { Role } from "./role";
+import { Logger } from "../../../utils";
+import { QuarkConversion } from "../../QuarkConversion";
+import { toSnowflake } from "../../util";
+import { convertPermNumber } from "../permissions";
+import { Role } from "../role";
 
 export type DiscordPartialGuild = {
   id: string,

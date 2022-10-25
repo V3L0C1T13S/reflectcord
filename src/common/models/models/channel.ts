@@ -1,8 +1,7 @@
 import { Channel as rvChannel } from "revolt-api";
 import {
-  APIChannel, APIOverwrite, ChannelType as discordChannelType, OverwriteData, OverwriteType,
+  APIChannel, APIOverwrite, ChannelType as discordChannelType, OverwriteType,
 } from "discord.js";
-import { Logger } from "../../utils";
 import { QuarkConversion } from "../QuarkConversion";
 import { toSnowflake } from "../util";
 import { User } from "./user";

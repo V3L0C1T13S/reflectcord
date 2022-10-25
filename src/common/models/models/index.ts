@@ -1,6 +1,6 @@
 export * from "./channel";
 export * from "./user";
-export * from "./guild";
+export * from "./guilds";
 export * from "./auth";
 export * from "./message";
 export * from "./application";
