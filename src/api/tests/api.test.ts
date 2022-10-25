@@ -8,6 +8,8 @@ import {
 
 const apiURL = `${baseURL}/api`;
 
+const isBot = TestingToken?.startsWith("Bot ");
+
 async function getFromAPI(url: string) {
   const res = await axios.get(`${apiURL}/${url}`, {
     headers: {
@@ -55,8 +57,7 @@ describe("api get requests", () => {
       expect(channels.data && guilds.data);
     });
     test("developer info", async () => {
-      // Bots cant do this, so we can just skip it.
-      if (TestingToken?.startsWith("Bot ")) return;
+      if (isBot) return;
 
       const bots = await getFromAPI("applications?with_team_applications=true");
       expect(bots.data);
@@ -78,8 +79,11 @@ describe("api get requests", () => {
 
   test("text channel", async () => {
     const textChannel = await getFromAPI(`channels/${TestChannelId}`);
-    expect(textChannel.data.id === TestChannelId
-      && textChannel.data.type === ChannelType.GuildText);
+    expect(
+      textChannel.data.id === TestChannelId
+      && textChannel.data.type === ChannelType.GuildText
+      && textChannel.data.guild_id === TestServerId,
+    );
   });
 
   test("gateway", async () => {
