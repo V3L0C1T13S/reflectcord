@@ -148,9 +148,9 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
       default_reaction_emoji: null,
       default_sort_order: null,
       bitrate: undefined,
-      guild_id: (() => {
-        if (channel.channel_type === "TextChannel" || channel.channel_type === "VoiceChannel") {
-          return channel.server;
+      guild_id: await (() => {
+        if ("server" in channel && typeof channel.server === "string") {
+          return toSnowflake(channel.server);
         }
         return undefined as any;
       })(),

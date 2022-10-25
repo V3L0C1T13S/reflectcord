@@ -44,11 +44,13 @@ export async function startListener(this: WebSocket, token: string) {
                   name: ch?.name ?? "fixme",
                   description: ch?.description ?? "fixme",
                   channel_type: ch?.channel_type as any ?? "TextChannel",
-                  server: ch?.server_id ?? "fixme",
                   default_permissions: ch?.default_permissions ?? null,
+                  server: "",
                 };
 
                 if (ch?.role_permissions) channel.role_permissions = ch.role_permissions;
+                if (ch?.server_id) channel.server = ch.server_id; // @ts-ignore
+                else delete channel.server;
 
                 return channel;
               });
