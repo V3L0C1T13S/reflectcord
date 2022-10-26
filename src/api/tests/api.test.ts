@@ -77,6 +77,21 @@ describe("api get requests", () => {
     });
   });
 
+  describe("discovery", () => {
+    test("categories", async () => {
+      const categories = await getFromAPI("discovery/categories");
+      expect(Array.isArray(categories));
+    });
+    test("recommended guilds", async () => {
+      const guilds = await getFromAPI("guild-recommendations");
+
+      expect(
+        Array.isArray(guilds.data.recommended_guilds)
+        && typeof guilds.data.load_id === "string",
+      );
+    });
+  });
+
   test("text channel", async () => {
     const textChannel = await getFromAPI(`channels/${TestChannelId}`);
     expect(
