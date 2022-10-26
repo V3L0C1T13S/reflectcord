@@ -194,7 +194,7 @@ export async function startListener(this: WebSocket, token: string) {
             d: {
               id: await toSnowflake(data.id),
               channel_id: await toSnowflake(data.channel),
-            // guild_id: null // FIXME
+            // guild_id: null, // FIXME
             },
           });
           break;
@@ -247,6 +247,20 @@ export async function startListener(this: WebSocket, token: string) {
               emoji: await PartialEmoji.from_quark(emoji),
             },
           });
+          break;
+        }
+        case "BulkMessageDelete": {
+          await Send(this, {
+            op: GatewayOpcodes.Dispatch,
+            t: GatewayDispatchEvents.MessageDeleteBulk,
+            s: this.sequence++,
+            d: {
+              ids: await Promise.all(data.ids.map((x) => toSnowflake(x))),
+              channel_id: await toSnowflake(data.channel),
+              // guild_id: null, //FIXME
+            },
+          });
+
           break;
         }
         case "ChannelStartTyping": {
@@ -313,7 +327,6 @@ export async function startListener(this: WebSocket, token: string) {
         /*
       case "UserUpdate": {
         if (!data.data._id) return;
-        console.log("user update");
 
         await Send(this, {
           op: GatewayOpcodes.Dispatch,
