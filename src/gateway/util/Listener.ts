@@ -47,6 +47,9 @@ export async function startListener(this: WebSocket, token: string) {
                     channel_type: ch?.channel_type as any ?? "TextChannel",
                     default_permissions: ch?.default_permissions ?? null,
                     server: "",
+                    nsfw: !!ch?.nsfw,
+                    icon: ch?.icon ?? null,
+                    last_message_id: ch?.last_message_id ?? null,
                   };
 
                   if (ch?.role_permissions) channel.role_permissions = ch.role_permissions;
