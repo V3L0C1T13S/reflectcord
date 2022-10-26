@@ -18,7 +18,7 @@ In order to get the buildId, you'll need to parse the HTML of one of the pages (
 
 ## Getting data
 
-Getting data is easy - simply make a GET request to `https://rvlt.gg/_next/data/${BUILDID}/${DATATYPE}.json`.
+Getting data is easy - simply make a GET request to `https://rvlt.gg/_next/data/BUILDID/DATATYPE.json`.
 
 Replace BUILDID with the build id you got from above, and DATATYPE with the type of data you want.
 
