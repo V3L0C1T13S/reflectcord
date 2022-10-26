@@ -14,7 +14,7 @@ There are no known alternatives, but feel free to file an issue/PR if you do fin
 
 ## Getting the buildId
 
-In order to get the buildId, you'll need to parse the HTML of the page. An element with the id `__NEXT_DATA__` is actually just JSON, and inside it is a buildId property. You can parse this JSON and use it to access the endpoints this way.
+In order to get the buildId, you'll need to parse the HTML of one of the pages (ex. rvlt.gg/discover/servers). An element with the id `__NEXT_DATA__` is actually just JSON, and inside it is a buildId property. You can parse this JSON and use it to access the endpoints this way.
 
 ## Getting data
 
