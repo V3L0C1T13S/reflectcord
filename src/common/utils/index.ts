@@ -6,3 +6,4 @@ export * from "./TokenManager";
 export * from "./Server";
 export * from "./color";
 export * from "./Logger";
+export * from "./discord";

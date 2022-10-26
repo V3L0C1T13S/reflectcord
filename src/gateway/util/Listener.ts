@@ -4,7 +4,7 @@ import { GatewayCloseCodes, GatewayDispatchEvents, GatewayOpcodes } from "discor
 import { API } from "revolt.js";
 import { APIWrapper, createAPI } from "../../common/rvapi";
 import {
-  Channel, Guild, Member, Message, PartialEmoji, Relationship, selfUser, User,
+  Channel, Emoji, Guild, Member, Message, PartialEmoji, Relationship, selfUser, User,
 } from "../../common/models";
 import { WebSocket } from "../Socket";
 import { Send } from "./send";
@@ -357,6 +357,34 @@ export async function startListener(this: WebSocket, token: string) {
               version: 3763,
             },
           });
+          break;
+        }
+        case "EmojiCreate": {
+          if (data.parent.type !== "Server") return;
+
+          await Send(this, {
+            op: GatewayOpcodes.Dispatch,
+            t: GatewayDispatchEvents.GuildEmojisUpdate,
+            s: this.sequence++,
+            d: {
+              guild_id: await toSnowflake(data.parent.id),
+              emojis: [await Emoji.from_quark(data)],
+            },
+          });
+
+          break;
+        }
+        case "ServerRoleDelete": {
+          await Send(this, {
+            op: GatewayOpcodes.Dispatch,
+            t: GatewayDispatchEvents.GuildRoleDelete,
+            s: this.sequence++,
+            d: {
+              guild_id: await toSnowflake(data.id),
+              role_id: await toSnowflake(data.role_id),
+            },
+          });
+
           break;
         }
         case "Pong": {

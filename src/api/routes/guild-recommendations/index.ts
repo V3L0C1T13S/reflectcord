@@ -6,6 +6,7 @@ import { DiscoverableGuild } from "../../../common/models";
 import { ServerDiscoveryResponse } from "../../../common/rvapi";
 import { getRevoltDiscoveryDataURL } from "../../../common/constants";
 import { GuildDiscoveryRequest } from "../../../common/sparkle";
+import { genLoadId } from "../../../common/utils";
 
 export default () => <Resource> {
   get: async (req, res: Response<GuildDiscoveryRequest>) => {
@@ -15,7 +16,7 @@ export default () => <Resource> {
     res.json({
       recommended_guilds: await Promise.all(revoltServers.data.pageProps.servers
         .map((x) => DiscoverableGuild.from_quark(x))),
-      load_id: "server_recs/fixme",
+      load_id: `server_recs/${genLoadId(32)}`,
     });
   },
 };

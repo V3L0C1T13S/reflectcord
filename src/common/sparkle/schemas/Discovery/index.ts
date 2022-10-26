@@ -12,6 +12,7 @@ export type GuildDiscoveryInfo = {
   description: string,
   icon: string,
   splash: string,
+  discovery_splash: string,
   banner: string,
   approximate_presence_count: number,
   approximate_member_count: number,
