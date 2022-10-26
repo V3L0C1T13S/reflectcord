@@ -8,8 +8,8 @@ export type GeneralCategory = {
 export type Bot = {
   id: string,
   username: string,
-  avatar: string,
-  avatar_decoration: any,
+  avatar?: string | null,
+  avatar_decoration?: any,
   discriminator: string,
   public_flags: number,
   bot: boolean,
@@ -21,6 +21,14 @@ export type App = Omit<APIApplication, "rpc_origins"> & {
   hook: boolean,
 }
 
+export type DirectoryItem = {
+  id: string,
+  type: number,
+  image_hash: string,
+  position: number,
+  application: App,
+}
+
 export type AppCategory = {
   id: string,
   active: boolean,
@@ -28,5 +36,7 @@ export type AppCategory = {
   position: number,
   title: string,
   description: string,
-  application_directory_collection_items: App[],
+  application_directory_collection_items: DirectoryItem[],
 }
+
+export * from "./FullApp";

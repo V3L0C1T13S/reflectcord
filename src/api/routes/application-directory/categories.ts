@@ -1,10 +1,12 @@
-import { AppCategory } from "common/sparkle";
 import { Response } from "express";
 import { Resource } from "express-automatic-routes";
-import { getRevoltDiscoveryDataURL } from "../../../common/constants";
+import { GeneralCategory } from "../../../common/sparkle";
 
 export default () => <Resource> {
-  get: async (req, res: Response<AppCategory[]>) => {
-    const discoveryURL = await getRevoltDiscoveryDataURL();
+  get: (req, res: Response<GeneralCategory[]>) => {
+    res.json([{
+      id: 4,
+      name: "Entertainment",
+    }]);
   },
 };

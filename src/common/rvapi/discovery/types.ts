@@ -1,3 +1,5 @@
+export type DiscoveryUsage = "high" | "medium" | "low"
+
 export type DiscoveryMedia = {
   _id: string,
   tag: string,
@@ -25,13 +27,59 @@ export type DiscoveryServer = {
    * Medium: Around 800 messages in the past 12 hours
    * Low: Little to no messages in the past 12 hours
    */
-  activity: "high" | "medium" | "low",
+  activity: DiscoveryUsage,
 }
 
-export type ServerDiscoveryResponse = {
+export interface ImageMetadata {
+  type: string;
+  width: number;
+  height: number;
+}
+
+export interface Avatar {
+  _id: string;
+  tag: string;
+  filename: string;
+  metadata: ImageMetadata;
+  content_type: string;
+  size: number;
+}
+
+export interface Profile {
+  content: string;
+  background?: Avatar | null;
+}
+
+export interface DiscoveryBot {
+  _id: string;
+  username: string;
+  avatar: Avatar | null;
+  profile: Profile;
+  tags: string[];
+  servers: number;
+  usage: DiscoveryUsage;
+}
+
+export type pageProps = {
+  popularTags: string[],
+}
+
+/**
+ * Properties that all data responses have in common
+ */
+type GenericDiscoveryResponse = {
   __N_SSG: boolean,
-  pageProps: {
+  pageProps: pageProps,
+}
+
+export type ServerDiscoveryResponse = GenericDiscoveryResponse & {
+  pageProps: pageProps & {
     servers: DiscoveryServer[],
-    popularTags: string[],
+  }
+}
+
+export type BotDiscoveryResponse = GenericDiscoveryResponse & {
+  pageProps: pageProps & {
+    bots: DiscoveryBot[],
   }
 }
