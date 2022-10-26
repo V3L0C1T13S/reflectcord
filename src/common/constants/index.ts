@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import { getNextData } from "../rvapi/discovery";
 
 dotenv.config();
 
@@ -23,6 +24,8 @@ export const revoltJanuaryURL = process.env["REVOLT_JANUARY_URL"] ?? "https://ja
 // FIXME: Dunno if we really want to use this since rvlt.gg is currently closed source.
 export const revoltDiscoveryURL = process.env["REVOLT_DISCOVERY_URL"] ?? "https://rvlt.gg";
 
-export const revoltDiscoveryVersion = "WetlO_lIaelGxoYi_j91F";
+export async function getRevoltDiscoveryDataURL() {
+  const discoveryBuildId = await getNextData();
 
-export const revoltDiscoveryDataURL = `${revoltDiscoveryURL}/_next/data/${revoltDiscoveryVersion}`;
+  return `${revoltDiscoveryURL}/_next/data/${discoveryBuildId}`;
+}

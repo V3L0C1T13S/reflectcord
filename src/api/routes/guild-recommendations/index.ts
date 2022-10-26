@@ -4,13 +4,14 @@ import { Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { GuildFeature } from "discord.js";
 import { ServerDiscoveryResponse } from "../../../common/rvapi";
-import { revoltDiscoveryDataURL } from "../../../common/constants";
+import { getRevoltDiscoveryDataURL } from "../../../common/constants";
 import { GuildDiscoveryInfo, GuildDiscoveryRequest } from "../../../common/sparkle";
 import { toSnowflake } from "../../../common/models/util";
 
 export default () => <Resource> {
   get: async (req, res: Response<GuildDiscoveryRequest>) => {
-    const revoltServers = await axios.get<ServerDiscoveryResponse>(`${revoltDiscoveryDataURL}/discover/servers.json`);
+    const discoveryURL = await getRevoltDiscoveryDataURL();
+    const revoltServers = await axios.get<ServerDiscoveryResponse>(`${discoveryURL}/discover/servers.json`);
 
     res.json({
       recommended_guilds: await Promise.all(revoltServers.data.pageProps.servers.map(async (x) => {
