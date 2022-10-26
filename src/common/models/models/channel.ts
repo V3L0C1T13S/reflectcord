@@ -141,11 +141,6 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
     const id = await toSnowflake(channel._id);
 
     return {
-      // application_id: undefined,
-      applied_tags: [],
-      available_tags: [],
-      default_reaction_emoji: null,
-      default_sort_order: null,
       bitrate: undefined,
       guild_id: await (() => {
         if ("server" in channel && typeof channel.server === "string") {

@@ -4,7 +4,12 @@ import {
   AccountInfo, RelationshipStatus, User as RevoltUser, UserProfile as RevoltUserProfile,
 } from "revolt-api";
 import {
-  ActivitiesOptions, ActivityType, APIUser, PresenceData, UserFlags, BitField, UserFlagsBitField,
+  ActivitiesOptions,
+  ActivityType,
+  APIUser,
+  PresenceData, UserFlags,
+  UserFlagsBitField,
+  UserPremiumType,
 } from "discord.js";
 import { Badges } from "../../rvapi";
 import { UserRelationshipType } from "../../sparkle";
@@ -85,7 +90,7 @@ export const User: QuarkConversion<RevoltUser, APIUser> = {
       username: user.username,
       public_flags: flags,
       verified: true, // all accounts on revolt are implicitly verified
-      premium_type: 2, // unlocks all nitro features
+      premium_type: UserPremiumType.Nitro, // unlocks all nitro features
     };
   },
 };

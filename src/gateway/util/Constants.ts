@@ -1,8 +1,8 @@
 import { GatewayOpcodes } from "discord.js";
 
-export interface Payload {
+export interface Payload<T = any> {
   op: GatewayOpcodes;
-  d?: any;
+  d?: T;
   s?: number;
   t?: string;
 }

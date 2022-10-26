@@ -6,7 +6,7 @@ import { API } from "revolt.js";
 import { Member } from "../../common/models";
 import { Send, Payload } from "../util";
 import { WebSocket } from "../Socket";
-import { fromSnowflake } from "../../common/models/util";
+import { fromSnowflake, toSnowflake } from "../../common/models/util";
 import { check } from "./instanceOf";
 import { LazyRequest } from "../../common/sparkle/schemas";
 import "missing-native-js-functions";
@@ -62,6 +62,7 @@ async function getMembers(this: WebSocket, guild_id: string, range: LazyOperator
 
   const groups: LazyGroup[] = [];
   const items: SyncItem[] = [];
+  const discordGuildId = await toSnowflake(guild_id);
 
   const members = await this.rvAPI.get(`/servers/${guild_id}/members`, {
     exclude_offline: true,
@@ -73,11 +74,9 @@ async function getMembers(this: WebSocket, guild_id: string, range: LazyOperator
     .map((x) => x.roles)
     .flat()
     .unique((r) => r);
+
   memberRoles.push(
-    memberRoles.splice(
-      memberRoles.findIndex((x) => x === guild_id),
-      1,
-    )[0]!,
+    discordGuildId,
   );
 
   const offlineItems: SyncItem[] = [];
@@ -91,14 +90,14 @@ async function getMembers(this: WebSocket, guild_id: string, range: LazyOperator
     );
     const group = {
       count: role_members.length,
-      id: role === guild_id ? "online" : role,
+      id: role === discordGuildId ? "online" : role,
     };
 
     items.push({ group });
     groups.push(group);
 
     role_members.forEach((member) => {
-      const userRoles = member.roles.filter((x) => x !== guild_id).map((x) => x);
+      const userRoles = member.roles.filter((x) => x !== discordGuildId).map((x) => x);
 
       const statusPriority = {
         online: 0,
@@ -149,6 +148,7 @@ async function getMembers(this: WebSocket, guild_id: string, range: LazyOperator
   };
 }
 
+// FIXME: Partially implemented
 export async function lazyReq(this: WebSocket, data: Payload) {
   check.call(this, LazyRequest, data.d);
   const {
@@ -179,7 +179,7 @@ export async function lazyReq(this: WebSocket, data: Payload) {
         op: "SYNC",
         range: ops.range,
       }],
-      online_count: 0,
+      online_count: member_count - (groups.find((x) => x.id === "offline")?.count ?? 0),
       member_count,
       id: "everyone",
       guild_id,
