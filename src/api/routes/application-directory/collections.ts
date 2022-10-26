@@ -13,8 +13,6 @@ export default () => <Resource> {
     const botResponse = await axios.get<BotDiscoveryResponse>(`${discoveryURL}/discover/bots.json`);
     const revoltBots = botResponse.data;
 
-    const botPosition = 0;
-
     res.json([{
       id: "0",
       active: true,
