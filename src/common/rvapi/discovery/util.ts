@@ -1,12 +1,13 @@
 import axios from "axios";
 import parse from "node-html-parser";
+import { revoltDiscoveryURL } from "../../constants";
 
 let rvDiscoveryBuild: string | null = null;
 
 export async function getNextData() {
   if (rvDiscoveryBuild) return rvDiscoveryBuild;
 
-  const rvDiscoveryPage = await axios.get("https://rvlt.gg/discover/servers");
+  const rvDiscoveryPage = await axios.get(`${revoltDiscoveryURL}/discover/servers`);
 
   const data = parse(String(rvDiscoveryPage.data));
 
