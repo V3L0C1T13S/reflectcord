@@ -1,8 +1,9 @@
-import { APIRole, PermissionsBitField } from "discord.js";
-import { API, Permission } from "revolt.js";
-import { hexToRgbCode, Logger } from "../../utils";
+import { APIRole } from "discord.js";
+import { API } from "revolt.js";
+import { hexToRgbCode } from "../../utils";
 import { QuarkConversion } from "../QuarkConversion";
-import { bitwiseAndEq, Permissions } from "./permissions";
+import { toSnowflake } from "../util";
+import { Permissions } from "./permissions";
 
 export const Role: QuarkConversion<API.Role, APIRole> = {
   async to_quark(role) {
@@ -18,12 +19,12 @@ export const Role: QuarkConversion<API.Role, APIRole> = {
     };
   },
 
-  async from_quark(role) {
+  async from_quark(role, id?: string) {
     const { name, permissions } = role;
 
     return {
       name,
-      id: "0", // FIXME
+      id: id ? await toSnowflake(id) : "0", // FIXME
       permissions: await (async () => {
         const perms = await Permissions.from_quark(permissions);
 

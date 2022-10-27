@@ -2,6 +2,7 @@
 import { Application, Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
+import { HTTPError } from "../../../common/utils";
 import { APILoginResponse, DataLogin, ResponseLogin } from "../../../common/models";
 
 export async function loginToRevolt(api: API.API, req: Request) {
@@ -18,13 +19,8 @@ export default (express: Application) => <Resource> {
     const api = res.rvAPI;
 
     const loginResponse = await loginToRevolt(api, req).catch(() => {
-      res.status(500).json({
-        // @ts-ignore
-        code: 500,
-        message: "Revolt failed to login.",
-      });
+      throw new HTTPError("Revolt failed to login/invalid credentials", 500);
     });
-    if (!loginResponse) return;
 
     return res.json(await ResponseLogin.from_quark(loginResponse));
   },

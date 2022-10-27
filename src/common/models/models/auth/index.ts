@@ -35,12 +35,19 @@ export const ResponseLogin: QuarkConversion<RevoltLoginResponse, APILoginRespons
   async from_quark(login) {
     const isMFA = login.result === "MFA";
 
+    if (isMFA) {
+      return {
+        token: null,
+        settings: undefined,
+        ticket: login.ticket,
+        sms: false,
+        mfa: true,
+      };
+    }
+
     return {
       token: !isMFA ? login.token : null,
       settings: undefined,
-      ticket: isMFA ? login.ticket : undefined,
-      sms: isMFA ? false : undefined,
-      mfa: isMFA ? true : undefined,
     };
   },
 };

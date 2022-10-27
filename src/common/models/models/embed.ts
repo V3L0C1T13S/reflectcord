@@ -7,13 +7,16 @@ import { QuarkConversion } from "../QuarkConversion";
 
 export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
   async to_quark(embed) {
-    const { title, description, color } = embed;
+    const {
+      title, description, color, url,
+    } = embed;
 
     return {
       type: "Text",
       title: title ?? null,
       description: description ?? null,
       colour: color ? rgbToHex(color) : null,
+      url: url ?? null,
     };
   },
 

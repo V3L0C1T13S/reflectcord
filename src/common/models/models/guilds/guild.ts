@@ -15,6 +15,7 @@ import { Server } from "revolt-api";
 import { Logger } from "../../../utils";
 import { QuarkConversion } from "../../QuarkConversion";
 import { toSnowflake } from "../../util";
+import { Attachment } from "../attachment";
 import { convertPermNumber } from "../permissions";
 import { Role } from "../role";
 
@@ -103,7 +104,7 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
       default_message_notifications: GuildDefaultMessageNotifications.AllMessages,
       explicit_content_filter: GuildExplicitContentFilter.Disabled,
       roles: await (async () => {
-        const roleStub: APIRole[] = [];
+        const discordRoles: APIRole[] = [];
         const everyoneStub = {
           id,
           name: "@everyone",
@@ -115,16 +116,13 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
           mentionable: true,
         };
 
-        roleStub[0] = everyoneStub;
+        discordRoles.push(everyoneStub);
 
         const roles = server.roles ? await Promise.all(Object.entries(server.roles)
-          .map(async ([k, x]) => ({
-            ...await Role.from_quark(x),
-            id: await toSnowflake(k),
-          }))) : [];
-        roles.forEach((x) => roleStub.push(x));
+          .map(async ([k, x]) => Role.from_quark(x, k))) : [];
+        roles.forEach((x) => discordRoles.push(x));
 
-        return roleStub;
+        return discordRoles;
       })(),
       emojis: [],
       features,
