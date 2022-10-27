@@ -3,8 +3,8 @@ import { ChannelType, OverwriteType } from "discord.js";
 import { Request } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
-import { fromSnowflake } from "../../../../../common/models/util";
-import { HTTPError } from "../../../../../common/utils";
+import { fromSnowflake } from "../../../../../../common/models/util";
+import { HTTPError } from "../../../../../../common/utils";
 
 // FIXME
 export default () => <Resource> {

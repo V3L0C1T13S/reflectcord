@@ -5,4 +5,4 @@ REST and Websocket compatability layer for Discord->Revolt
 **TODO:**
 - [ ] Websocket (in progress)
 - [ ] CDN (in progress)
-- [ ] Voice
+- [ ] Voice (STALLED - waiting for vortex rewrite)

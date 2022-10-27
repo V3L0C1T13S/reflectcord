@@ -41,7 +41,7 @@ export default (express: Application) => <Resource> {
   },
   post: async (req, res) => {
     const { username } = req.body;
-    if (!username) throw new HTTPError("Invalid username", 244);
+    if (!username) throw new HTTPError("Invalid username", 422);
 
     const rvRes = await res.rvAPI.post("/users/friend", {
       username,
