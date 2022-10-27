@@ -150,34 +150,31 @@ export async function startListener(this: WebSocket, token: string) {
           break;
         }
         case "Message": {
-        // We don't want to send Discord system stuff, since they dont have IDs
-          if (!data.system) {
-            const discordMsg = await Message.from_quark(data);
-            const author = await this.rvAPIWrapper.users.getUser(data.author);
-            const channel = await this.rvClient.channels.get(data.channel);
-            await Send(this, {
-              op: GatewayOpcodes.Dispatch,
-              t: GatewayDispatchEvents.MessageCreate,
-              s: this.sequence++,
-              d: {
-                ...discordMsg,
-                author: author.discord,
-                guild_id: channel?.server_id ? await toSnowflake(channel.server_id) : null,
-              },
-            });
-          } else Logger.log("message is system message");
+          const discordMsg = await Message.from_quark(data);
+          const author = await this.rvAPIWrapper.users.getUser(data.author);
+          const channel = await this.rvClient.channels.get(data.channel);
+          await Send(this, {
+            op: GatewayOpcodes.Dispatch,
+            t: GatewayDispatchEvents.MessageCreate,
+            s: this.sequence++,
+            d: {
+              ...discordMsg,
+              author: author.discord,
+              guild_id: channel?.server_id ? await toSnowflake(channel.server_id) : null,
+            },
+          });
 
           break;
         }
         case "MessageUpdate": {
-          if (!data.data._id || !data.data.author || ("system" in data)) return;
+          if (!data.data.author) return;
 
           await Send(this, {
             op: GatewayOpcodes.Dispatch,
             t: GatewayDispatchEvents.MessageUpdate,
             s: this.sequence++,
             d: await Message.from_quark({
-              _id: data.data._id, // FIXME: this might crash if undef.
+              _id: data.id,
               channel: data.channel,
               author: data.data.author,
               content: data.data.content ?? null,
@@ -324,6 +321,21 @@ export async function startListener(this: WebSocket, token: string) {
           });
           break;
         }
+        case "ServerMemberJoin": {
+          const member = await this.rvAPI.get(`/servers/${data.id}/members/${data.user}`) as API.Member;
+
+          await Send(this, {
+            op: GatewayOpcodes.Dispatch,
+            t: GatewayDispatchEvents.GuildMemberAdd,
+            s: this.sequence++,
+            d: {
+              ...await Member.from_quark(member),
+              guild_id: await toSnowflake(data.id),
+            },
+          });
+
+          break;
+        }
         case "ServerMemberUpdate": {
           const { nickname, joined_at, timeout } = data.data;
 
@@ -343,6 +355,19 @@ export async function startListener(this: WebSocket, token: string) {
               joined_at: joined_at ? new Date(joined_at).toISOString() : undefined,
               avatar: data.data.avatar?._id,
               communication_disabled_until: timeout ? new Date(timeout).toISOString() : undefined,
+            },
+          });
+
+          break;
+        }
+        case "ServerMemberLeave": {
+          await Send(this, {
+            op: GatewayOpcodes.Dispatch,
+            t: GatewayDispatchEvents.GuildMemberRemove,
+            s: this.sequence++,
+            d: {
+              guild_id: await toSnowflake(data.id),
+              user: await toSnowflake(data.user),
             },
           });
 
