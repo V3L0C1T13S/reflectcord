@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-plusplus */
 import { GatewayCloseCodes, GatewayDispatchEvents, GatewayOpcodes } from "discord.js";
@@ -323,27 +324,49 @@ export async function startListener(this: WebSocket, token: string) {
           });
           break;
         }
+        case "ServerMemberUpdate": {
+          const { nickname, joined_at, timeout } = data.data;
+
+          await Send(this, {
+            op: GatewayOpcodes.Dispatch,
+            t: GatewayDispatchEvents.GuildMemberUpdate,
+            s: this.sequence++,
+            d: {
+              guild_id: await toSnowflake(data.id.server),
+              roles: data.data.roles?.map((x) => toSnowflake(x)) ?? [],
+              user: await User.from_quark({
+                ...data.data,
+                _id: data.id.user,
+                username: nickname ?? "fixme",
+              }),
+              nick: nickname,
+              joined_at: joined_at ? new Date(joined_at).toISOString() : undefined,
+              avatar: data.data.avatar?._id,
+              communication_disabled_until: timeout ? new Date(timeout).toISOString() : undefined,
+            },
+          });
+
+          break;
+        }
         case "ChannelStopTyping": {
         // Discord wont handle this no matter what
           break;
         }
-        /*
-      case "UserUpdate": {
-        if (!data.data._id) return;
-
-        await Send(this, {
-          op: GatewayOpcodes.Dispatch,
-          t: GatewayDispatchEvents.UserUpdate,
-          s: this.sequence++,
-          d: await User.from_quark({
-            _id: data.data._id,
-            username: data.data.username ?? "fixme",
-            flags: data.data.flags ?? null,
-          }),
-        });
-        break;
-      }
-      */
+        case "UserUpdate": {
+          /*
+          await Send(this, {
+            op: GatewayOpcodes.Dispatch,
+            t: GatewayDispatchEvents.UserUpdate,
+            s: this.sequence++,
+            d: await User.from_quark({
+              _id: data.id,
+              username: data.data.username ?? "fixme",
+              flags: data.data.flags ?? null,
+            }),
+          });
+          */
+          break;
+        }
         case "ChannelAck": {
           const msg = this.rvClient.messages.get(data.message_id);
 

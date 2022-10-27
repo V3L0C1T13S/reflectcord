@@ -32,7 +32,7 @@ export const Member: QuarkConversion<RevoltMember, APIGuildMember> = {
     return {
       id: await toSnowflake(_id.user),
       joined_at: new Date(joined_at).toISOString(),
-      communication_disabled_until: timeout ?? null,
+      communication_disabled_until: timeout ? new Date(timeout).toISOString() : null,
       roles: convRoles,
       deaf: false,
       mute: false,
