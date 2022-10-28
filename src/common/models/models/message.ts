@@ -166,6 +166,30 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
       };
     }
 
+    if (message.system) {
+      switch (message.system.type) {
+        case "text": {
+          discordMessage.content = message.system.content;
+          break;
+        }
+        case "user_left": {
+          discordMessage.content = `<@${await toSnowflake(message.system.id)}> left.`;
+          break;
+        }
+        case "user_banned": {
+          discordMessage.content = `<@${await toSnowflake(message.system.id)}> was banned.`;
+          break;
+        }
+        case "user_kicked": {
+          discordMessage.content = `<@${await toSnowflake(message.system.id)}> was kicked.`;
+          break;
+        }
+        default: {
+          break;
+        }
+      }
+    }
+
     return discordMessage;
   },
 };

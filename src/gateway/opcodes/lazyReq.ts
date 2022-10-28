@@ -57,7 +57,11 @@ function partition<T>(array: T[], isValid: Function) {
   );
 }
 
-async function getMembers(this: WebSocket, guild_id: string, range: LazyOperatorRange) {
+async function getMembers(
+  this: WebSocket,
+  guild_id: string,
+  range: LazyOperatorRange,
+) {
   if (!Array.isArray(range) || range.length !== 2) throw new Error("invalid range");
 
   const groups: LazyGroup[] = [];
