@@ -38,6 +38,7 @@ export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, API.
       deaf: false,
       mute: false,
       nick: nickname ?? null,
+      avatar: member.avatar?._id ?? null,
       user: user ? await User.from_quark(user) : await User.from_quark({
         _id: _id.user,
         username: member.nickname ?? "fixme",

@@ -75,6 +75,12 @@ describe("api get requests", () => {
 
       expect(Array.isArray(members.data));
     });
+
+    test("bans", async () => {
+      const bans = await getFromAPI(`guilds/${TestServerId}/bans`);
+
+      expect(Array.isArray(bans.data));
+    });
   });
 
   describe("discovery", () => {

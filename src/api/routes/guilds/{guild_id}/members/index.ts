@@ -14,8 +14,11 @@ export default (express: Application) => <Resource> {
 
     const serverId = await fromSnowflake(guild_id);
 
-    const members = await res.rvAPI.get(`/servers/${serverId}/members`) as API.AllMemberResponse;
+    const members = await res.rvAPI.get(`/servers/${serverId}/members`, {
+      include_users: true,
+    }) as API.AllMemberResponse;
 
-    res.json(await Promise.all(members.members.map((x) => Member.from_quark(x))));
+    res.json(await Promise.all(members.members
+      .map((x) => Member.from_quark(x, members.users.find((u) => x._id.user === u._id)))));
   },
 };

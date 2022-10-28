@@ -14,8 +14,18 @@ export default () => <Resource> {
 
     const rvId = await fromSnowflake(guild_id);
 
-    const bans = await res.rvAPI.get(`/servers/${rvId}/bans`) as API.BanListResult;
+    const bans = await res.rvAPI.get(`/servers/${rvId}/bans`, {
+      include_users: true,
+    }) as API.BanListResult;
 
-    res.json(await Promise.all(bans.bans.map((x) => Ban.from_quark(x))));
+    const discordBans = await Promise.all(bans.bans.map((ban) => {
+      const user = bans.users.find((x) => x._id === ban._id.user) as API.User;
+
+      return Ban.from_quark(ban, {
+        user,
+      });
+    }));
+
+    res.json(discordBans);
   },
 };

@@ -29,5 +29,7 @@ export interface WebSocket extends WS {
     self_deaf: boolean,
     self_mute: boolean,
     self_video: boolean,
+    channel_id?: string,
+    guild_id?: string,
   }
 }
