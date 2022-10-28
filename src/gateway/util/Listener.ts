@@ -60,10 +60,25 @@ export async function startListener(this: WebSocket, token: string) {
                   return channel;
                 });
 
-              return {
+              const guild = {
                 ...await Guild.from_quark(server),
                 channels: await Promise.all(rvChannels.map((ch) => Channel.from_quark(ch))),
               };
+
+              // Bots don't get sent full guilds in actual discord.
+              if (currentUser.bot) {
+                setTimeout(() => {
+                  Send(this, {
+                    op: GatewayOpcodes.Dispatch,
+                    t: GatewayDispatchEvents.GuildCreate,
+                    s: this.sequence++,
+                    d: guild,
+                  });
+                }, 500);
+                return { id: guild.id, unavailable: true };
+              }
+
+              return guild;
             }));
 
           const mfaInfo = !currentUser.bot ? await this.rvAPI.get("/auth/mfa/") : null;
