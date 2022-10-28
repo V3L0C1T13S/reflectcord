@@ -23,7 +23,7 @@ export default () => <Resource> {
 
     const member = await res.rvAPI.patch(`/servers/${serverId}/members/${rvMemberId}`, {
       nickname: nick ?? null,
-      roles: roles ?? null,
+      roles: roles ? await Promise.all(roles.map((x) => fromSnowflake(x))) : null,
     }) as API.Member;
 
     res.json(await Member.from_quark(member));

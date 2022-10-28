@@ -25,13 +25,10 @@ export const Role: QuarkConversion<API.Role, APIRole> = {
     return {
       name,
       id: id ? await toSnowflake(id) : "0", // FIXME
-      permissions: await (async () => {
-        const perms = await Permissions.from_quark(permissions);
-
-        return perms.toString();
-      })(),
+      permissions: (await Permissions.from_quark(permissions)).toString(),
+      // FIXME: gradient conversion needed
       color: role.colour ? hexToRgbCode(role.colour) ?? 0 : 0,
-      hoist: role.hoist ?? false,
+      hoist: !!role.hoist,
       position: role.rank ?? 0,
       managed: false,
       mentionable: false,
