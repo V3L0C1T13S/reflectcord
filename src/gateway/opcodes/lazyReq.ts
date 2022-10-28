@@ -66,9 +66,14 @@ async function getMembers(this: WebSocket, guild_id: string, range: LazyOperator
 
   const members = await this.rvAPI.get(`/servers/${guild_id}/members`, {
     exclude_offline: true,
+    include_users: true,
   }) as API.AllMemberResponse;
 
-  let discordMembers = await Promise.all(members.members.map((x) => Member.from_quark(x)));
+  let discordMembers = await Promise.all(members.members.map(async (member) => {
+    const user = members.users.find((x) => x._id === member._id.user);
+
+    return Member.from_quark(member, user);
+  }));
 
   const memberRoles = discordMembers
     .map((x) => x.roles)

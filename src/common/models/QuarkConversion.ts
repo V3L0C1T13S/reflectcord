@@ -1,4 +1,4 @@
-export interface QuarkConversion<T, D> {
-    to_quark: (data: D) => Promise<T>;
-    from_quark: (data: T, ...args: any) => Promise<D>;
+export interface QuarkConversion<T, D, ATQ = any, AFQ = any> {
+    to_quark: (data: D, extra?: ATQ) => Promise<T>;
+    from_quark: (data: T, extra?: AFQ) => Promise<D>;
 }

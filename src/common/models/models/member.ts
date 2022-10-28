@@ -1,11 +1,12 @@
 /* eslint-disable camelcase */
-import { APIGuildMember } from "discord.js";
+import { APIGuildMember, APIUser } from "discord.js";
 import { Member as RevoltMember } from "revolt-api";
+import { API } from "revolt.js";
 import { QuarkConversion } from "../QuarkConversion";
 import { toSnowflake } from "../util";
 import { User } from "./user";
 
-export const Member: QuarkConversion<RevoltMember, APIGuildMember> = {
+export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, API.User> = {
   async to_quark(member) {
     const { user } = member;
 
@@ -20,7 +21,7 @@ export const Member: QuarkConversion<RevoltMember, APIGuildMember> = {
     };
   },
 
-  async from_quark(member) {
+  async from_quark(member, user) {
     const {
       _id, joined_at, nickname, timeout, roles,
     } = member;
@@ -37,7 +38,7 @@ export const Member: QuarkConversion<RevoltMember, APIGuildMember> = {
       deaf: false,
       mute: false,
       nick: nickname ?? null,
-      user: await User.from_quark({
+      user: user ? await User.from_quark(user) : await User.from_quark({
         _id: _id.user,
         username: member.nickname ?? "fixme",
         avatar: member.avatar ?? null,
