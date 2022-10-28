@@ -1,7 +1,6 @@
-import { APIEmoji, APIPartialEmoji } from "discord.js";
+import { APIEmoji, APIPartialEmoji, APIReaction } from "discord.js";
 import { API } from "revolt.js";
 import { QuarkConversion } from "../QuarkConversion";
-import { toSnowflake } from "../util";
 import { User } from "./user";
 
 export const PartialEmoji: QuarkConversion<API.Emoji, APIPartialEmoji> = {
@@ -45,5 +44,33 @@ export const Emoji: QuarkConversion<API.Emoji, APIEmoji> = {
         username: "fixme",
       }),
     };
+  },
+};
+
+export const Reactions: QuarkConversion<API.Message["reactions"]
+, APIReaction[]> = {
+  async to_quark(reaction) {
+    return {};
+  },
+
+  async from_quark(reactions) {
+    if (!reactions) return [];
+
+    const discordEmojis = await Promise.all(Object.entries(reactions)
+      .map(([value, key]) => PartialEmoji.from_quark({
+        _id: value,
+        creator_id: "0",
+        parent: {
+          type: "Detached",
+        },
+        name: "fixme",
+      })));
+
+    return Promise.all(discordEmojis.map((x) => ({
+      // FIXME: ugly ugly ugly ew ew ew
+      count: Object.entries(reactions).find(([em, k]) => x.id === em)?.[1].length ?? 0,
+      me: false,
+      emoji: x,
+    })));
   },
 };

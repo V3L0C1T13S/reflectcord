@@ -14,7 +14,7 @@ import { QuarkConversion } from "../QuarkConversion";
 import { fromSnowflake, toSnowflake } from "../util";
 import { Attachment } from "./attachment";
 import { Embed, SendableEmbed } from "./embed";
-import { PartialEmoji } from "./emoji";
+import { PartialEmoji, Reactions } from "./emoji";
 import { User } from "./user";
 
 export type APIMention = {
@@ -91,10 +91,15 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
       content: content ?? "fixme",
       author: (() => {
         if (message.system) {
-          if (message.system.type === "user_added" || message.system.type === "user_remove") {
+          if (
+            message.system.type === "user_added"
+            || message.system.type === "user_remove"
+            || message.system.type === "user_kicked"
+            || message.system.type === "user_banned"
+          ) {
             return {
               id: message.system.id,
-              username: "fixme",
+              username: "System",
               discriminator: "1",
               avatar: null,
             };
@@ -129,6 +134,15 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
             case "user_joined": {
               return MessageType.UserJoin;
             }
+            case "user_added": {
+              return MessageType.UserJoin;
+            }
+            case "channel_renamed": {
+              return MessageType.ChannelNameChange;
+            }
+            case "channel_icon_changed": {
+              return MessageType.ChannelIconChange;
+            }
             default: {
               return MessageType.Default;
             }
@@ -137,25 +151,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
 
         return MessageType.Default;
       })(),
-      reactions: await (async () => {
-        if (!reactions) return [];
-
-        const discordEmojis = await Promise.all(Object.entries(reactions)
-          .map(([value, key]) => PartialEmoji.from_quark({
-            _id: value,
-            creator_id: "0",
-            parent: {
-              type: "Detached",
-            },
-            name: "fixme",
-          })));
-
-        return Promise.all(discordEmojis.map((x) => ({
-          count: 0,
-          me: false,
-          emoji: x,
-        })));
-      })(),
+      reactions: await Reactions.from_quark(reactions),
     };
 
     if (reply) {
