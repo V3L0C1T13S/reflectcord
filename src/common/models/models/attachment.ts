@@ -1,6 +1,5 @@
 import { APIAttachment } from "discord.js";
 import { API } from "revolt.js";
-import { AutumnURL } from "../../constants";
 import { QuarkConversion } from "../QuarkConversion";
 
 export const Attachment: QuarkConversion<API.File, APIAttachment> = {

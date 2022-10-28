@@ -162,6 +162,8 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
       };
     }
 
+    if (message.nonce) discordMessage.nonce = message.nonce;
+
     if (message.system) {
       switch (message.system.type) {
         case "text": {
@@ -204,6 +206,7 @@ export const MessageSendData: QuarkConversion<
         id: await fromSnowflake(message_reference.message_id),
         mention: data.allowed_mentions?.replied_user ?? false,
       }] : null,
+      nonce: data.nonce?.toString() ?? null,
     };
   },
 
@@ -217,6 +220,7 @@ export const MessageSendData: QuarkConversion<
       embeds: embeds
         ? await Promise.all(embeds.map((x) => SendableEmbed.from_quark(x)))
         : undefined,
+      nonce: data.nonce ?? undefined,
     };
   },
 };

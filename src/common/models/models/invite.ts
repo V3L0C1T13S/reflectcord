@@ -1,6 +1,8 @@
-import { APIInvite } from "discord.js";
+import { APIExtendedInvite, APIInvite, ChannelType } from "discord.js";
 import { API } from "revolt.js";
+import { decodeTime } from "ulid";
 import { QuarkConversion } from "../QuarkConversion";
+import { toSnowflake } from "../util";
 import { Channel } from "./channel";
 
 export const Invite: QuarkConversion<API.InviteResponse, APIInvite> = {
@@ -25,6 +27,23 @@ export const Invite: QuarkConversion<API.InviteResponse, APIInvite> = {
     return {
       code,
       channel: null,
+    };
+  },
+};
+
+export const InviteFull: QuarkConversion<API.InviteResponse, APIExtendedInvite> = {
+  async to_quark(invite) {
+    return Invite.to_quark(invite);
+  },
+
+  async from_quark(invite) {
+    return {
+      ...await Invite.from_quark(invite),
+      uses: 0,
+      max_uses: 0,
+      max_age: 0,
+      temporary: false,
+      created_at: new Date().toISOString(),
     };
   },
 };
