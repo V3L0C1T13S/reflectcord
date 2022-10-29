@@ -100,7 +100,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
       id: (await toSnowflake(_id)).toString(),
       channel_id,
       content: content ?? "fixme",
-      author: (() => {
+      author: await (async () => {
         if (message.system) {
           if (
             message.system.type === "user_added"
@@ -109,7 +109,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
             || message.system.type === "user_banned"
           ) {
             return {
-              id: message.system.id,
+              id: await toSnowflake(message.system.id),
               username: "System",
               discriminator: "1",
               avatar: null,
@@ -146,7 +146,10 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
               return MessageType.UserJoin;
             }
             case "user_added": {
-              return MessageType.UserJoin;
+              return MessageType.RecipientAdd;
+            }
+            case "user_remove": {
+              return MessageType.RecipientRemove;
             }
             case "channel_renamed": {
               return MessageType.ChannelNameChange;

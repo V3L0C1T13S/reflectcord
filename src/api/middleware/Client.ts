@@ -5,6 +5,7 @@ import fs from "fs";
 import path from "path";
 import fetch, { Headers, Response as FetchResponse } from "node-fetch";
 import axios from "axios";
+import favicon from "serve-favicon";
 import { Logger } from "../../common/utils";
 
 const AssetsPath = path.join(__dirname, "..", "..", "..", "assets");
@@ -125,6 +126,7 @@ export function Client(app: Application) {
     newAssetCache = new Map<string, AssetCacheItem>(Object.entries(JSON.parse(rawdata.toString())));
   }
 
+  app.use(favicon(path.join(__dirname, "../../../images/icons/favicon.ico")));
   app.use("/assets", express.static(path.join(AssetsPath)));
   app.get("/assets/:file", async (req: Request, res: Response) => {
     try {

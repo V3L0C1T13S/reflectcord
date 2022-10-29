@@ -1,14 +1,36 @@
-import { RESTPostAPIChannelMessageJSONBody } from "discord.js";
 import { API } from "revolt.js";
-import { Message, MessageSendData, User } from "../models";
+import { Message, User } from "../models";
 import { BaseManager } from "./BaseManager";
 
 export class MessageManager extends BaseManager {
-  async getMessage(channel: string, id: string) {
-    const rvMessage = await this.rvAPI.get(`/channels/${channel}/messages/${id}`) as API.Message;
-    const authorInfo = !rvMessage.system
-      ? await this.apiWrapper.users.getUser(rvMessage.author)
-      : null;
+  async convertMessageObj(rvMessage: API.Message) {
+    const authorInfo = await (async () => {
+      if (rvMessage.author === "00000000000000000000000000") {
+        if (rvMessage.system) {
+          switch (rvMessage.system.type) {
+            case "user_remove": {
+              return this.apiWrapper.users.getUser(rvMessage.system.by);
+            }
+            case "user_added": {
+              return this.apiWrapper.users.getUser(rvMessage.system.id);
+            }
+            case "user_joined": {
+              return this.apiWrapper.users.getUser(rvMessage.system.id);
+            }
+            case "channel_renamed": {
+              return this.apiWrapper.users.getUser(rvMessage.system.by);
+            }
+            default: {
+              return null;
+            }
+          }
+        }
+      } else {
+        return this.apiWrapper.users.getUser(rvMessage.author);
+      }
+
+      return null;
+    })();
 
     const discordMessage = await Message.from_quark(rvMessage);
     return {
@@ -21,6 +43,12 @@ export class MessageManager extends BaseManager {
         author: authorInfo ? authorInfo.discord : discordMessage.author,
       },
     };
+  }
+
+  async getMessage(channel: string, id: string) {
+    const rvMessage = await this.rvAPI.get(`/channels/${channel}/messages/${id}`) as API.Message;
+
+    return this.convertMessageObj(rvMessage);
   }
 
   async sendMessage(channel: string, data: API.DataMessageSend) {

@@ -32,9 +32,14 @@ export async function startListener(this: WebSocket, token: string) {
 
           const users = await Promise.all(data.users
             .map((user) => User.from_quark(user)));
+
           const channels = await Promise.all(data.channels
-            .filter((channel) => channel.channel_type === "DirectMessage")
+            .filter((channel) => (
+              channel.channel_type === "DirectMessage"
+              || channel.channel_type === "Group"
+            ))
             .map((channel) => Channel.from_quark(channel, currentUser._id)));
+
           const guilds = await Promise.all(data.servers
             .map(async (server) => {
               const rvChannels: API.Channel[] = server.channels
@@ -165,16 +170,14 @@ export async function startListener(this: WebSocket, token: string) {
           break;
         }
         case "Message": {
-          const discordMsg = await Message.from_quark(data);
-          const author = await this.rvAPIWrapper.users.getUser(data.author);
+          const msgObj = await this.rvAPIWrapper.messages.convertMessageObj(data);
           const channel = await this.rvClient.channels.get(data.channel);
           await Send(this, {
             op: GatewayOpcodes.Dispatch,
             t: GatewayDispatchEvents.MessageCreate,
             s: this.sequence++,
             d: {
-              ...discordMsg,
-              author: author.discord,
+              ...msgObj.discord,
               guild_id: channel?.server_id ? await toSnowflake(channel.server_id) : null,
             },
           });

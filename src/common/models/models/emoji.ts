@@ -56,7 +56,9 @@ export const Reactions: QuarkConversion<API.Message["reactions"]
   async from_quark(reactions) {
     if (!reactions) return [];
 
-    const discordEmojis = await Promise.all(Object.entries(reactions)
+    const reactionEntires = Object.entries(reactions);
+
+    const discordEmojis = await Promise.all(reactionEntires
       .map(([value, key]) => PartialEmoji.from_quark({
         _id: value,
         creator_id: "0",
@@ -68,7 +70,7 @@ export const Reactions: QuarkConversion<API.Message["reactions"]
 
     return Promise.all(discordEmojis.map((x) => ({
       // FIXME: ugly ugly ugly ew ew ew
-      count: Object.entries(reactions).find(([em, k]) => x.id === em)?.[1].length ?? 0,
+      count: reactionEntires.find(([em, k]) => x.id === em)?.[1].length ?? 0,
       me: false,
       emoji: x,
     })));
