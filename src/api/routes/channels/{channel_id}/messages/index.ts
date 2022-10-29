@@ -42,12 +42,10 @@ export default (express: Application) => <Resource> {
 
     const convMessages = await Promise.all(msgs.messages.map(async (x) => {
       const user = msgs.users.find((u) => x.author === u._id);
-      const msg = await Message.from_quark(x);
 
-      return {
-        ...msg,
-        author: user ? await User.from_quark(user) : msg.author,
-      };
+      return Message.from_quark(x, {
+        user: user ?? null,
+      });
     }));
 
     return res.json(convMessages);

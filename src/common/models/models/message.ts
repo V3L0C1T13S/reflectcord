@@ -14,7 +14,7 @@ import { QuarkConversion } from "../QuarkConversion";
 import { fromSnowflake, toSnowflake } from "../util";
 import { Attachment } from "./attachment";
 import { Embed, SendableEmbed } from "./embed";
-import { PartialEmoji, Reactions } from "./emoji";
+import { Reactions } from "./emoji";
 import { User } from "./user";
 
 export type APIMention = {
@@ -30,6 +30,12 @@ type messageReferenceRevolt = {
   channel_id: string,
   server?: string,
 }
+
+export type MessageATQ = {};
+
+export type MessageAFQ = Partial<{
+  user: API.User | null,
+}>
 
 export const MessageReference: QuarkConversion<
   messageReferenceRevolt,
@@ -51,7 +57,7 @@ export const MessageReference: QuarkConversion<
   },
 };
 
-export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
+export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, MessageAFQ> = {
   async to_quark(message) {
     const {
       content, id, author, embeds, channel_id, attachments, message_reference,
@@ -70,16 +76,21 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage> = {
     };
   },
 
-  async from_quark(message) {
+  async from_quark(message, extra) {
     const {
       _id, channel, content, author, attachments, embeds, reactions, replies, mentions, masquerade,
     } = message;
 
-    // Should we really support masquerading?
-    const authorUser = await User.from_quark({
-      _id: author,
-      username: masquerade?.name ?? "fixme",
-    });
+    const authorUser = extra?.user
+      ? await User.from_quark(extra.user, {
+        masquerade,
+      })
+      : await User.from_quark({
+        _id: author,
+        username: masquerade?.name ?? "fixme",
+      }, {
+        masquerade,
+      });
 
     const channel_id = await toSnowflake(channel);
 

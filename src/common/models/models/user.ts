@@ -1,7 +1,7 @@
 /* eslint-disable no-bitwise */
 /* eslint-disable camelcase */
 import {
-  AccountInfo, RelationshipStatus, User as RevoltUser, UserProfile as RevoltUserProfile,
+  AccountInfo, Message, RelationshipStatus, User as RevoltUser, UserProfile as RevoltUserProfile,
 } from "revolt-api";
 import {
   ActivitiesOptions,
@@ -54,7 +54,13 @@ export const PublicFlags: QuarkConversion<Badges, UserFlags> = {
   },
 };
 
-export const User: QuarkConversion<RevoltUser, APIUser> = {
+export type UserATQ = {};
+
+export type UserAFQ = {
+  masquerade: Message["masquerade"],
+};
+
+export const User: QuarkConversion<RevoltUser, APIUser, UserATQ, UserAFQ> = {
   async to_quark(user) {
     const { bot, id, username } = user;
 
