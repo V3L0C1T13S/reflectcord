@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { Application } from "express";
+import { Application, Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
 import { HTTPError } from "../../../../common/utils";
@@ -26,9 +26,9 @@ export default (express: Application) => <Resource> {
     const { guild_id, with_mutuals } = req.query;
     const { id } = req.params;
 
-    if (!id) return res.sendStatus(422);
+    if (!id) throw new HTTPError("Invalid params");
 
-    const rvId = id !== "@me" ? await fromSnowflake(id) : "@me";
+    const rvId = id !== "@me" ? await fromSnowflake(id) : id;
 
     const api = res.rvAPI;
 
@@ -36,10 +36,26 @@ export default (express: Application) => <Resource> {
     const rvProfile = await getProfile(api, rvId);
     if (!rvProfile || !user) throw new HTTPError("User not found", 422);
 
-    return res.json({
+    res.json({
       connected_accounts: [],
       user,
       user_profile: await UserProfile.from_quark(rvProfile),
+    });
+  },
+
+  patch: async (req, res) => {
+    const { bio, banner } = req.body;
+
+    await res.rvAPI.patch("/users/@me", {
+      profile: {
+        content: bio ?? null,
+      },
+    });
+
+    res.json({
+      accent_color: null,
+      bio: bio ?? null,
+      banner: banner ?? null,
     });
   },
 };
