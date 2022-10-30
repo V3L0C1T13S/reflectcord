@@ -5,10 +5,28 @@ import { Logger } from "../utils";
 import { User } from "../models";
 import { BaseManager } from "./BaseManager";
 import { QuarkContainer } from "./types";
+import { APIWrapper } from "../rvapi";
 
 export type UserContainer = QuarkContainer<API.User, APIUser>
 
 export class UserManager extends BaseManager<string, UserContainer> {
+  constructor(api: APIWrapper) {
+    super(api);
+
+    this.set("00000000000000000000000000", {
+      revolt: {
+        _id: "00000000000000000000000000",
+        username: "Revolt",
+      },
+      discord: {
+        id: "0",
+        username: "Revolt",
+        discriminator: "1",
+        avatar: null,
+      },
+    });
+  }
+
   $get(id: string, data?: UserContainer) {
     const user = this.get(id)!;
 
