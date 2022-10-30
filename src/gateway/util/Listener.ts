@@ -28,6 +28,8 @@ export async function startListener(this: WebSocket, token: string) {
               token,
             });
           }
+          // HACK! Fixes #10
+          this.rvClient.api = this.rvAPI;
           this.rvAPIWrapper = new APIWrapper(this.rvAPI);
 
           const users = await Promise.all(data.users

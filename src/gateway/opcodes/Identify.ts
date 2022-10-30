@@ -28,4 +28,7 @@ export async function onIdentify(this: WebSocket, data: Payload) {
     Logger.error("Revolt failed authentication");
     return this.close(GatewayCloseCodes.AuthenticationFailed);
   });
+
+  // HACK!
+  this.rvClient.api = this.rvAPI;
 }
