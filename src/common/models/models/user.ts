@@ -178,11 +178,29 @@ export const Status: QuarkConversion<RevoltUser["status"], internalStatus> = {
   async to_quark(status) {
     const activity = status.activities?.[0] as internalActivity;
     const text = (() => {
-      if (!activity?.type) return null;
-
-      if (activity.type as ActivityType !== ActivityType.Custom) return `${activity.name}`;
-
-      return `${activity.state}`;
+      switch (activity?.type as internalActivity) {
+        case ActivityType.Playing: {
+          return `Playing ${activity.name}`;
+        }
+        case ActivityType.Listening: {
+          return `Listening to ${activity.name}`;
+        }
+        case ActivityType.Streaming: {
+          return `Streaming ${activity.name}`;
+        }
+        case ActivityType.Watching: {
+          return `Watching ${activity.name}`;
+        }
+        case ActivityType.Competing: {
+          return `Competing in ${activity.name}`;
+        }
+        case ActivityType.Custom: {
+          return `${activity.state}`;
+        }
+        default: {
+          return null;
+        }
+      }
     })();
 
     return {
