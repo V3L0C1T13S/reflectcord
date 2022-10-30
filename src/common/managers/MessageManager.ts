@@ -76,4 +76,10 @@ export class MessageManager extends BaseManager {
 
     return res;
   }
+
+  async bulkDelete(channel: string, ids: string[]) {
+    await this.rvAPI.delete(`/channels/${channel}/messages/bulk`, {
+      ids,
+    });
+  }
 }
