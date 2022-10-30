@@ -29,6 +29,7 @@
     "helmet": "^6.0.0",
     "long": "^5.2.0",
     "missing-native-js-functions": "^1.2.18",
+    "mobx": "^6.6.2",
     "mongodb": "^4.10.0",
     "morgan": "^1.10.0",
     "node-fetch": "^2.6.7",

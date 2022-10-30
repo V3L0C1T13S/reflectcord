@@ -1,8 +1,10 @@
+import { APIMessage } from "discord.js";
 import { API } from "revolt.js";
 import { Message, User } from "../models";
 import { BaseManager } from "./BaseManager";
+import { QuarkContainer } from "./types";
 
-export class MessageManager extends BaseManager {
+export class MessageManager extends BaseManager<string, QuarkContainer<API.Message, APIMessage>> {
   async convertMessageObj(rvMessage: API.Message) {
     const authorInfo = await (async () => {
       if (rvMessage.author === "00000000000000000000000000") {

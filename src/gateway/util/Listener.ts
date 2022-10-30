@@ -1,7 +1,9 @@
 /* eslint-disable camelcase */
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-plusplus */
-import { GatewayCloseCodes, GatewayDispatchEvents, GatewayOpcodes } from "discord.js";
+import {
+  ChannelType, GatewayCloseCodes, GatewayDispatchEvents, GatewayOpcodes,
+} from "discord.js";
 import { API } from "revolt.js";
 import { APIWrapper, createAPI } from "../../common/rvapi";
 import {
@@ -12,6 +14,7 @@ import { Send } from "./send";
 import experiments from "./experiments.json";
 import { toSnowflake } from "../../common/models/util";
 import { Logger } from "../../common/utils";
+import { ChannelContainer } from "../../common/managers";
 
 export async function startListener(this: WebSocket, token: string) {
   this.rvClient.on("packet", async (data) => {
@@ -33,43 +36,29 @@ export async function startListener(this: WebSocket, token: string) {
           this.rvAPIWrapper = new APIWrapper(this.rvAPI);
 
           const users = await Promise.all(data.users
-            .map((user) => User.from_quark(user)));
+            .map(async (user) => this.rvAPIWrapper.users.createObj({
+              revolt: user,
+              discord: await User.from_quark(user),
+            }).discord));
 
-          const channels = await Promise.all(data.channels
-            .filter((channel) => (
-              channel.channel_type === "DirectMessage"
-              || channel.channel_type === "Group"
-            ))
-            .map((channel) => Channel.from_quark(channel, currentUser._id)));
+          const channels = (await Promise.all(data.channels
+            .map(async (channel) => this.rvAPIWrapper.channels.createObj({
+              revolt: channel,
+              discord: await Channel.from_quark(channel),
+            })))).filter((channel) => (
+            channel.revolt.channel_type === "DirectMessage"
+              || channel.revolt.channel_type === "Group"
+          )).map((x) => x.discord);
 
           const guilds = await Promise.all(data.servers
             .map(async (server) => {
-              const rvChannels: API.Channel[] = server.channels
-                .map((x) => {
-                  const ch = this.rvClient.channels.get(x);
-
-                  const channel: API.Channel = {
-                    _id: x,
-                    name: ch?.name ?? "fixme",
-                    description: ch?.description ?? "fixme",
-                    channel_type: ch?.channel_type as any ?? "TextChannel",
-                    default_permissions: ch?.default_permissions ?? null,
-                    server: "",
-                    nsfw: !!ch?.nsfw,
-                    icon: ch?.icon ?? null,
-                    last_message_id: ch?.last_message_id ?? null,
-                  };
-
-                  if (ch?.role_permissions) channel.role_permissions = ch.role_permissions;
-                  if (ch?.server_id) channel.server = ch.server_id; // @ts-ignore
-                  else delete channel.server;
-
-                  return channel;
-                });
+              const rvChannels: ChannelContainer[] = server.channels
+                .map((x) => this.rvAPIWrapper.channels.get(x)!)
+                .filter((x) => x);
 
               const guild = {
                 ...await Guild.from_quark(server),
-                channels: await Promise.all(rvChannels.map((ch) => Channel.from_quark(ch))),
+                channels: rvChannels.map((x) => x.discord),
               };
 
               // Bots don't get sent full guilds in actual discord.
@@ -173,14 +162,15 @@ export async function startListener(this: WebSocket, token: string) {
         }
         case "Message": {
           const msgObj = await this.rvAPIWrapper.messages.convertMessageObj(data);
-          const channel = await this.rvClient.channels.get(data.channel);
+          const channel = this.rvAPIWrapper.channels.get(data.channel);
+
           await Send(this, {
             op: GatewayOpcodes.Dispatch,
             t: GatewayDispatchEvents.MessageCreate,
             s: this.sequence++,
             d: {
               ...msgObj.discord,
-              guild_id: channel?.server_id ? await toSnowflake(channel.server_id) : null,
+              guild_id: channel?.discord && ("guild_id" in channel.discord) ? channel?.discord.guild_id : null,
             },
           });
 
@@ -298,11 +288,16 @@ export async function startListener(this: WebSocket, token: string) {
           break;
         }
         case "ChannelCreate": {
+          const channel = this.rvAPIWrapper.channels.createObj({
+            revolt: data,
+            discord: await Channel.from_quark(data),
+          });
+
           await Send(this, {
             op: GatewayOpcodes.Dispatch,
             t: GatewayDispatchEvents.ChannelCreate,
             s: this.sequence++,
-            d: await Channel.from_quark(data),
+            d: channel.discord,
           });
           break;
         }

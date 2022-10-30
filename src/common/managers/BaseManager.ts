@@ -1,13 +1,3 @@
-import { API } from "revolt.js";
-import { APIWrapper } from "../rvapi";
+import Collection from "./Collection";
 
-export class BaseManager {
-  rvAPI: API.API;
-
-  apiWrapper: APIWrapper;
-
-  constructor(apiWrapper: APIWrapper) {
-    this.rvAPI = apiWrapper.rvAPI;
-    this.apiWrapper = apiWrapper;
-  }
-}
+export class BaseManager<K, V> extends Collection<K, V> {}
