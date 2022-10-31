@@ -1,6 +1,7 @@
 {
     "editor.tabSize": 2,
     "conventionalCommits.scopes": [
-        "api"
+        "api",
+        "gateway"
     ]
 }
