@@ -71,13 +71,33 @@ export async function startListener(this: WebSocket, token: string) {
 
           const guilds = await Promise.all(data.servers
             .map(async (server) => {
-              const rvChannels: ChannelContainer[] = server.channels
-                .map((x) => this.rvAPIWrapper.channels.get(x)!)
-                .filter((x) => x);
+              const rvChannels: API.Channel[] = server.channels
+                .map((x) => {
+                  const ch = this.rvClient.channels.get(x);
+
+                  const channel: API.Channel = {
+                    _id: x,
+                    name: ch?.name ?? "fixme",
+                    description: ch?.description ?? "fixme",
+                    channel_type: ch?.channel_type as any ?? "TextChannel",
+                    default_permissions: ch?.default_permissions ?? null,
+                    server: "",
+                    nsfw: !!ch?.nsfw,
+                    icon: ch?.icon ?? null,
+                    last_message_id: ch?.last_message_id ?? null,
+                  };
+
+                  if (ch?.role_permissions) channel.role_permissions = ch.role_permissions;
+                  else delete channel.role_permissions;
+                  if (ch?.server_id) channel.server = ch.server_id; // @ts-ignore
+                  else delete channel.server;
+
+                  return channel;
+                });
 
               const guild = {
                 ...await Guild.from_quark(server),
-                channels: rvChannels.map((x) => x.discord),
+                channels: await Promise.all(rvChannels.map((x) => Channel.from_quark(x))),
               };
 
               // Bots don't get sent full guilds in actual discord.
@@ -324,19 +344,6 @@ export async function startListener(this: WebSocket, token: string) {
           const channel = this.rvAPIWrapper.channels.$get(data.id, {
             revolt: data.data,
             discord: {},
-          });
-
-          const channelDiscord = await Channel.from_quark(channel.revolt);
-          const updatedChannel = this.rvAPIWrapper.channels.$get(data.id, {
-            revolt: {},
-            discord: channelDiscord,
-          });
-
-          await Send(this, {
-            op: GatewayOpcodes.Dispatch,
-            t: GatewayDispatchEvents.ChannelUpdate,
-            s: this.sequence++,
-            d: updatedChannel.discord,
           });
 
           break;
