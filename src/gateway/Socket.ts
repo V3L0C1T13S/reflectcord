@@ -3,8 +3,6 @@ import { API } from "revolt-api";
 import { Client } from "revolt.js";
 import WS from "ws";
 import { Deflate } from "zlib";
-import { TypedEmitter } from "tiny-typed-emitter";
-import { dbEvents } from "../common/events";
 import { APIWrapper } from "../common/rvapi";
 
 export interface WebSocket extends WS {
@@ -34,5 +32,5 @@ export interface WebSocket extends WS {
     channel_id?: string,
     guild_id?: string,
   }
-  typingListener: any;
+  typingListener?: any;
 }

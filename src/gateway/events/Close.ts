@@ -9,7 +9,7 @@ export async function Close(this: WebSocket, code: number, reason: string) {
   this.deflate?.close();
   this.removeAllListeners();
 
-  dbEventBus.removeListener("CHANNEL_START_TYPING", this.typingListener);
+  if (this.typingListener) dbEventBus.removeListener("CHANNEL_START_TYPING", this.typingListener);
 
   // Getting out of revolt
   this.rvClient.removeAllListeners();
