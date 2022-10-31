@@ -7,3 +7,4 @@ export * from "./Server";
 export * from "./color";
 export * from "./Logger";
 export * from "./discord";
+export * from "./removeNull";
