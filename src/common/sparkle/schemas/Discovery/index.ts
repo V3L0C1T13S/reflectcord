@@ -1,4 +1,4 @@
-import { APIGuild, APIPartialGuild, GuildFeature } from "discord.js";
+import { GuildFeature } from "discord.js";
 
 export type DiscoveryCategory = {
   id: number,
