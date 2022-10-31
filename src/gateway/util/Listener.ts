@@ -15,8 +15,20 @@ import experiments from "./experiments.json";
 import { toSnowflake } from "../../common/models/util";
 import { Logger } from "../../common/utils";
 import { ChannelContainer } from "../../common/managers";
+import { dbEventBus } from "../../common/events";
 
 export async function startListener(this: WebSocket, token: string) {
+  const onTypingStart = (channel: string, userToken: string) => {
+    if (userToken === token) {
+      this.rvClient.websocket.send({
+        type: "BeginTyping",
+        channel,
+      });
+
+      Logger.log(`started typing in ${channel}`);
+    }
+  };
+
   this.rvClient.on("packet", async (data) => {
     try {
       switch (data.type) {
@@ -34,6 +46,13 @@ export async function startListener(this: WebSocket, token: string) {
           // HACK! Fixes #10
           this.rvClient.api = this.rvAPI;
           this.rvAPIWrapper = new APIWrapper(this.rvAPI);
+
+          this.typingListener = (
+            channel: string,
+            userToken: string,
+          ) => onTypingStart(channel, userToken);
+
+          dbEventBus.on("CHANNEL_START_TYPING", this.typingListener);
 
           const users = await Promise.all(data.users
             .map(async (user) => this.rvAPIWrapper.users.createObj({

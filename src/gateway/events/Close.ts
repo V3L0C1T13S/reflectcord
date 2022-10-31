@@ -1,5 +1,6 @@
 import { Logger } from "../../common/utils";
 import { WebSocket } from "../Socket";
+import { dbEventBus } from "../../common/events";
 
 export async function Close(this: WebSocket, code: number, reason: string) {
   Logger.log(`WS Closed ${code} ${reason}`);
@@ -7,6 +8,8 @@ export async function Close(this: WebSocket, code: number, reason: string) {
   if (this.readyTimeout) clearTimeout(this.readyTimeout);
   this.deflate?.close();
   this.removeAllListeners();
+
+  dbEventBus.removeListener("CHANNEL_START_TYPING", this.typingListener);
 
   // Getting out of revolt
   this.rvClient.removeAllListeners();
