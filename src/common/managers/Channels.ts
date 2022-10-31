@@ -70,6 +70,12 @@ export class ChannelsManager extends BaseManager<string, ChannelContainer> {
     apply("revolt", "nsfw");
 
     apply("discord", "name");
-    apply("discord", "description");
+    apply("discord", "topic");
+    apply("discord", "last_message_id");
+    apply("discord", "recipients");
+    apply("discord", "permission_overwrites");
+    apply("discord", "owner_id");
+    apply("discord", "icon");
+    apply("discord", "nsfw");
   }
 }

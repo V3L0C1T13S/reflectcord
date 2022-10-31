@@ -25,10 +25,14 @@ export default (express: Application) => <Resource> {
   },
   patch: async (req, res) => {
     const { channel_id } = req.params;
+    const { name, topic } = req.body;
     if (!channel_id) throw new HTTPError("Maformed request", 244);
 
     const rvId = await fromSnowflake(channel_id);
-    const rvChannel = await getChannel(res.rvAPI, rvId);
+    const rvChannel = await res.rvAPI.patch(`/channels/${rvId as ""}`, {
+      name,
+      description: topic ?? null,
+    });
 
     res.json(await Channel.from_quark(rvChannel));
   },

@@ -250,6 +250,7 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
 
         return discordOverrides;
       })(),
+      topic: ("description" in channel) ? channel.description : null,
     };
   },
 };

@@ -339,8 +339,6 @@ export async function startListener(this: WebSocket, token: string) {
             d: updatedChannel.discord,
           });
 
-          Logger.log(`updated channel ${updatedChannel.revolt._id}`);
-
           break;
         }
         case "ChannelDelete": {
