@@ -42,6 +42,14 @@ export class ChannelsManager extends BaseManager<string, ChannelContainer> {
     return channel;
   }
 
+  async addToGroup(id: string, user: string) {
+    await this.rvAPI.put(`/channels/${id}/recipients/${user}`);
+  }
+
+  async removeFromGroup(id: string, user: string) {
+    await this.rvAPI.delete(`/channels/${id}/recipients/${user}`);
+  }
+
   update(id: string, data: channelI) {
     const channel = this.get(id)!;
 

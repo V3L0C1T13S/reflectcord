@@ -342,7 +342,7 @@ export async function startListener(this: WebSocket, token: string) {
         }
         case "ChannelUpdate": {
           const channel = this.rvAPIWrapper.channels.$get(data.id, {
-            revolt: data.data,
+            revolt: data.data ?? {},
             discord: {},
           });
 
