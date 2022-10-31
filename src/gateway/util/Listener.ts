@@ -2,7 +2,7 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-plusplus */
 import {
-  ChannelType, GatewayCloseCodes, GatewayDispatchEvents, GatewayOpcodes,
+  ChannelType, GatewayCloseCodes, GatewayDispatchEvents, GatewayOpcodes, APIChannel,
 } from "discord.js";
 import { API } from "revolt.js";
 import { APIWrapper, createAPI } from "../../common/rvapi";
@@ -318,6 +318,29 @@ export async function startListener(this: WebSocket, token: string) {
             s: this.sequence++,
             d: channel.discord,
           });
+          break;
+        }
+        case "ChannelUpdate": {
+          const channel = this.rvAPIWrapper.channels.$get(data.id, {
+            revolt: data.data,
+            discord: {},
+          });
+
+          const channelDiscord = await Channel.from_quark(channel.revolt);
+          const updatedChannel = this.rvAPIWrapper.channels.$get(data.id, {
+            revolt: {},
+            discord: channelDiscord,
+          });
+
+          await Send(this, {
+            op: GatewayOpcodes.Dispatch,
+            t: GatewayDispatchEvents.ChannelUpdate,
+            s: this.sequence++,
+            d: updatedChannel.discord,
+          });
+
+          Logger.log(`updated channel ${updatedChannel.revolt._id}`);
+
           break;
         }
         case "ChannelDelete": {

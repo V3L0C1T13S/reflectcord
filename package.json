@@ -27,6 +27,7 @@
     "file-type": "^16.5.4",
     "form-data": "^4.0.0",
     "helmet": "^6.0.0",
+    "lodash": "^4.17.21",
     "long": "^5.2.0",
     "missing-native-js-functions": "^1.2.18",
     "mobx": "^6.6.2",
@@ -46,6 +47,7 @@
   },
   "devDependencies": {
     "@types/express": "^4.17.14",
+    "@types/lodash": "^4.14.186",
     "@types/morgan": "^1.9.3",
     "@types/node": "^18.11.8",
     "@types/node-fetch": "^2.6.2",
