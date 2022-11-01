@@ -109,7 +109,7 @@ async function getMembers(
     groups.push(group);
 
     role_members.forEach((member) => {
-      const userRoles = member.roles.filter((x) => x !== discordGuildId).map((x) => x);
+      const userRoles = member.roles.filter((x) => x !== discordGuildId);
 
       const statusPriority = {
         online: 0,

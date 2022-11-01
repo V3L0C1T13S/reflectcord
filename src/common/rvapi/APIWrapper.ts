@@ -1,5 +1,7 @@
 import { API } from "revolt.js";
-import { ChannelsManager, MessageManager, UserManager } from "../managers";
+import {
+  ChannelsManager, MessageManager, ServerManager, UserManager,
+} from "../managers";
 
 export class APIWrapper {
   rvAPI: API.API;
@@ -10,11 +12,14 @@ export class APIWrapper {
 
   users: UserManager;
 
+  servers: ServerManager;
+
   constructor(api: API.API) {
     this.rvAPI = api;
 
     this.channels = new ChannelsManager(this);
     this.messages = new MessageManager(this);
     this.users = new UserManager(this);
+    this.servers = new ServerManager(this);
   }
 }
