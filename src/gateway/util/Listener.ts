@@ -250,7 +250,7 @@ export async function startListener(this: WebSocket, token: string) {
           break;
         }
         case "MessageReact": {
-          const emoji = await this.rvAPI.get(`/custom/emoji/${data.emoji_id}`) as API.Emoji;
+          const emoji = await this.rvAPI.get(`/custom/emoji/${encodeURI(data.emoji_id)}`) as API.Emoji;
           if (!emoji) return;
 
           await Send(this, {
@@ -267,7 +267,7 @@ export async function startListener(this: WebSocket, token: string) {
           break;
         }
         case "MessageUnreact": {
-          const emoji = await this.rvAPI.get(`/custom/emoji/${data.emoji_id}`) as API.Emoji;
+          const emoji = await this.rvAPI.get(`/custom/emoji/${encodeURI(data.emoji_id)}`) as API.Emoji;
           if (!emoji) return;
 
           await Send(this, {
@@ -284,7 +284,7 @@ export async function startListener(this: WebSocket, token: string) {
           break;
         }
         case "MessageRemoveReaction": {
-          const emoji = await this.rvAPI.get(`/custom/emoji/${data.emoji_id}`) as API.Emoji;
+          const emoji = await this.rvAPI.get(`/custom/emoji/${encodeURI(data.emoji_id)}`) as API.Emoji;
           if (!emoji) return;
 
           await Send(this, {
