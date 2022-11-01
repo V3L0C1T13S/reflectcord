@@ -213,9 +213,7 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
         return !!channel.nsfw;
       })(),
       permission_overwrites: await (async () => {
-        if (!("role_permissions" in channel)) return [];
-
-        const overrides = Object.entries(channel.role_permissions);
+        if (channel.channel_type !== "TextChannel" && channel.channel_type !== "VoiceChannel") return [];
 
         const discordOverrides: APIOverwrite[] = [];
 
@@ -226,12 +224,16 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
           deny: "0",
         };
 
-        if (channel.default_permissions) {
+        if (("default_permissions" in channel) && channel.default_permissions) {
           everyoneStub.allow = convertPermNumber(channel.default_permissions.a).toString();
           everyoneStub.deny = convertPermNumber(channel.default_permissions.d).toString();
         }
 
         discordOverrides.push(everyoneStub);
+
+        if (!("role_permissions" in channel) && !channel.role_permissions) return discordOverrides;
+
+        const overrides = Object.entries(channel.role_permissions);
 
         await Promise.all(overrides.map(async ([key, x]) => {
           const roleId = await toSnowflake(key);

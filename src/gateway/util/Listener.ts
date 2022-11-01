@@ -60,6 +60,12 @@ export async function startListener(this: WebSocket, token: string) {
               discord: await User.from_quark(user),
             }).discord));
 
+          await Promise.all(data.channels
+            .map(async (channel) => this.rvAPIWrapper.channels.createObj({
+              revolt: channel,
+              discord: await Channel.from_quark(channel, currentUser._id),
+            })));
+
           const channels = (await Promise.all(data.channels
             .map(async (channel) => this.rvAPIWrapper.channels.createObj({
               revolt: channel,
@@ -72,28 +78,7 @@ export async function startListener(this: WebSocket, token: string) {
           const guilds = await Promise.all(data.servers
             .map(async (server) => {
               const rvChannels: API.Channel[] = server.channels
-                .map((x) => {
-                  const ch = this.rvClient.channels.get(x);
-
-                  const channel: API.Channel = {
-                    _id: x,
-                    name: ch?.name ?? "fixme",
-                    description: ch?.description ?? "fixme",
-                    channel_type: ch?.channel_type as any ?? "TextChannel",
-                    default_permissions: ch?.default_permissions ?? null,
-                    server: "",
-                    nsfw: !!ch?.nsfw,
-                    icon: ch?.icon ?? null,
-                    last_message_id: ch?.last_message_id ?? null,
-                  };
-
-                  if (ch?.role_permissions) channel.role_permissions = ch.role_permissions;
-                  else delete channel.role_permissions;
-                  if (ch?.server_id) channel.server = ch.server_id; // @ts-ignore
-                  else delete channel.server;
-
-                  return channel;
-                });
+                .map((x) => this.rvAPIWrapper.channels.$get(x)?.revolt).filter((x) => x);
 
               const guild = {
                 ...await Guild.from_quark(server),
