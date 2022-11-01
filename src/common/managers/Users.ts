@@ -10,6 +10,8 @@ import { APIWrapper } from "../rvapi";
 export type UserContainer = QuarkContainer<API.User, APIUser>
 
 export class UserManager extends BaseManager<string, UserContainer> {
+  selfId?: string;
+
   constructor(api: APIWrapper) {
     super(api);
 
@@ -58,8 +60,21 @@ export class UserManager extends BaseManager<string, UserContainer> {
     return user;
   }
 
-  getSelf() {
+  /**
+   * @param foreign Get extra info about yourself
+   * @returns
+   */
+  async getSelf(foreign?: boolean) {
+    if (foreign) return this.rvAPI.get(`/users/${await this.getSelfId() as ""}`);
     return this.rvAPI.get("/users/@me");
+  }
+
+  async getSelfId() {
+    if (this.selfId) return this.selfId;
+    const info = await this.rvAPI.get("/auth/account/");
+    this.selfId = info._id;
+
+    return info._id;
   }
 
   getUser(id: string) {

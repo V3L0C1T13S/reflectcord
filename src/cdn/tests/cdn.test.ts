@@ -1,7 +1,7 @@
 import { describe, expect, test } from "@jest/globals";
-import { baseURL } from "../../common/constants";
+import { baseURL, reflectcordCDNURL } from "../../common/constants";
 
-const cdnURL = `${baseURL}/cdn`;
+const cdnURL = `http://${reflectcordCDNURL}`;
 
 describe("cdn get requests", () => {
   test("get image", async () => {

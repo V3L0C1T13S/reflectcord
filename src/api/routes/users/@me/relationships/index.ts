@@ -10,8 +10,7 @@ import { HTTPError } from "../../../../../common/utils";
 
 export default (express: Application) => <Resource> {
   get: async (req, res) => {
-    const selfId = await res.rvAPI.get("/auth/account/");
-    const selfInfo = await res.rvAPI.get(`/users/${selfId._id}`) as API.User;
+    const selfInfo = await res.rvAPIWrapper.users.getSelf(true);
 
     const friends = selfInfo.relations
       ?.filter((x) => x.status !== "None" && x.status !== "User") ?? [];
@@ -19,7 +18,7 @@ export default (express: Application) => <Resource> {
     const friendProfiles: API.User[] = [];
 
     for (const x of friends) {
-      friendProfiles.push(await res.rvAPI.get(`/users/${x._id}`) as API.User);
+      friendProfiles.push(await res.rvAPI.get(`/users/${x._id as ""}`));
     }
 
     const convertedProfiles = await Promise.all(friendProfiles
