@@ -26,6 +26,10 @@ export const revoltDiscoveryURL = process.env["REVOLT_DISCOVERY_URL"] ?? "https:
 
 export const rabbitMqURL = process.env["RABBITMQ_URL"] ?? "amqp://localhost:5672";
 
+export const reflectcordCDNURL = process.env["REFLECTCORD_CDN_URL"] ?? "localhost:3001";
+
+export const reflectcordWsURL = process.env["REFLECTCORD_WS_URL"] ?? "ws://localhost:3002";
+
 export async function getRevoltDiscoveryDataURL() {
   const discoveryBuildId = await getNextData();
 

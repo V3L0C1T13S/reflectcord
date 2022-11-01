@@ -7,6 +7,7 @@ import fetch, { Headers, Response as FetchResponse } from "node-fetch";
 import axios from "axios";
 import favicon from "serve-favicon";
 import { Logger } from "../../common/utils";
+import { reflectcordWsURL, reflectcordCDNURL } from "../../common/constants/index";
 
 const AssetsPath = path.join(__dirname, "..", "..", "..", "assets");
 
@@ -23,8 +24,8 @@ type CachedFile = {
 }
 
 function applyEnv(html: string): string {
-  const CDN_ENDPOINT = "localhost:3001";
-  const GATEWAY_ENDPOINT = "ws://localhost:3002";
+  const CDN_ENDPOINT = reflectcordCDNURL;
+  const GATEWAY_ENDPOINT = reflectcordWsURL;
 
   if (CDN_ENDPOINT) {
     html = html.replace(/CDN_HOST: .+/, `CDN_HOST: \`${CDN_ENDPOINT}\`,`);
