@@ -68,15 +68,18 @@ async function getMembers(
   const items: SyncItem[] = [];
   const discordGuildId = await toSnowflake(guild_id);
 
-  const members = await this.rvAPI.get(`/servers/${guild_id}/members`, {
+  const members = await this.rvAPI.get(`/servers/${guild_id as ""}/members`, {
     exclude_offline: true,
-    include_users: true,
-  }) as API.AllMemberResponse;
+  });
 
   let discordMembers = await Promise.all(members.members.map(async (member) => {
     const user = members.users.find((x) => x._id === member._id.user);
 
-    return Member.from_quark(member, user);
+    const discordMember = await Member.from_quark(member, user);
+
+    if (discordMember.roles.length < 1 && user?.online) discordMember.roles.push(discordGuildId);
+
+    return discordMember;
   }));
 
   const memberRoles = discordMembers
@@ -91,7 +94,7 @@ async function getMembers(
   const offlineItems: SyncItem[] = [];
 
   memberRoles.forEach((role) => {
-    // @ts-ignore
+    // @ts-expect-error
     const [role_members, other_members]: [APIGuildMember[], APIGuildMember[]] = partition(
       discordMembers,
       (m: APIGuildMember) => m.roles

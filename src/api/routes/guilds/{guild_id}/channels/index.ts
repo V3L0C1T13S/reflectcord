@@ -11,6 +11,7 @@ const validTypes = [discordChannelType.GuildText, discordChannelType.GuildVoice]
 
 export default (express: Application) => <Resource> {
   post: async (req: Request<any, any, RESTPostAPIGuildChannelJSONBody>, res) => {
+    // FIXME: missing category support
     const {
       name, type, nsfw, parent_id,
     } = req.body;
@@ -20,6 +21,7 @@ export default (express: Application) => <Resource> {
     if (!guild_id || !name) throw new HTTPError("Invalid params");
 
     const rvId = await fromSnowflake(guild_id);
+    // const rvCategory = parent_id ? fromSnowflake(parent_id.toString()) : null;
 
     const rvChannel = await res.rvAPI.post(`/servers/${rvId}/channels`, {
       name,
