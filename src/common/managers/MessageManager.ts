@@ -42,13 +42,13 @@ export class MessageManager extends BaseManager<string, QuarkContainer<API.Messa
       },
       discord: {
         ...discordMessage,
-        author: authorInfo ? authorInfo.discord : discordMessage.author,
+        author: authorInfo?.discord ?? discordMessage.author,
       },
     };
   }
 
   async getMessage(channel: string, id: string) {
-    const rvMessage = await this.rvAPI.get(`/channels/${channel}/messages/${id}`) as API.Message;
+    const rvMessage = await this.rvAPI.get(`/channels/${channel as ""}/messages/${id as ""}`);
 
     return this.convertMessageObj(rvMessage);
   }

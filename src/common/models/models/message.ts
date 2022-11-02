@@ -36,7 +36,7 @@ type messageReferenceRevolt = {
 export type MessageATQ = {};
 
 export type MessageAFQ = Partial<{
-  user: API.User | null,
+  user: API.User | null | undefined,
 }>
 
 export const MessageReference: QuarkConversion<
