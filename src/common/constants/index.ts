@@ -30,6 +30,10 @@ export const reflectcordCDNURL = process.env["REFLECTCORD_CDN_URL"] ?? "localhos
 
 export const reflectcordWsURL = process.env["REFLECTCORD_WS_URL"] ?? "ws://localhost:3002";
 
+export const gifBoxURL = process.env["GIFBOX_URL"] ?? "https://gifbox.me";
+
+export const gifBoxAPIUrl = process.env["GIFBOX_API_URL"] ?? "https://api.gifbox.me";
+
 export async function getRevoltDiscoveryDataURL() {
   const discoveryBuildId = await getNextData();
 

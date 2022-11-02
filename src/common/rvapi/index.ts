@@ -19,3 +19,4 @@ export * from "./images";
 export * from "./APIWrapper";
 export * from "./users";
 export * from "./discovery";
+export * from "./gifbox";
