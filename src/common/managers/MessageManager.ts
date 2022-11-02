@@ -53,16 +53,17 @@ export class MessageManager extends BaseManager<string, QuarkContainer<API.Messa
     return this.convertMessageObj(rvMessage);
   }
 
-  async sendMessage(channel: string, data: API.DataMessageSend, payloadJson?: any) {
+  async sendMessage(
+    channel: string,
+    data: API.DataMessageSend,
+  ) {
     const revoltResponse = await this.rvAPI.post(
-      `/channels/${channel}/messages`,
+      `/channels/${channel as ""}/messages`,
       data,
-    ) as API.Message;
+    );
 
     const discordMessage = await Message.from_quark(revoltResponse);
     const selfUser = await this.apiWrapper.users.getSelf();
-
-    const attachments = [];
 
     return {
       revolt: {

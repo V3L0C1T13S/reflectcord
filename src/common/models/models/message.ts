@@ -7,6 +7,7 @@ import {
   MessageType,
   RESTPostAPIChannelMessageJSONBody,
 } from "discord.js";
+import fileUpload from "express-fileupload";
 import { Message as RevoltMessage } from "revolt-api";
 import { API } from "revolt.js";
 import { decodeTime } from "ulid";
@@ -16,6 +17,7 @@ import { Attachment } from "./attachment";
 import { Embed, SendableEmbed } from "./embed";
 import { Reactions } from "./emoji";
 import { User } from "./user";
+import { uploadFile } from "../../../cdn/util";
 
 export type APIMention = {
   id: string,
@@ -206,11 +208,16 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
   },
 };
 
+export type MessageSendDataATQ = {
+  files?: fileUpload.FileArray | null | undefined,
+}
+
 export const MessageSendData: QuarkConversion<
   API.DataMessageSend,
-  RESTPostAPIChannelMessageJSONBody
+  RESTPostAPIChannelMessageJSONBody,
+  MessageSendDataATQ
 > = {
-  async to_quark(data) {
+  async to_quark(data, extra) {
     const { content, embeds, message_reference } = data;
 
     return {
@@ -221,6 +228,18 @@ export const MessageSendData: QuarkConversion<
         mention: data.allowed_mentions?.replied_user ?? false,
       }] : null,
       nonce: data.nonce?.toString() ?? null,
+      attachments: extra?.files ? (await Promise.all(Object.values(extra.files)
+        .map(async (x) => {
+          const file = Array.isArray(x) ? x?.[0] : x;
+          if (!file) return;
+
+          const id = await uploadFile("attachments", {
+            name: file.name,
+            file: file.data,
+          }, file.mimetype);
+
+          return id;
+        }))).filter((x) => x) as string[] : null,
     };
   },
 

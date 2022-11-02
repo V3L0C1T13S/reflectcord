@@ -61,8 +61,9 @@ export default (express: Application) => <Resource> {
 
     const msg = await res.rvAPIWrapper.messages.sendMessage(
       rvId,
-      await MessageSendData.to_quark(req.body),
-      req.body.payload_json,
+      await MessageSendData.to_quark(req.body, {
+        files: req.files,
+      }),
     );
 
     return res.json(msg.discord);
