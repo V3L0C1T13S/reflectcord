@@ -3,13 +3,14 @@
 /* eslint-disable camelcase */
 import { APIGuildMember, GatewayOpcodes } from "discord.js";
 import { API } from "revolt.js";
-import { Member } from "../../common/models";
+import { internalStatus, Member, Status } from "../../common/models";
 import { Send, Payload } from "../util";
 import { WebSocket } from "../Socket";
 import { fromSnowflake, toSnowflake } from "../../common/models/util";
 import { check } from "./instanceOf";
 import { LazyRequest } from "../../common/sparkle/schemas";
 import "missing-native-js-functions";
+import { MemberContainer } from "../../common/managers";
 
 type LazyGroup = {
   /** Group ID */
@@ -67,23 +68,35 @@ async function getMembers(
   const groups: LazyGroup[] = [];
   const items: SyncItem[] = [];
   const discordGuildId = await toSnowflake(guild_id);
+  const offlineItems: SyncItem[] = [];
 
   const members = await this.rvAPI.get(`/servers/${guild_id as ""}/members`, {
     exclude_offline: true,
   });
 
-  let discordMembers = await Promise.all(members.members.map(async (member) => {
-    const user = members.users.find((x) => x._id === member._id.user);
+  type extendMemberContainer = MemberContainer & {
+    user?: API.User | undefined | null,
+    status?: internalStatus | null,
+  }
 
-    const discordMember = await Member.from_quark(member, user);
+  let discordMembers: extendMemberContainer[] = await Promise.all(members.members
+    .map(async (member) => {
+      const user = members.users.find((x) => x._id === member._id.user);
 
-    if (discordMember.roles.length < 1 && user?.online) discordMember.roles.push(discordGuildId);
+      const discordMember = await Member.from_quark(member, user);
 
-    return discordMember;
-  }));
+      if (discordMember.roles.length < 1 && user?.online) discordMember.roles.push(discordGuildId);
+
+      return {
+        revolt: member,
+        discord: discordMember,
+        user,
+        status: user?.status && user?.online ? await Status.from_quark(user.status) : null,
+      };
+    }));
 
   const memberRoles = discordMembers
-    .map((x) => x.roles)
+    .map((x) => x.discord.roles)
     .flat()
     .unique((r) => r);
 
@@ -91,13 +104,12 @@ async function getMembers(
     discordGuildId,
   );
 
-  const offlineItems: SyncItem[] = [];
-
   memberRoles.forEach((role) => {
     // @ts-expect-error
-    const [role_members, other_members]: [APIGuildMember[], APIGuildMember[]] = partition(
+    // eslint-disable-next-line max-len
+    const [role_members, other_members]: [extendMemberContainer[], extendMemberContainer[]] = partition(
       discordMembers,
-      (m: APIGuildMember) => m.roles
+      (m: extendMemberContainer) => m.discord.roles
         .find((r) => r === role),
     );
     const group = {
@@ -109,7 +121,7 @@ async function getMembers(
     groups.push(group);
 
     role_members.forEach((member) => {
-      const userRoles = member.roles.filter((x) => x !== discordGuildId);
+      const userRoles = member.discord.roles.filter((x) => x !== discordGuildId);
 
       const statusPriority = {
         online: 0,
@@ -120,23 +132,25 @@ async function getMembers(
       };
 
       const session = {
-        status: "online",
+        status: member.status?.status ?? "invisible",
       };
 
       const item = {
         member: {
-          ...member,
+          ...member.discord,
           roles: userRoles,
-          user: member.user,
+          user: member.discord.user,
           presence: {
             ...session,
-            activities: [],
-            user: { id: member.user?.id },
+            activities: member.status?.activities ?? [],
+            user: { id: member.discord.user?.id },
           },
         },
       } as SyncItem;
 
-      items.push(item);
+      if (session.status === "invisible") {
+        offlineItems.push(item);
+      } else items.push(item);
     });
     discordMembers = other_members;
   });

@@ -96,7 +96,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
 
     const channel_id = await toSnowflake(channel);
 
-    const reply = replies ? replies[0] : null;
+    const reply = replies?.[0] ?? null;
 
     const discordMessage: APIMessage = {
       id: (await toSnowflake(_id)).toString(),
@@ -173,7 +173,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
     if (reply) {
       // FIXME: Missing guild id
       discordMessage.message_reference = {
-        message_id: reply,
+        message_id: await toSnowflake(reply),
         channel_id,
       };
     }
