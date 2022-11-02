@@ -148,7 +148,7 @@ async function getMembers(
         },
       } as SyncItem;
 
-      if (session.status === "invisible") {
+      if (!member.user?.online) {
         offlineItems.push(item);
       } else items.push(item);
     });
