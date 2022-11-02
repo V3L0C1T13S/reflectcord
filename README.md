@@ -28,4 +28,4 @@ Fosscord - 99% of the work reverse engineering the gateway, some more obscure pa
 
 Litecord - Documented a bunch of undocumented OPCodes
 
-ouwo - Documented features such as search and slash commands
+ouwou - Documented features such as search and slash commands
