@@ -331,6 +331,29 @@ export async function startListener(this: WebSocket, token: string) {
             discord: {},
           });
 
+          if (!channel.revolt) return;
+
+          const channelDiscord = await Channel.from_quark(channel.revolt);
+          const updatedChannel = this.rvAPIWrapper.channels.$get(data.id, {
+            revolt: {},
+            discord: channelDiscord,
+          });
+
+          /**
+           * FIXME: wrappers using buggy encodings (ERLPACK) don't like properties being null
+           * but having a key, so we just delete it. It ONLY affects this property for
+           * some reason even though we literally always give [] if you look in quarkconversion.
+          */
+          // @ts-expect-error
+          delete updatedChannel.discord.permission_overwrites;
+
+          await Send(this, {
+            op: GatewayOpcodes.Dispatch,
+            t: GatewayDispatchEvents.ChannelUpdate,
+            s: this.sequence++,
+            d: updatedChannel.discord,
+          });
+
           break;
         }
         case "ChannelDelete": {
