@@ -80,4 +80,8 @@ export class UserManager extends BaseManager<string, UserContainer> {
   getUser(id: string) {
     return this.fetch(id);
   }
+
+  getProfile(id: string) {
+    return this.rvAPI.get(`/users/${id as ""}/profile`);
+  }
 }

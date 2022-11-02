@@ -46,7 +46,7 @@ export interface Avatar {
 }
 
 export interface Profile {
-  content: string;
+  content?: string | null;
   background?: Avatar | null;
 }
 
@@ -54,7 +54,7 @@ export interface DiscoveryBot {
   _id: string;
   username: string;
   avatar: Avatar | null;
-  profile: Profile;
+  profile?: Profile | null;
   tags: string[];
   servers: number;
   usage: DiscoveryUsage;

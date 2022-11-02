@@ -15,7 +15,7 @@ export type Bot = {
   bot: boolean,
 }
 
-export type App = Omit<APIApplication, "rpc_origins"> & {
+export type App = Omit<APIApplication, "rpc_origins" | "team"> & {
   type: number,
   bot: Bot,
   hook: boolean,

@@ -6,6 +6,7 @@ import { DiscoveryServer, DiscoveryBot } from "../../../rvapi";
 import { App, GuildDiscoveryInfo } from "../../../sparkle";
 import { getServerFeatures } from "../guilds";
 import { UserProfile } from "../user";
+import { FullDiscoveryBot } from "../../../sparkle/schemas/AppDirectory/bots";
 
 export const DiscoverableGuild: QuarkConversion<DiscoveryServer, GuildDiscoveryInfo> = {
   async to_quark(data) {
@@ -95,7 +96,7 @@ export const DiscoverableBot: QuarkConversion<DiscoveryBot, App> = {
       id,
       hook: true,
       slug: username,
-      description: profile.content,
+      description: profile?.content ?? "fixme",
       name: username,
       icon: app.avatar?._id ?? null,
       bot_public: true,
@@ -114,5 +115,23 @@ export const DiscoverableBot: QuarkConversion<DiscoveryBot, App> = {
         bot: true,
       },
     };
+  },
+};
+
+export const FullDiscoverableBot: QuarkConversion<DiscoveryBot, FullDiscoveryBot> = {
+  async to_quark(data) {
+    return DiscoverableBot.to_quark(data as any);
+  },
+
+  async from_quark(data) {
+    return {
+      ...await DiscoverableBot.from_quark(data),
+      guild: null,
+      categories: ["fixme"],
+      directory_entry: {
+        guild_count: 0,
+        detailed_description: data.profile?.content ?? "fixme",
+      },
+    } as any;
   },
 };

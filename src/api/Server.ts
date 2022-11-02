@@ -3,6 +3,7 @@ import {
 } from "express";
 import { join } from "path";
 import morgan from "morgan";
+import fileUpload from "express-fileupload";
 import { Server } from "../common/utils/Server";
 import {
   Authentication, BodyParser, Client, CORS, ErrorHandler,
@@ -25,6 +26,7 @@ export class ReflectcordAPI extends Server {
     if (enableLogging) this.app.use(morgan("combined"));
 
     api.use(Authentication);
+    api.use(fileUpload());
 
     this.registerRoutesDirectory(join(__dirname, "routes"));
 

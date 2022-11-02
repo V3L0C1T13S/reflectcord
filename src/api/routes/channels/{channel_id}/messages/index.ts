@@ -9,7 +9,7 @@ import {
 } from "../../../../../common/models";
 import { HTTPError } from "../../../../../common/utils";
 
-export type sendReq = Request<any, any, RESTPostAPIChannelMessageJSONBody>;
+export type sendReq = Request<any, any, RESTPostAPIChannelMessageJSONBody & { payload_json: any }>;
 
 export type rvMsgWithUsers = {
   messages: API.Message[];
@@ -53,11 +53,16 @@ export default (express: Application) => <Resource> {
   post: async (req: sendReq, res: Response<APIMessage>) => {
     const { channel_id } = req.params;
 
+    if (req.body.payload_json) {
+      req.body = JSON.parse(req.body.payload_json);
+    }
+
     const rvId = await fromSnowflake(channel_id);
 
     const msg = await res.rvAPIWrapper.messages.sendMessage(
       rvId,
       await MessageSendData.to_quark(req.body),
+      req.body.payload_json,
     );
 
     return res.json(msg.discord);
