@@ -5,7 +5,7 @@ import { Posts } from "./maps/posts";
 /**
  * Very minimalistic Gifbox client for very minimalistic people.
  * ...And also those that use CommonJS, because I'm too lazy to rewrite
- * express-automatic-roots in ESM.
+ * express-automatic-routes in ESM.
  */
 export class GifboxClient {
   axios: Axios;

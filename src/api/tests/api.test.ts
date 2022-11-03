@@ -10,8 +10,12 @@ const apiURL = `${baseURL}/api`;
 
 const isBot = TestingToken?.startsWith("Bot ");
 
+const axiosClient = axios.create({
+  baseURL: apiURL,
+});
+
 async function getFromAPI(url: string) {
-  const res = await axios.get(`${apiURL}/${url}`, {
+  const res = await axiosClient.get(`/${url}`, {
     headers: {
       authorization: TestingToken,
     },
@@ -54,7 +58,7 @@ describe("api get requests", () => {
     test("private info", async () => {
       const channels = await getFromAPI("users/@me/channels");
       const guilds = await getFromAPI("users/@me/guilds");
-      expect(channels.data && guilds.data);
+      expect(Array.isArray(channels.data) && Array.isArray(guilds.data));
     });
     test("developer info", async () => {
       if (isBot) return;
