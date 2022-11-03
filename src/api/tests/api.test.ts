@@ -27,9 +27,9 @@ async function getFromAPI(url: string) {
 }
 
 async function postToAPI(url: string, data: any) {
-  const res = await axios({
+  const res = await axiosClient({
     method: "post",
-    url: `${apiURL}/${url}`,
+    url: `/${url}`,
     headers: {
       authorization: TestingToken,
     },
