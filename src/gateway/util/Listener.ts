@@ -186,7 +186,7 @@ export async function startListener(this: WebSocket, token: string) {
         }
         case "Message": {
           const msgObj = await this.rvAPIWrapper.messages.convertMessageObj(data);
-          const channel = this.rvAPIWrapper.channels.get(data.channel);
+          const channel = await this.rvAPIWrapper.channels.fetch(data.channel);
 
           await Send(this, {
             op: GatewayOpcodes.Dispatch,
@@ -201,23 +201,17 @@ export async function startListener(this: WebSocket, token: string) {
           break;
         }
         case "MessageUpdate": {
-          if (!data.data.author) return;
+          const msgObj = await this.rvAPIWrapper.messages.getMessage(data.channel, data.id);
+          const channel = await this.rvAPIWrapper.channels.fetch(data.channel);
 
           await Send(this, {
             op: GatewayOpcodes.Dispatch,
             t: GatewayDispatchEvents.MessageUpdate,
             s: this.sequence++,
-            d: await Message.from_quark({
-              _id: data.id,
-              channel: data.channel,
-              author: data.data.author,
-              content: data.data.content ?? null,
-              embeds: data.data.embeds ?? null,
-              attachments: data.data.attachments ?? null,
-              system: data.data.system ?? null,
-              masquerade: data.data.masquerade ?? null,
-              edited: data.data.edited ?? null,
-            }),
+            d: {
+              ...msgObj.discord,
+              guild_id: ("guild_id" in channel.discord) ? channel.discord.guild_id : null,
+            },
           });
           break;
         }
