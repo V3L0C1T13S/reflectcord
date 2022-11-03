@@ -4,7 +4,9 @@ import { Message, User } from "../models";
 import { BaseManager } from "./BaseManager";
 import { QuarkContainer } from "./types";
 
-export class MessageManager extends BaseManager<string, QuarkContainer<API.Message, APIMessage>> {
+export type MessageContainer = QuarkContainer<API.Message, APIMessage>
+
+export class MessageManager extends BaseManager<string, MessageContainer> {
   async convertMessageObj(rvMessage: API.Message) {
     const authorInfo = await (async () => {
       if (rvMessage.author === "00000000000000000000000000") {

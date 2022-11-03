@@ -8,7 +8,7 @@ import FormData from "form-data";
 import axios from "axios";
 import fileType from "file-type";
 import { AutumnURL } from "../../common/constants";
-import { Logger } from "../../common/utils";
+import { HTTPError, Logger } from "../../common/utils";
 
 const DisallowedTypes = ["text/html", "text/mhtml", "multipart/related", "application/xhtml+xml"];
 
@@ -74,6 +74,20 @@ export async function getMimeType(file: Buffer) {
   }
 
   return mimeType;
+}
+
+export async function handleFile(path: ImageType, body?: string) {
+  if (!body || !body.startsWith("data:")) return undefined;
+  try {
+    const mimetype = body.split(":")[1]?.split(";")[0];
+    const buffer = Buffer.from(body.split(",")[1]!, "base64");
+
+    const id = await uploadFile(path, { file: buffer, name: "banner" }, mimetype ?? "application/octet-stream");
+    return id;
+  } catch (error) {
+    console.error(error);
+    throw new HTTPError(`Invalid ${path}`);
+  }
 }
 
 export async function handleImgRequest(
