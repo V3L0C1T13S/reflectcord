@@ -4,7 +4,7 @@ import {
 import { join } from "path";
 import morgan from "morgan";
 import fileUpload from "express-fileupload";
-import { Server } from "../common/utils/Server";
+import { Server } from "../common/utils";
 import {
   Authentication, BodyParser, Client, CORS, ErrorHandler,
 } from "./middleware";

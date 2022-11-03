@@ -1,6 +1,6 @@
 import bodyParser from "body-parser";
 import path from "path";
-import { Server } from "../common/utils/Server";
+import { Server } from "../common/utils";
 
 export class ReflectcordCDN extends Server {
   port = 3001;
