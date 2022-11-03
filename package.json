@@ -1,6 +1,8 @@
 {
   "name": "reflectcord",
   "version": "1.0.0",
+  "description": "",
+  "private": true,
   "main": "./dist/start.js",
   "scripts": {
     "start": "node ./dist/start.js",
@@ -12,6 +14,8 @@
     "lint": "eslint src/**/*.ts",
     "test": "jest"
   },
+  "author": "",
+  "license": "ISC",
   "dependencies": {
     "@ffmpeg/core": "^0.11.0",
     "@ffmpeg/ffmpeg": "^0.11.6",
