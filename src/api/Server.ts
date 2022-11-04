@@ -11,8 +11,14 @@ import {
 import "express-async-errors";
 import { DbManager } from "../common/db";
 import { enableLogging } from "../common/constants";
+import { RabbitMQ } from "../common/utils/RabbitMQ";
 
 export class ReflectcordAPI extends Server {
+  async init() {
+    await RabbitMQ.init();
+    await this.start();
+  }
+
   async start() {
     this.app.use(CORS);
     this.app.use(BodyParser({ inflate: true, limit: "10mb" }));

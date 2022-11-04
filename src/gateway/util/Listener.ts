@@ -15,10 +15,13 @@ import experiments from "./experiments.json";
 import { toSnowflake } from "../../common/models/util";
 import { Logger } from "../../common/utils";
 import { ChannelContainer } from "../../common/managers";
-import { dbEventBus } from "../../common/events";
+import { dbEventBus, userStartTyping } from "../../common/events";
+import { RabbitMQ } from "../../common/utils/RabbitMQ";
 
 export async function startListener(this: WebSocket, token: string) {
-  const onTypingStart = (channel: string, userToken: string) => {
+  const typingStarted = (data: any) => {
+    const { channel, token: userToken } = JSON.parse(data);
+
     if (userToken === token) {
       this.rvClient.websocket.send({
         type: "BeginTyping",
@@ -47,12 +50,23 @@ export async function startListener(this: WebSocket, token: string) {
           this.rvClient.api = this.rvAPI;
           this.rvAPIWrapper = new APIWrapper(this.rvAPI);
 
-          this.typingListener = (
-            channel: string,
-            userToken: string,
-          ) => onTypingStart(channel, userToken);
+          this.typingListener = (d: any) => typingStarted(d);
 
-          dbEventBus.on("CHANNEL_START_TYPING", this.typingListener);
+          // dbEventBus.on("CHANNEL_START_TYPING", this.typingListener);
+          RabbitMQ.channel?.consume(userStartTyping, (msg) => {
+            if (!msg) return;
+
+            const { channel, token: userToken } = JSON.parse(msg.content.toString());
+
+            if (userToken === token) {
+              this.rvClient.websocket.send({
+                type: "BeginTyping",
+                channel,
+              });
+
+              Logger.log(`started typing in ${channel}`);
+            }
+          });
 
           const users = await Promise.all(data.users
             .map(async (user) => this.rvAPIWrapper.users.createObj({

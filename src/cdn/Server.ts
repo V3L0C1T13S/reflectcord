@@ -1,9 +1,15 @@
 import bodyParser from "body-parser";
 import path from "path";
 import { Server } from "../common/utils";
+import { RabbitMQ } from "../common/utils/RabbitMQ";
 
 export class ReflectcordCDN extends Server {
   port = 3001;
+
+  async init() {
+    await RabbitMQ.init();
+    await this.start();
+  }
 
   async start() {
     this.app.use((req, res, next) => {

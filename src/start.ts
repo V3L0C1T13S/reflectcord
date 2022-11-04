@@ -5,6 +5,6 @@ import { ReflectcordGateway } from "./gateway";
 const api = new ReflectcordAPI();
 const gateway = new ReflectcordGateway();
 const cdn = new ReflectcordCDN();
-api.start();
+api.init();
 gateway.start();
 cdn.start();

@@ -1,6 +1,7 @@
 import ws from "ws";
 import http from "http";
 import { Connection } from "./events";
+import { RabbitMQ } from "../common/utils/RabbitMQ";
 
 export class ReflectcordGateway {
   websocketServer: ws.Server;
@@ -29,6 +30,11 @@ export class ReflectcordGateway {
     this.websocketServer.on("connection", Connection);
     // eslint-disable-next-line no-console
     this.websocketServer.on("error", console.error);
+  }
+
+  async init() {
+    await RabbitMQ.init();
+    await this.start();
   }
 
   async start() {
