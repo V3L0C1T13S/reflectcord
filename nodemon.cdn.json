@@ -1,4 +1,4 @@
 {
   "extends": "./nodemon.json",
-  "watch": ["src/cdn/**/*.ts"]
+  "watch": ["src/cdn/**/*.ts", "src/common/**/*.ts"]
 }
