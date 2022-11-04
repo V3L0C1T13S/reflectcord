@@ -37,6 +37,7 @@ export type MessageATQ = {};
 
 export type MessageAFQ = Partial<{
   user: API.User | null | undefined,
+  mentions: API.User[] | null | undefined,
 }>
 
 export const MessageReference: QuarkConversion<
@@ -125,10 +126,13 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
       edited_timestamp: message.edited ?? null,
       tts: false,
       mention_everyone: false,
-      mentions: mentions ? await Promise.all(mentions.map((x) => User.from_quark({
-        _id: x,
-        username: "fixme",
-      }))) : [],
+      mentions: mentions ? await Promise.all(
+        extra?.mentions
+          ?.map((x) => User.from_quark(x)) ?? mentions.map((x) => User.from_quark({
+          _id: x,
+          username: "fixme",
+        })),
+      ) : [],
       attachments: attachments
         ? await Promise.all(attachments.map((x) => Attachment.from_quark(x)))
         : [],
