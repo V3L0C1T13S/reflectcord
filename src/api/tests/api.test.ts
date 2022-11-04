@@ -1,6 +1,7 @@
 import { describe, expect, test } from "@jest/globals";
 import axios from "axios";
 import { ChannelType } from "discord.js";
+import axiosRateLimit from "axios-rate-limit";
 import { TestingToken } from "../../common/rvapi";
 import {
   baseURL, TestChannelId, TestServerId, TestUserId,
@@ -10,8 +11,12 @@ const apiURL = `${baseURL}/api`;
 
 const isBot = TestingToken?.startsWith("Bot ");
 
-const axiosClient = axios.create({
+const axiosClient = axiosRateLimit(axios.create({
   baseURL: apiURL,
+}), {
+  maxRequests: 3,
+  perMilliseconds: 1000,
+  maxRPS: 3,
 });
 
 async function getFromAPI(url: string) {
@@ -69,6 +74,11 @@ describe("api get requests", () => {
   });
 
   describe("guild tests", () => {
+    axiosClient.setRateLimitOptions({
+      maxRequests: 1,
+      perMilliseconds: 1000,
+      maxRPS: 1,
+    });
     test("test guild", async () => {
       const guild = await getFromAPI(`guilds/${TestServerId}`);
       expect(guild.data.id === TestServerId);
@@ -91,6 +101,24 @@ describe("api get requests", () => {
 
       expect(Array.isArray(emojis.data));
     });
+
+    test("roles", async () => {
+      const roles = await getFromAPI(`guilds/${TestServerId}/roles`);
+
+      expect(Array.isArray(roles.data));
+    });
+
+    test("stickers", async () => {
+      const stickers = await getFromAPI(`guilds/${TestServerId}/stickers`);
+
+      expect(Array.isArray(stickers.data));
+    });
+
+    test("home features", async () => {
+      const guildFeed = await getFromAPI(`guilds/${TestServerId}/guild-feed`);
+
+      expect(Array.isArray(guildFeed.data.results?.items));
+    });
   });
 
   describe("discovery", () => {
@@ -108,6 +136,11 @@ describe("api get requests", () => {
     });
   });
 
+  axiosClient.setRateLimitOptions({
+    maxRequests: 3,
+    perMilliseconds: 1000,
+    maxRPS: 3,
+  });
   test("text channel", async () => {
     const textChannel = await getFromAPI(`channels/${TestChannelId}`);
     expect(

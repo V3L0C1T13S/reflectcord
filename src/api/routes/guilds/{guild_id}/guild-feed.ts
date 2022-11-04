@@ -13,7 +13,7 @@ export default () => <Resource> {
 
     const serverId = await fromSnowflake(guild_id);
 
-    const server = await res.rvAPIWrapper.servers.fetch(serverId);
+    // const server = await res.rvAPIWrapper.servers.fetch(serverId);
 
     // FIXME
     res.json({

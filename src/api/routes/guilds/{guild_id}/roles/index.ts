@@ -2,7 +2,6 @@
 import { APIGuildCreateRole, APIRole } from "discord.js";
 import { Application, Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
-import { API } from "revolt.js";
 import { HTTPError } from "../../../../../common/utils";
 import { Guild, Role } from "../../../../../common/models";
 import { fromSnowflake } from "../../../../../common/models/util";
@@ -15,7 +14,7 @@ export default (express: Application) => <Resource> {
 
     const serverId = await fromSnowflake(guild_id);
 
-    const server = await res.rvAPI.get(`/servers/${serverId}`) as API.Server;
+    const server = await res.rvAPI.get(`/servers/${serverId as ""}`);
 
     res.json((await Guild.from_quark(server)).roles);
   },
@@ -28,9 +27,9 @@ export default (express: Application) => <Resource> {
 
     const serverId = await fromSnowflake(guild_id);
 
-    const role = await res.rvAPI.post(`/servers/${serverId}/roles`, {
+    const role = await res.rvAPI.post(`/servers/${serverId as ""}/roles`, {
       name: name ?? "new role",
-    }) as API.NewRoleResponse;
+    });
 
     res.json(await Role.from_quark(role.role));
   },
