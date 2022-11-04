@@ -1,6 +1,7 @@
 import { APIGuild } from "discord.js";
 import { runInAction } from "mobx";
 import { API } from "revolt.js";
+import { Guild } from "../models";
 import { BaseManager } from "./BaseManager";
 import { QuarkContainer } from "./types";
 
@@ -21,5 +22,16 @@ export class ServerManager extends BaseManager<string, ServerContainer> {
     });
 
     return data;
+  }
+
+  async fetch(id: string) {
+    if (this.has(id)) return this.$get(id);
+
+    const res = await this.rvAPI.get(`/servers/${id as ""}`);
+
+    return this.createObj({
+      revolt: res,
+      discord: await Guild.from_quark(res),
+    });
   }
 }
