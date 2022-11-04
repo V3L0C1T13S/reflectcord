@@ -1,0 +1,4 @@
+{
+  "extends": "./nodemon.json",
+  "watch": ["src/gateway/**/*.ts"]
+}

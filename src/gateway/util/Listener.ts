@@ -2,7 +2,7 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-plusplus */
 import {
-  ChannelType, GatewayCloseCodes, GatewayDispatchEvents, GatewayOpcodes, APIChannel,
+  GatewayCloseCodes, GatewayDispatchEvents, GatewayOpcodes,
 } from "discord.js";
 import { API } from "revolt.js";
 import { APIWrapper, createAPI } from "../../common/rvapi";
@@ -14,24 +14,10 @@ import { Send } from "./send";
 import experiments from "./experiments.json";
 import { toSnowflake } from "../../common/models/util";
 import { Logger } from "../../common/utils";
-import { ChannelContainer } from "../../common/managers";
-import { dbEventBus, userStartTyping } from "../../common/events";
+import { userStartTyping } from "../../common/events";
 import { RabbitMQ } from "../../common/utils/RabbitMQ";
 
 export async function startListener(this: WebSocket, token: string) {
-  const typingStarted = (data: any) => {
-    const { channel, token: userToken } = JSON.parse(data);
-
-    if (userToken === token) {
-      this.rvClient.websocket.send({
-        type: "BeginTyping",
-        channel,
-      });
-
-      Logger.log(`started typing in ${channel}`);
-    }
-  };
-
   this.rvClient.on("packet", async (data) => {
     try {
       switch (data.type) {
@@ -50,10 +36,7 @@ export async function startListener(this: WebSocket, token: string) {
           this.rvClient.api = this.rvAPI;
           this.rvAPIWrapper = new APIWrapper(this.rvAPI);
 
-          this.typingListener = (d: any) => typingStarted(d);
-
-          // dbEventBus.on("CHANNEL_START_TYPING", this.typingListener);
-          RabbitMQ.channel?.consume(userStartTyping, (msg) => {
+          this.typingConsumer = await RabbitMQ.channel?.consume(userStartTyping, (msg) => {
             if (!msg) return;
 
             const { channel, token: userToken } = JSON.parse(msg.content.toString());

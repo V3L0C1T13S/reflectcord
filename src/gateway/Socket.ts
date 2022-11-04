@@ -1,4 +1,5 @@
 /* eslint-disable no-undef */
+import { Replies } from "amqplib";
 import { API } from "revolt-api";
 import { Client } from "revolt.js";
 import WS from "ws";
@@ -32,5 +33,5 @@ export interface WebSocket extends WS {
     channel_id?: string,
     guild_id?: string,
   }
-  typingListener?: any;
+  typingConsumer?: Replies.Consume | undefined,
 }

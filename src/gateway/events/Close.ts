@@ -1,6 +1,6 @@
 import { Logger } from "../../common/utils";
 import { WebSocket } from "../Socket";
-import { dbEventBus } from "../../common/events";
+import { RabbitMQ } from "../../common/utils/RabbitMQ";
 
 export async function Close(this: WebSocket, code: number, reason: string) {
   Logger.log(`WS Closed ${code} ${reason}`);
@@ -9,7 +9,7 @@ export async function Close(this: WebSocket, code: number, reason: string) {
   this.deflate?.close();
   this.removeAllListeners();
 
-  if (this.typingListener) dbEventBus.removeListener("CHANNEL_START_TYPING", this.typingListener);
+  if (this.typingConsumer) await RabbitMQ.channel?.cancel(this.typingConsumer.consumerTag);
 
   // Getting out of revolt
   this.rvClient.removeAllListeners();
