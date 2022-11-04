@@ -17,7 +17,12 @@ export default () => <Resource> {
     const emojis = await res.rvAPI.get(`/servers/${serverId}/emojis`) as API.Emoji[];
     if (!Array.isArray(emojis)) throw new HTTPError("Failed to get emojis");
 
-    res.json(await Promise.all(emojis.map((x) => Emoji.from_quark(x))));
+    res.json(await Promise.all(emojis.map(async (x) => {
+      const user = await res.rvAPIWrapper.users.fetch(x.creator_id);
+      const emoji = await Emoji.from_quark(x, { user: user.revolt });
+
+      return emoji;
+    })));
   },
   post: async (req, res) => {
     const { guild_id } = req.params;

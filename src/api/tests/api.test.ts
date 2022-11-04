@@ -85,6 +85,12 @@ describe("api get requests", () => {
 
       expect(Array.isArray(bans.data));
     });
+
+    test("emojis", async () => {
+      const emojis = await getFromAPI(`guilds/${TestServerId}/emojis`);
+
+      expect(Array.isArray(emojis.data));
+    });
   });
 
   describe("discovery", () => {

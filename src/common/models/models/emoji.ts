@@ -3,6 +3,12 @@ import { API } from "revolt.js";
 import { QuarkConversion } from "../QuarkConversion";
 import { User } from "./user";
 
+export type EmojiATQ = {};
+
+export type EmojiAFQ = Partial<{
+  user: API.User | null | undefined,
+}>;
+
 export const PartialEmoji: QuarkConversion<API.Emoji, APIPartialEmoji> = {
   async to_quark(emoji) {
     const { name, id, animated } = emoji;
@@ -29,17 +35,17 @@ export const PartialEmoji: QuarkConversion<API.Emoji, APIPartialEmoji> = {
   },
 };
 
-export const Emoji: QuarkConversion<API.Emoji, APIEmoji> = {
+export const Emoji: QuarkConversion<API.Emoji, APIEmoji, EmojiATQ, EmojiAFQ> = {
   async to_quark(emoji) {
     return PartialEmoji.to_quark(emoji);
   },
 
-  async from_quark(emoji) {
+  async from_quark(emoji, extra) {
     return {
       ...await PartialEmoji.from_quark(emoji),
       available: true,
       roles: [],
-      user: await User.from_quark({
+      user: await User.from_quark(extra?.user ?? {
         _id: emoji.creator_id,
         username: "fixme",
       }),
