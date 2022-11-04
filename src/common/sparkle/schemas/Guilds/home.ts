@@ -1,9 +1,15 @@
 import { APIMessage } from "discord.js";
 
 export interface Item {
-  message: APIMessage,
-  thread: any,
-  messages: APIMessage[],
+  message?: {
+    thread: string,
+    message: APIMessage
+  },
+  thread?: any,
+  messages?: {
+    thread: string,
+    message: APIMessage
+  }[],
 }
 
 export interface GuildFeedResults {
