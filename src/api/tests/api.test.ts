@@ -124,7 +124,7 @@ describe("api get requests", () => {
   describe("discovery", () => {
     test("categories", async () => {
       const categories = await getFromAPI("discovery/categories");
-      expect(Array.isArray(categories));
+      expect(Array.isArray(categories.data));
     });
     test("recommended guilds", async () => {
       const guilds = await getFromAPI("guild-recommendations");
