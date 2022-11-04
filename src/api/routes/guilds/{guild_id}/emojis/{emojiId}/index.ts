@@ -22,4 +22,8 @@ export default () => <Resource> {
 
     res.sendStatus(204);
   },
+  // FIXME
+  patch: (req, res) => {
+    res.sendStatus(500);
+  },
 };
