@@ -41,7 +41,7 @@ export default (express: Application) => <Resource> {
 
     const convMessages = await Promise.all(msgs.messages.map(async (x) => {
       const user = msgs.users.find((u) => x.author === u._id);
-      // FIME: there has to be a more efficient way of doing this
+      // FIXME: there has to be a more efficient way of doing this
       const mentions = x.mentions ? await Promise.all(x.mentions
         ?.map(async (m) => {
           const mentionedUser = msgs.users.find((u) => u._id === m)
