@@ -41,8 +41,9 @@ export default (express: Application) => <Resource> {
 
     const convMessages = await Promise.all(msgs.messages.map(async (x) => {
       const user = msgs.users.find((u) => x.author === u._id);
-      // FIXME: Implementing this sometimes causes 404s. Also, this is just bad in general.
-      const mentions = null;
+      // FIXME: Implementing with fetch can cause 404's if the user is deleted
+      const mentions = x.mentions?.map((id) => msgs.users.find((u) => u._id === id)!)
+        .filter((u) => u);
 
       return Message.from_quark(x, {
         user: user ?? null,
