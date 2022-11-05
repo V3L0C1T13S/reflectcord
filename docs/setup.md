@@ -1,16 +1,24 @@
 # Reflectcord setup
 
-This document contains instructions for setting up Reflectcord on an Ubuntu 22.04.1 LTS machine.
+This document contains instructions for setting up Reflectcord on Ubuntu 22.04.1 LTS.
 
 ## Before we begin...
 
 Keep in mind, Reflectcord is currently DEVELOPMENT stage software, stability is rare, and you will likely have a subpar experience at **most** using the offical Discord client.
 
+### For WSL users
+
+While WSL2 is an officially supported platform, WSL1 is **not** officially supported. Any issues relating to it will be closed as "wontfix".
+
 ## Requirements
 
 Docker
+
 NodeJS (v18 & up) & NPM
+
 Mongodb
+
+RabbitMQ
 
 ## Setting up
 
