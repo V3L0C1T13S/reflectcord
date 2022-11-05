@@ -49,7 +49,7 @@ export async function startListener(this: WebSocket, token: string) {
 
               Logger.log(`started typing in ${channel}`);
             }
-          });
+          }, { noAck: true });
 
           const users = await Promise.all(data.users
             .map(async (user) => this.rvAPIWrapper.users.createObj({

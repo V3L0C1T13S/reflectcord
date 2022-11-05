@@ -75,9 +75,9 @@ describe("api get requests", () => {
 
   describe("guild tests", () => {
     axiosClient.setRateLimitOptions({
-      maxRequests: 1,
+      maxRequests: 3,
       perMilliseconds: 1000,
-      maxRPS: 1,
+      maxRPS: 3,
     });
     test("test guild", async () => {
       const guild = await getFromAPI(`guilds/${TestServerId}`);
@@ -137,9 +137,9 @@ describe("api get requests", () => {
   });
 
   axiosClient.setRateLimitOptions({
-    maxRequests: 3,
+    maxRequests: 1,
     perMilliseconds: 1000,
-    maxRPS: 3,
+    maxRPS: 1,
   });
   test("text channel", async () => {
     const textChannel = await getFromAPI(`channels/${TestChannelId}`);
