@@ -13,9 +13,11 @@
     "start:api:dev": "nodemon ./src/api/start.ts --config nodemon.api.json",
     "start:cdn:dev": "nodemon ./src/cdn/start.ts --config nodemon.cdn.json",
     "start:gateway:dev": "nodemon ./src/gateway/start.ts --config nodemon.gateway.json",
+    "start:monolith:dev": "nodemon ./dist/start.js",
     "start:api": "node ./dist/api/start.js",
     "start:cdn": "node ./dist/cdn/start.js",
     "start:gateway": "node ./dist/gateway/start.js",
+    "start:monolith": "node ./dist/start.js",
     "clean": "rimraf dist",
     "lint": "eslint src/**/*.ts",
     "test": "jest"
