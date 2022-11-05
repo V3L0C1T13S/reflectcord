@@ -2,12 +2,6 @@
 
 REST and Websocket compatability layer for Discord->Revolt
 
-**TODO:**
-
-- [ ] Websocket (in progress)
-- [ ] CDN (in progress)
-- [ ] Voice (STALLED - waiting for vortex rewrite)
-
 ## Features
 
 ### Configurable
@@ -21,6 +15,10 @@ Reflectcord runs outside of your Revolt instance, and has to run under the same 
 ### Portable
 
 Because Reflectcord is designed to run outside of the instance, it can be used on any instance you desire.
+
+## Setup
+
+See docs/setup.md
 
 ## Credits
 
