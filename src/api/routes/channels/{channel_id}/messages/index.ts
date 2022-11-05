@@ -41,14 +41,8 @@ export default (express: Application) => <Resource> {
 
     const convMessages = await Promise.all(msgs.messages.map(async (x) => {
       const user = msgs.users.find((u) => x.author === u._id);
-      // FIXME: there has to be a more efficient way of doing this
-      const mentions = x.mentions ? await Promise.all(x.mentions
-        ?.map(async (m) => {
-          const mentionedUser = msgs.users.find((u) => u._id === m)
-            ?? (await res.rvAPIWrapper.users.fetch(m)).revolt;
-
-          return mentionedUser;
-        })) : null;
+      // FIXME: Implementing this sometimes causes 404s. Also, this is just bad in general.
+      const mentions = null;
 
       return Message.from_quark(x, {
         user: user ?? null,
