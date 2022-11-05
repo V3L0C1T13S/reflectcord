@@ -197,7 +197,7 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
           })));
         }
 
-        return;
+        return null;
       })(),
       owner_id: await (() => {
         if (channel.channel_type === "Group") {
