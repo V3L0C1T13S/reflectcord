@@ -6,17 +6,36 @@ This document contains instructions for setting up Reflectcord on an Ubuntu 22.0
 
 Keep in mind, Reflectcord is currently DEVELOPMENT stage software, stability is rare, and you will likely have a subpar experience at **most** using the offical Discord client.
 
-## Installing needed packages
-First off, you should install NodeJS version 18 or higher.
+## Requirements
 
-Second, you'll either need to install MongoDB onto your system, or configure the .env to point to an existing MongoDB instance.
+Docker
+NodeJS (v18 & up) & NPM
+Mongodb
 
-Third, clone this repo using git, cd into Reflectcord, and run `npm i` to install the needed packages. You can now start the server in two ways:
+## Setting up
+
+### Prerequisites
+
+#### Downloading Reflectcord
+
+Reflectcord uses a feature called git submodules. In order to download the required submodules, you'll need to clone the repository with `git clone --recursive <repourl>`.
+
+#### RabbitMQ
+
+RabbitMQ is needed for the microservices in Reflectcord to communicate with each other. To start RabbitMQ, simply use the command below.
+
+`docker run -d --hostname reflectcord --name reflectcord-rabbit -p 5672:5672 rabbitmq:3.8-management`
+
+#### Dependencies
+
+To install Reflectcords dependencies, simply run `npm i` into where you cloned it.
+
+## Running
 
 1. Dev mode
 `npm run start:dev`
 
-2. Building for production
+2. Building for production (not complete)
 `npm run build`
 `npm run start`
 
