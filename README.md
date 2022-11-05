@@ -22,6 +22,10 @@ Reflectcord runs outside of your Revolt instance, and has to run under the same 
 
 Because Reflectcord is designed to run outside of the instance, it can be used on any instance you desire.
 
+## Setup
+
+See docs/setup.md
+
 ## Credits
 
 Fosscord - 99% of the work reverse engineering the gateway, some more obscure parts of Discords API, and also created the client downloader.
