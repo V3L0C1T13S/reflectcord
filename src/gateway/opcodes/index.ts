@@ -9,6 +9,7 @@ import { onResume } from "./Resume";
 import { VSUpdate } from "./VS";
 import { GatewayOpcodes } from "../../common/sparkle";
 import { QueryApplicationCommands } from "./QueryApplicationCommands";
+import { GuildSync } from "./GuildSync";
 
 export type OPCodeHandler = (this: WebSocket, data: Payload) => any;
 
@@ -16,9 +17,10 @@ export const OPCodeHandlers: { [key: number ]: OPCodeHandler } = {
   [GatewayOpcodes.Heartbeat]: onHeartbeat,
   [GatewayOpcodes.Identify]: onIdentify,
   [GatewayOpcodes.PresenceUpdate]: presenceUpdate,
-  [GatewayOpcodes.Resume]: onResume,
   [GatewayOpcodes.VoiceStateUpdate]: VSUpdate,
+  [GatewayOpcodes.Resume]: onResume,
   [GatewayOpcodes.RequestGuildMembers]: RequestGuildMembers,
+  [GatewayOpcodes.GuildSync]: GuildSync,
   [GatewayOpcodes.LazyRequest]: lazyReq,
   [GatewayOpcodes.QueryApplicationCommands]: QueryApplicationCommands,
 };
