@@ -7,13 +7,13 @@ import { Logger } from "../../common/utils";
 import { check } from "./instanceOf";
 import { IdentifySchema } from "../../common/sparkle";
 
-export async function onIdentify(this: WebSocket, data: Payload) {
+export async function onIdentify(this: WebSocket, data: Payload<IdentifySchema>) {
   clearTimeout(this.readyTimeout);
-  // check.call(this, IdentifySchema, data.d);
+  check.call(this, IdentifySchema, data.d);
 
   Logger.log("Identifying");
 
-  const identify = data.d;
+  const identify = data.d!;
 
   const { token } = identify;
 
