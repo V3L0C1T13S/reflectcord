@@ -91,7 +91,9 @@ async function getMembers(
         revolt: member,
         discord: discordMember,
         user,
-        status: user?.status && user?.online ? await Status.from_quark(user.status) : null,
+        status: await Status.from_quark(user?.status, {
+          online: user?.online,
+        }),
       };
     }));
 
@@ -132,7 +134,7 @@ async function getMembers(
       };
 
       const session = {
-        status: member.status?.status ?? "invisible",
+        status: member.status?.status,
       };
 
       const item = {
@@ -148,7 +150,7 @@ async function getMembers(
         },
       } as SyncItem;
 
-      if (!member.user?.online) {
+      if (member.status?.status === "invisible") {
         offlineItems.push(item);
       } else items.push(item);
     });

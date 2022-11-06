@@ -57,6 +57,9 @@ export class ReflectcordAPI extends Server {
     this.app.use(ErrorHandler);
     Client(this.app);
 
+    // eslint-disable-next-line no-console
+    console.log("API UP!");
+
     await super.start();
   }
 }

@@ -174,7 +174,13 @@ export type internalStatus = PresenceData & {
   activities?: internalActivity[],
 }
 
-export const Status: QuarkConversion<RevoltUser["status"], internalStatus> = {
+export type StatusATQ = {};
+
+export type StatusAFQ = Partial<{
+  online: boolean | null | undefined,
+}>;
+
+export const Status: QuarkConversion<RevoltUser["status"], internalStatus, StatusATQ, StatusAFQ> = {
   async to_quark(status) {
     const activity = status.activities?.[0] as internalActivity;
     const text = (() => {
@@ -227,9 +233,11 @@ export const Status: QuarkConversion<RevoltUser["status"], internalStatus> = {
     };
   },
 
-  async from_quark(status) {
+  async from_quark(status, extra) {
     const discordStatus: PresenceData = {
       status: (() => {
+        if (extra && !extra?.online) return "invisible";
+
         switch (status?.presence) {
           case "Online": {
             return "online";
@@ -247,9 +255,8 @@ export const Status: QuarkConversion<RevoltUser["status"], internalStatus> = {
             return "dnd";
           }
           default: {
-            // eslint-disable-next-line no-console
-            console.warn(`Unhandled status ${status?.presence}`);
-            return "invisible";
+            // User hasn't changed status - defaults to online
+            return "online";
           }
         }
       })(),
