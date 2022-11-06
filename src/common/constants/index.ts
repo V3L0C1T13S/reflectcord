@@ -4,6 +4,7 @@ import { getNextData } from "../rvapi/discovery";
 dotenv.config();
 
 export * from "./tests";
+export * from "./features";
 
 export const baseURL = "http://localhost:3000";
 
