@@ -5,14 +5,10 @@ import { Send } from "../util";
 import { fromSnowflake } from "../../common/models/util";
 import { WebSocket } from "../Socket";
 import { Payload } from "../util/Constants";
-import { Member } from "../../common/models/models/member";
-import { internalActivity } from "../../common/models";
+import { Member, internalActivity } from "../../common/models";
+import { GuildSyncSchema } from "../../common/sparkle";
 
-export async function GuildSync(this: WebSocket, data: Payload) {
-  if (!data.d) return;
-
-  const { guild_id } = data.d;
-
+async function GuildSync(this: WebSocket, guild_id: string) {
   const rvServerId = await fromSnowflake(guild_id);
 
   const members = await this.rvAPI.get(`/servers/${rvServerId as ""}/members`);
@@ -33,4 +29,16 @@ export async function GuildSync(this: WebSocket, data: Payload) {
       presences,
     },
   });
+}
+
+export async function HandleGuildSync(this: WebSocket, data: Payload<GuildSyncSchema>) {
+  if (!data.d) return;
+
+  const reqData = data.d;
+
+  // eslint-disable-next-line no-restricted-syntax
+  for (const guild_id of reqData) {
+    // eslint-disable-next-line no-await-in-loop
+    await GuildSync.call(this, guild_id);
+  }
 }

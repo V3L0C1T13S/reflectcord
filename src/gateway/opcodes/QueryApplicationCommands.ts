@@ -1,14 +1,11 @@
 /* eslint-disable no-plusplus */
-import { GatewayDispatchEvents, GatewayOpcodes } from "discord.js";
-import { setHeartbeat } from "../util/Heartbeat";
+import { GatewayOpcodes } from "discord.js";
 import { Send, Payload } from "../util";
 import { WebSocket } from "../Socket";
-import { Logger } from "../../common/utils";
 
+// STUB
 export async function QueryApplicationCommands(this: WebSocket, data: Payload) {
   const appData = data.d;
-
-  Logger.warn(`Stub! ${appData}`);
 
   await Send(this, {
     op: GatewayOpcodes.Dispatch,
