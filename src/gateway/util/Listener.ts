@@ -60,13 +60,13 @@ export async function startListener(this: WebSocket, token: string) {
           await Promise.all(data.channels
             .map(async (channel) => this.rvAPIWrapper.channels.createObj({
               revolt: channel,
-              discord: await Channel.from_quark(channel, currentUser._id),
+              discord: await Channel.from_quark(channel, { excludedUser: currentUser._id }),
             })));
 
           const channels = (await Promise.all(data.channels
             .map(async (channel) => this.rvAPIWrapper.channels.createObj({
               revolt: channel,
-              discord: await Channel.from_quark(channel, currentUser._id),
+              discord: await Channel.from_quark(channel, { excludedUser: currentUser._id }),
             })))).filter((channel) => (
             channel.revolt.channel_type === "DirectMessage"
               || channel.revolt.channel_type === "Group"

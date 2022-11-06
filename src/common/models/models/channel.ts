@@ -7,6 +7,13 @@ import { toSnowflake } from "../util";
 import { User } from "./user";
 import { convertPermNumber } from "./permissions";
 
+export type ChannelATQ = {};
+
+export type ChannelAFQ = Partial<{
+  categoryId: string | null | undefined,
+  excludedUser: string | null | undefined,
+}>;
+
 export const ChannelCreateType: QuarkConversion<"Text" | "Voice", discordChannelType> = {
   async to_quark(type) {
     switch (type) {
@@ -82,7 +89,7 @@ export const ChannelType: QuarkConversion<rvChannel["channel_type"], discordChan
   },
 };
 
-export const Channel: QuarkConversion<rvChannel, APIChannel> = {
+export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, ChannelAFQ> = {
   async to_quark(channel) {
     const { id, type } = channel;
 
@@ -137,7 +144,7 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
     }
   },
 
-  async from_quark(channel, excludedUser?: string) {
+  async from_quark(channel, extra) {
     const id = await toSnowflake(channel._id);
 
     return {
@@ -190,7 +197,7 @@ export const Channel: QuarkConversion<rvChannel, APIChannel> = {
       })(),
       recipients: await (() => {
         if (channel.channel_type === "DirectMessage" || channel.channel_type === "Group") {
-          const excludedRecipients = channel.recipients.filter((x) => x !== excludedUser);
+          const excludedRecipients = channel.recipients.filter((x) => x !== extra?.excludedUser);
           return Promise.all(excludedRecipients.map((x) => User.from_quark({
             _id: x,
             username: "fixme",

@@ -34,6 +34,6 @@ export default (express: Application) => <Resource> {
     const selfId = await res.rvAPIWrapper.users.getSelfId();
     const channel = await res.rvAPI.get(`/users/${userId as ""}/dm`);
 
-    res.json(await Channel.from_quark(channel, selfId));
+    res.json(await Channel.from_quark(channel, { excludedUser: selfId }));
   },
 };
