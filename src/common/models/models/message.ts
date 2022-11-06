@@ -68,7 +68,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
 
     return {
       _id: id,
-      content,
+      content: content?.replace(/\|\|(([\w\s])+)\|\|/g, "!!$1!!"),
       author: author.id,
       channel: channel_id,
       embeds: await Promise.all(embeds.map((x) => Embed.to_quark(x))),
@@ -102,7 +102,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
     const discordMessage: APIMessage = {
       id: (await toSnowflake(_id)).toString(),
       channel_id,
-      content: content ?? "fixme",
+      content: content?.replace(/!!(([\w\s])+)!!/g, "||$1||") ?? "fixme",
       author: await (async () => {
         if (message.system) {
           if (
