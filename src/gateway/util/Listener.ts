@@ -456,14 +456,12 @@ export async function startListener(this: WebSocket, token: string) {
           break;
         }
         case "ChannelAck": {
-          const msg = this.rvClient.messages.get(data.message_id);
-
           await Send(this, {
             op: GatewayOpcodes.Dispatch,
             t: "MESSAGE_ACK",
             s: this.sequence++,
             d: {
-              channel_id: msg?.channel_id ? await toSnowflake(msg?.channel_id) : undefined,
+              channel_id: await toSnowflake(data.id),
               message_id: await toSnowflake(data.message_id),
               version: 3763,
             },

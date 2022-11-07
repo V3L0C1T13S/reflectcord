@@ -27,6 +27,7 @@ export async function Message(this: WebSocket, buffer: Buffer) {
 
   const OPCodeHandler = OPCodeHandlers[data.op];
   if (!OPCodeHandler) {
+    // FIXME: Close connection if all opcodes are implemented
     console.error(`Unknown opcode ${data.op}`);
     return;
   }
