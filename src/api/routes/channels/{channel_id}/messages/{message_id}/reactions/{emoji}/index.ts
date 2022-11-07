@@ -1,10 +1,9 @@
 /* eslint-disable camelcase */
 import { Resource } from "express-automatic-routes";
 import { Application } from "express";
-import { API } from "revolt.js";
 import { HTTPError } from "../../../../../../../../common/utils";
 import { fromSnowflake } from "../../../../../../../../common/models/util";
-import { Message, User } from "../../../../../../../../common/models";
+import { User } from "../../../../../../../../common/models";
 
 export default (express: Application) => <Resource> {
   delete: async (req, res) => {
@@ -26,9 +25,24 @@ export default (express: Application) => <Resource> {
 
     const channelId = await fromSnowflake(channel_id);
     const messageId = await fromSnowflake(message_id);
+    const emojiId = emoji.split(":")?.[1];
+    if (!emojiId) throw new HTTPError("Invalid emoji id", 404);
 
-    const rvMessage = await res.rvAPI.get(`/channels/${channelId}/messages/${messageId}`) as API.Message;
+    const rvMessage = await res.rvAPI.get(`/channels/${channelId as ""}/messages/${messageId as ""}`);
 
-    res.json([(await Message.from_quark(rvMessage)).author]);
+    const emojis = rvMessage.reactions
+      ? Object.entries(rvMessage.reactions)
+        .find(([key]) => key === emojiId)
+      : [];
+
+    if (!emojis?.[1]) throw new HTTPError("Message has no reactions");
+
+    // FIXME: Partially implemented - Needs full info
+    const users = await Promise.all(emojis[1].map((x) => User.from_quark({
+      _id: x,
+      username: "fixme",
+    })));
+
+    res.json(users);
   },
 };

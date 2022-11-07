@@ -1,5 +1,6 @@
 import { Application, Response } from "express";
 import { Resource } from "express-automatic-routes";
+import { reflectcordWsURL } from "../../../common/constants";
 
 export interface GatewayBotResponse {
   url: string;
@@ -15,7 +16,7 @@ export interface GatewayBotResponse {
 export default (express: Application) => <Resource> {
   get: (req, res: Response<GatewayBotResponse>) => {
     res.json({
-      url: "ws://localhost:3002",
+      url: reflectcordWsURL,
       shards: 1,
       session_start_limit: {
         total: 1000,
