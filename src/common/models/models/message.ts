@@ -102,7 +102,12 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
     const discordMessage: APIMessage = {
       id: (await toSnowflake(_id)).toString(),
       channel_id,
-      content: content?.replace(/!!(([\w\s])+)!!/g, "||$1||") ?? "fixme",
+      content: content?.replace(/\|\|.+\|\|/gs, (match) => `\\${match}`)
+      // Translate !!Revite spoilers!! to ||Discord spoilers||
+        .replace(
+          /!!.+!!/g,
+          (match) => `||${match.substring(2, match.length - 2)}||`,
+        ) ?? "fixme",
       author: await (async () => {
         if (message.system) {
           if (
@@ -225,7 +230,17 @@ export const MessageSendData: QuarkConversion<
     const { content, embeds, message_reference } = data;
 
     return {
-      content: content ?? " ",
+      content: content?.replace(
+        /!!.+!!/g,
+        (match) => `!\u200b!${match.substring(2, match.length - 2)}!!`,
+      )
+      // Translate ||Discord spoilers|| to !!Revite spoilers!!,
+      // while making sure multiline spoilers continue working
+        .replace(/\|\|.+\|\|/gs, (match) => match
+          .substring(2, match.length - 2)
+          .split("\n")
+          .map((line) => `!!${line.replace(/!!/g, "!\u200b!")}!!`)
+          .join("\n")) ?? " ",
       embeds: embeds ? await Promise.all(embeds.map((x) => SendableEmbed.to_quark(x))) : null,
       replies: message_reference ? [{
         id: await fromSnowflake(message_reference.message_id),

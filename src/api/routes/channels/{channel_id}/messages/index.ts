@@ -59,7 +59,6 @@ export default (express: Application) => <Resource> {
     if (req.body.payload_json) {
       req.body = JSON.parse(req.body.payload_json);
     }
-    req.body.content = req.body.content?.replace(/\|\|(([\w\s])+)\|\|/g, "!!$1!!");
 
     const rvId = await fromSnowflake(channel_id);
 
