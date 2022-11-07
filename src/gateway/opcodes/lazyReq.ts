@@ -177,11 +177,12 @@ async function getMembers(
 }
 
 // FIXME: Partially implemented
-export async function lazyReq(this: WebSocket, data: Payload) {
+export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
   check.call(this, LazyRequest, data.d);
+
   const {
     guild_id, typing, channels, activities,
-  } = data.d;
+  } = data.d!;
 
   const channel_id = Object.keys(channels || {}).first();
   if (!channel_id) return;

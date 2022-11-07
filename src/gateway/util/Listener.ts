@@ -13,7 +13,7 @@ import { WebSocket } from "../Socket";
 import { Send } from "./send";
 import experiments from "./experiments.json";
 import { toSnowflake } from "../../common/models/util";
-import { Logger } from "../../common/utils";
+import { genSessionId, Logger } from "../../common/utils";
 import { userStartTyping } from "../../common/events";
 import { RabbitMQ } from "../../common/utils/RabbitMQ";
 
@@ -35,6 +35,8 @@ export async function startListener(this: WebSocket, token: string) {
           // HACK! Fixes #10
           this.rvClient.api = this.rvAPI;
           this.rvAPIWrapper = new APIWrapper(this.rvAPI);
+
+          this.session_id = genSessionId();
 
           this.typingConsumer = await RabbitMQ.channel?.consume(userStartTyping, (msg) => {
             if (!msg) return;
@@ -158,7 +160,7 @@ export async function startListener(this: WebSocket, token: string) {
             users,
             experiments, // ily fosscord
             private_channels: channels,
-            session_id: this.rvClient.session,
+            session_id: this.session_id,
             friend_suggestion_count: 0,
             guild_join_requests: [],
             connected_accounts: [],

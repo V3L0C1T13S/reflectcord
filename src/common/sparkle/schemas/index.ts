@@ -6,4 +6,4 @@ export * from "./LazyRequest";
 export * from "./Discovery";
 export * from "./AppDirectory";
 export * from "./Guilds";
-export * from "./GuildSync";
+export * from "./Gateway";

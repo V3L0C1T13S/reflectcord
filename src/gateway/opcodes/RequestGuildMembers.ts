@@ -11,13 +11,15 @@ import { fromSnowflake } from "../../common/models/util";
 import { WebSocket } from "../Socket";
 import { Member } from "../../common/models";
 import { gatewayEnableOp8 } from "../../common/constants";
+import { check } from "./instanceOf";
+import { ReqGuildMembersSchema } from "../../common/sparkle";
 
 const memberExists = (uid: string, member_ids: string[]) => member_ids.includes(uid);
 
 const isUidSearch = (data: GatewayRequestGuildMembersData): data is GatewayRequestGuildMembersDataWithUserIds => ("user_ids" in data);
 
 type RequestGuildMembersBody = {
-  guild_id: string,
+  guild_id: string | string[],
   members: APIGuildMember[],
   not_found?: string[],
   presences?: any[],
@@ -28,12 +30,13 @@ export async function RequestGuildMembers(
   data: Payload<GatewayRequestGuildMembersData>,
 ) {
   if (!gatewayEnableOp8) return;
+  // FIXME: Doesn't work 100% of the time
+  // check.call(this, ReqGuildMembersSchema, data.d);
 
-  if (!data.d) return;
-
+  const reqData = data.d!;
   const {
     guild_id, presences, nonce,
-  } = data.d;
+  } = reqData;
 
   const body: RequestGuildMembersBody = {
     guild_id,
@@ -59,8 +62,8 @@ export async function RequestGuildMembers(
 
   body.members = discordMembers;
 
-  if (isUidSearch(data.d)) {
-    const { user_ids } = data.d;
+  if (isUidSearch(reqData)) {
+    const { user_ids } = reqData;
 
     const notFound: string[] = [];
 
