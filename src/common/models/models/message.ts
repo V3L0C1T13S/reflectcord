@@ -107,7 +107,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
         .replace(
           /!!.+!!/g,
           (match) => `||${match.substring(2, match.length - 2)}||`,
-        ) ?? "fixme",
+        ) ?? "",
       author: await (async () => {
         if (message.system) {
           if (
