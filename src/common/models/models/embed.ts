@@ -4,6 +4,7 @@ import { API } from "revolt.js";
 import { proxyFile } from "../../rvapi";
 import { hexToRgbCode, rgbToHex } from "../../utils";
 import { QuarkConversion } from "../QuarkConversion";
+import { embedEnableSpecials } from "../../constants";
 
 export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
   async to_quark(embed) {
@@ -71,6 +72,37 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
         discordEmbed.image = mediaInfo;
       } else if (embed.type === "Video") {
         discordEmbed.video = mediaInfo;
+      }
+    }
+
+    if (embed.type === "Website" && embed.special?.type === "YouTube" && embedEnableSpecials) {
+      discordEmbed.provider = {
+        name: "YouTube",
+        url: "https://www.youtube.com",
+      };
+
+      delete discordEmbed.image;
+
+      if (embed.video && embed.url) {
+        discordEmbed.video = {
+          url: embed.video.url,
+          width: embed.video.width,
+          height: embed.video.height,
+        };
+
+        if (embed.image) {
+          discordEmbed.thumbnail = {
+            url: embed.image.url,
+            width: embed.image.width,
+            height: embed.image.height,
+            proxy_url: proxyFile(embed.image.url),
+          };
+        }
+
+        discordEmbed.url = embed.url;
+
+        // @ts-ignore
+        discordEmbed.type = "video";
       }
     }
 
