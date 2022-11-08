@@ -27,7 +27,7 @@ export const Ban: QuarkConversion<API.ServerBan, APIBan, BanATQ, BanAFQ> = {
 
     return {
       reason: reason ?? null,
-      user: extra?.user ? await User.from_quark(extra.user) : await User.from_quark({
+      user: await User.from_quark(extra?.user ?? {
         _id: _id.user,
         username: "fixme",
       }),

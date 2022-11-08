@@ -46,7 +46,7 @@ export const ResponseLogin: QuarkConversion<RevoltLoginResponse, APILoginRespons
     }
 
     return {
-      token: !isMFA ? login.token : null,
+      token: login.token,
       settings: undefined,
     };
   },

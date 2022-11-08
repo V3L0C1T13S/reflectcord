@@ -1,12 +1,14 @@
 import fetch from "node-fetch";
 import { join } from "path";
 import {
+  createWriteStream,
   existsSync, mkdirSync, readFileSync, writeFileSync,
 } from "fs";
 import { Request, Response } from "express";
 import FormData from "form-data";
 import axios from "axios";
 import fileType from "file-type";
+import Ffmpeg from "fluent-ffmpeg";
 import { AutumnURL } from "../../common/constants";
 import { HTTPError, Logger } from "../../common/utils";
 
@@ -43,6 +45,10 @@ export async function downloadImage(type: ImageType, id: string) {
 
 export type revoltAttachmentResponse = {
   id: string;
+}
+
+export async function generateVideoThumbnail(video: Buffer) {
+
 }
 
 export async function uploadFile(
@@ -106,6 +112,36 @@ export async function handleImgRequest(
   if (!avatarData) return res.sendStatus(404);
 
   const mimeType = await getMimeType(avatarData);
+
+  if (req.query.format === "jpeg") {
+    if (mimeType === "video/mp4") {
+      const thumbnailDir = join(imageCacheDir, "thumbnails", type);
+      const thumbnailFile = join(thumbnailDir, realId, "tn.png");
+      if (!existsSync(thumbnailDir)) mkdirSync(thumbnailDir, { recursive: true });
+
+      if (existsSync(thumbnailFile)) {
+        const tbData = readFileSync(thumbnailFile);
+
+        res.set("Content-Type", await getMimeType(tbData));
+        res.set("Cache-Control", "public, max-age=31536000");
+
+        return res.send(tbData);
+      }
+
+      return Ffmpeg(join(imageCacheDir, type, realId))
+        .takeScreenshots({
+          count: 1,
+          timemarks: ["0"],
+        }, join(thumbnailDir, realId)).on("end", async (data) => {
+          const tbData = readFileSync(thumbnailFile);
+
+          res.set("Content-Type", await getMimeType(tbData));
+          res.set("Cache-Control", "public, max-age=31536000");
+
+          return res.send(tbData);
+        });
+    }
+  }
 
   res.set("Content-Type", mimeType);
   res.set("Cache-Control", "public, max-age=31536000");

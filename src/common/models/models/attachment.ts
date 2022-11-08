@@ -41,9 +41,9 @@ export const Attachment: QuarkConversion<API.File, APIAttachment> = {
       size,
       url,
       proxy_url: url,
-      content_type: attachment.content_type,
       width,
       height,
+      content_type: attachment.content_type,
     };
   },
 };
