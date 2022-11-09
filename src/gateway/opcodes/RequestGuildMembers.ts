@@ -16,7 +16,7 @@ import { ReqGuildMembersSchema } from "../../common/sparkle";
 
 const memberExists = (uid: string, member_ids: string[]) => member_ids.includes(uid);
 
-const isUidSearch = (data: GatewayRequestGuildMembersData): data is GatewayRequestGuildMembersDataWithUserIds => ("user_ids" in data);
+const isUidSearch = (data: GatewayRequestGuildMembersData): data is GatewayRequestGuildMembersDataWithUserIds => (("user_ids" in data) && Array.isArray(data.user_ids));
 
 type RequestGuildMembersBody = {
   guild_id: string | string[],

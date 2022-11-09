@@ -65,14 +65,13 @@ export async function startListener(this: WebSocket, token: string) {
               discord: await Channel.from_quark(channel, { excludedUser: currentUser._id }),
             })));
 
-          const channels = (await Promise.all(data.channels
-            .map(async (channel) => this.rvAPIWrapper.channels.createObj({
-              revolt: channel,
-              discord: await Channel.from_quark(channel, { excludedUser: currentUser._id }),
-            })))).filter((channel) => (
-            channel.revolt.channel_type === "DirectMessage"
-              || channel.revolt.channel_type === "Group"
-          )).map((x) => x.discord);
+          /**
+           * FIXME: Doing this with the API wrapper on Erlpack/ETF encoding
+           * crashes a lot of clients, so we have to re-instantiate everything
+           */
+          const private_channels = await Promise.all(data.channels
+            .filter((x) => x.channel_type === "DirectMessage" || x.channel_type === "Group")
+            .map((x) => Channel.from_quark(x, { excludedUser: currentUser._id })));
 
           const guilds = await Promise.all(data.servers
             .map(async (server) => {
@@ -159,7 +158,7 @@ export async function startListener(this: WebSocket, token: string) {
             },
             users,
             experiments, // ily fosscord
-            private_channels: channels,
+            private_channels,
             session_id: this.session_id,
             friend_suggestion_count: 0,
             guild_join_requests: [],

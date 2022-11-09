@@ -155,19 +155,6 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
         }
         return undefined as any;
       })(),
-      icon: (() => {
-        switch (channel.channel_type) {
-          case "DirectMessage": {
-            return;
-          }
-          case "SavedMessages": {
-            return;
-          }
-          default: {
-            return channel.icon?._id;
-          }
-        }
-      })(),
       id,
       invitable: undefined,
       type: await ChannelType.from_quark(channel.channel_type) as any,
@@ -197,7 +184,10 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
       })(),
       recipients: await (() => {
         if (channel.channel_type === "DirectMessage" || channel.channel_type === "Group") {
-          const excludedRecipients = channel.recipients.filter((x) => x !== extra?.excludedUser);
+          const excludedRecipients = channel.channel_type === "DirectMessage"
+            ? channel.recipients.filter((x) => x !== extra?.excludedUser)
+            : channel.recipients;
+
           return Promise.all(excludedRecipients.map((x) => User.from_quark({
             _id: x,
             username: "fixme",
