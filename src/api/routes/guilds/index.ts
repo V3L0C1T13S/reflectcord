@@ -1,7 +1,7 @@
 import { Application } from "express";
 import { Resource } from "express-automatic-routes";
-import { toSnowflake } from "../../../common/models/util";
 import { HTTPError } from "../../../common/utils";
+import { Guild } from "../../../common/models";
 
 export default (express: Application) => <Resource> {
   post: async (req, res) => {
@@ -13,8 +13,6 @@ export default (express: Application) => <Resource> {
       name,
     });
 
-    res.json({
-      id: await toSnowflake(server.server._id),
-    });
+    res.json(await Guild.from_quark(server.server));
   },
 };

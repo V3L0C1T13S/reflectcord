@@ -7,7 +7,7 @@ import {
 import { API } from "revolt.js";
 import { APIWrapper, createAPI } from "../../common/rvapi";
 import {
-  Channel, Emoji, Guild, Member, Message, PartialEmoji, Relationship, selfUser, User,
+  Channel, Emoji, Guild, Member, PartialEmoji, Relationship, selfUser, User,
 } from "../../common/models";
 import { WebSocket } from "../Socket";
 import { Send } from "./send";
@@ -78,9 +78,12 @@ export async function startListener(this: WebSocket, token: string) {
               const rvChannels: API.Channel[] = server.channels
                 .map((x) => this.rvAPIWrapper.channels.$get(x)?.revolt).filter((x) => x);
 
+              const discordGuild = await Guild.from_quark(server);
+
               const guild = {
-                ...await Guild.from_quark(server),
+                ...discordGuild,
                 channels: await Promise.all(rvChannels.map((x) => Channel.from_quark(x))),
+                properties: discordGuild,
               };
 
               // Bots don't get sent full guilds in actual discord.

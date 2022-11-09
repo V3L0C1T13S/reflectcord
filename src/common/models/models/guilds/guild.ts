@@ -83,7 +83,7 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
 
   async from_quark(server) {
     const {
-      _id, name, owner, description, icon,
+      _id, name, owner, description, icon, nsfw,
     } = server;
 
     const id = await toSnowflake(_id);
@@ -140,6 +140,8 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
       preferred_locale: "en-US",
       public_updates_channel_id: null,
       nsfw_level: GuildNSFWLevel.Default,
+      // FIXME: What constitutes an NSFW server on Discord??
+      nsfw,
       stickers: [],
       premium_progress_bar_enabled: false,
       hub_type: null,
@@ -148,8 +150,18 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
       icon: icon?._id ?? null,
       splash: null,
       guild_scheduled_events: [],
-      // @ts-ignore
       joined_at: Date.now().toString(),
+      // max_video_channel_users: 25,
+      // max_stage_video_channel_users: 0,
+      stage_instances: [],
+      // member_count: 1,
+      // version: 1668028225734,
+      /**
+       * FIXME: Discord seems to be reorganizing the way that Guild properties work
+       * for the Discord client. Thankfully, this seems to only affect the
+       * gateway "READY" event.
+      */
+      // properties: {},
     };
   },
 };

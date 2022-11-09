@@ -160,6 +160,17 @@ describe("api get requests", () => {
       && gatewayBot.data.shard,
     );
   });
+
+  describe("gifs", () => {
+    test("trending", async () => {
+      const trendingGifs = await getFromAPI("gifs/trending");
+
+      expect(
+        Array.isArray(trendingGifs.data.categories)
+      && Array.isArray(trendingGifs.data.gifs),
+      );
+    });
+  });
 });
 
 describe("api post requests", () => {
