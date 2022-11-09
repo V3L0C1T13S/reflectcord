@@ -59,8 +59,8 @@ function partition<T>(array: T[], isValid: Function) {
 }
 
 async function getMembers(
-  this: WebSocket,
   guild_id: string,
+  rvMembers: API.AllMemberResponse,
   range: LazyOperatorRange,
 ) {
   if (!Array.isArray(range) || range.length !== 2) throw new Error("invalid range");
@@ -70,9 +70,10 @@ async function getMembers(
   const discordGuildId = await toSnowflake(guild_id);
   const offlineItems: SyncItem[] = [];
 
-  const members = await this.rvAPI.get(`/servers/${guild_id as ""}/members`, {
-    exclude_offline: true,
-  });
+  const members = {
+    members: rvMembers.members.slice(range[0], range[1]),
+    users: rvMembers.users,
+  };
 
   type extendMemberContainer = MemberContainer & {
     user?: API.User | undefined | null,
@@ -85,7 +86,7 @@ async function getMembers(
 
       const discordMember = await Member.from_quark(member, user);
 
-      if (discordMember.roles.length < 1 && user?.online) discordMember.roles.push(discordGuildId);
+      discordMember.roles.push(discordGuildId);
 
       return {
         revolt: member,
@@ -103,7 +104,10 @@ async function getMembers(
     .unique((r) => r);
 
   memberRoles.push(
-    discordGuildId,
+    memberRoles.splice(
+      memberRoles.findIndex(((x) => x === discordGuildId)),
+      1,
+    )[0]!,
   );
 
   memberRoles.forEach((role) => {
@@ -150,8 +154,9 @@ async function getMembers(
         },
       } as SyncItem;
 
-      if (member.status?.status === "invisible") {
+      if (!member.user?.online) {
         offlineItems.push(item);
+        group.count--;
       } else items.push(item);
     });
     discordMembers = other_members;
@@ -176,6 +181,40 @@ async function getMembers(
   };
 }
 
+/**
+ * Handles getting members concurrently, splitting the load between each range.
+*/
+async function HandleGetMembers(this: WebSocket, guild_id: string, ranges: LazyOperatorRange[]) {
+  const members = await this.rvAPI.get(`/servers/${guild_id as ""}/members`, {
+    exclude_offline: true,
+  });
+
+  const server = await this.rvAPIWrapper.servers.fetch(guild_id);
+
+  members.members.sort((x, y) => {
+    const user = members.users.find((u) => x._id.user === u._id);
+    const otherUser = members.users.find((u) => y._id.user === u._id);
+
+    const isOnline = user?.online ?? false;
+    const otherOnline = otherUser?.online ?? false;
+
+    const roles = x.roles
+      ?.map((r) => server.revolt.roles?.[r]).filter((r) => r) as API.Role[] ?? [999];
+    const highestRank = roles.length > 0 ? Math.min(...roles.map((r) => r.rank ?? 999)) : 999;
+
+    return highestRank;
+  });
+
+  const member_count = members.members.length;
+
+  const ops = await Promise.all(ranges.map((x) => getMembers(guild_id, members, x)));
+
+  return {
+    ops,
+    member_count,
+  };
+}
+
 // FIXME: Partially implemented
 export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
   check.call(this, LazyRequest, data.d);
@@ -193,21 +232,24 @@ export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
   const ranges = channels![channel_id];
   if (!Array.isArray(ranges)) throw new Error("Not a valid Array");
 
-  const ops = await getMembers.call(this, rvServerId, [0, 99]);
-  const member_count = ops.members.length;
+  const memberResults = await HandleGetMembers.call(this, rvServerId, ranges);
+  const { member_count, ops } = memberResults;
 
-  const { groups } = ops;
+  const groups = ops
+    .map((x) => x.groups)
+    .flat()
+    .unique();
 
   return Send(this, {
     op: GatewayOpcodes.Dispatch,
     s: this.sequence++,
     t: "GUILD_MEMBER_LIST_UPDATE",
     d: {
-      ops: [{
-        items: ops.items,
+      ops: ops.map((x) => ({
+        items: x.items,
         op: "SYNC",
-        range: ops.range,
-      }],
+        range: x.range,
+      })),
       online_count: member_count - (groups.find((x) => x.id === "offline")?.count ?? 0),
       member_count,
       id: "everyone",
