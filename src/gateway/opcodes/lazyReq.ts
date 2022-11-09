@@ -202,7 +202,7 @@ async function HandleGetMembers(this: WebSocket, guild_id: string, ranges: LazyO
       ?.map((r) => server.revolt.roles?.[r]).filter((r) => r) as API.Role[] ?? [999];
     const highestRank = roles.length > 0 ? Math.min(...roles.map((r) => r.rank ?? 999)) : 999;
 
-    return highestRank;
+    return (Number(isOnline) - Number(otherOnline)) + highestRank;
   });
 
   const member_count = members.members.length;
