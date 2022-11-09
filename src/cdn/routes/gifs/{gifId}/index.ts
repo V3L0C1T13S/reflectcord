@@ -1,5 +1,9 @@
 import { Resource } from "express-automatic-routes";
 import Ffmpeg from "fluent-ffmpeg";
+import ffmpegPath from "ffmpeg-static";
+if (ffmpegPath) {
+  Ffmpeg.setFfmpegPath(ffmpegPath);
+}
 import {
   existsSync, mkdirSync, readFileSync, writeFileSync,
 } from "fs";
