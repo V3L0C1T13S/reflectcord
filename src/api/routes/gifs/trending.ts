@@ -18,7 +18,7 @@ export default (express: Application) => <Resource> {
 
         return {
           name: x,
-          src: gif ?? `http://${reflectcordCDNURL}/gifs/${popularGifs.first()?.file.fileName}`,
+          src: gif,
         };
       }),
       gifs: popularGifs.map((x) => {

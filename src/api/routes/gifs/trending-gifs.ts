@@ -7,7 +7,7 @@ export default (express: Application) => <Resource> {
   get: async (req, res) => {
     const gbClient = new GifboxClient();
 
-    const popularGifs = await gbClient.posts.popularPosts(10, 0);
+    const popularGifs = await gbClient.posts.popularPosts(100, 0);
 
     res.json(popularGifs.map((x) => {
       const gbSrc = `${gifBoxAPIUrl}/file/posts/${x.file.fileName}`;
