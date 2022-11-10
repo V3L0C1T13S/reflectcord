@@ -74,6 +74,28 @@ async function getMembers(
     exclude_offline: true,
   });
 
+  const server = this.rvAPIWrapper.servers.get(guild_id);
+
+  members.members.sort((x, y) => {
+    const extractRoles = (r: string) => server?.revolt.roles?.[r];
+
+    const userRoles = x.roles?.map(extractRoles);
+    const otherUserRoles = y.roles?.map(extractRoles);
+
+    const roleRanks = userRoles
+      ?.filter((r) => r?.hoist)
+      ?.map((r) => r?.rank!).filter((r) => r !== undefined) ?? [999];
+    const otherRoleRanks = otherUserRoles
+      ?.filter((r) => r?.hoist)
+      ?.map((r) => r?.rank!).filter((r) => r !== undefined) ?? [999];
+
+    const highestRank = Math.min(...roleRanks);
+    const otherHighest = Math.min(...otherRoleRanks);
+
+    // eslint-disable-next-line no-nested-ternary
+    return (highestRank < otherHighest ? 0 : highestRank > otherHighest ? -1 : 1);
+  });
+
   type extendMemberContainer = MemberContainer & {
     user?: API.User | undefined | null,
     status?: internalStatus | null,

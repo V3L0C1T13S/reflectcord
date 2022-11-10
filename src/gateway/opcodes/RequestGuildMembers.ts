@@ -51,7 +51,7 @@ export async function RequestGuildMembers(
 
   // FIXME: We probably shouldn't get every single member, or at least cache this for later.
   const members = await this.rvAPI.get(`/servers/${rvId as ""}/members`, {
-    exclude_offline: true,
+    exclude_offline: false,
   });
 
   members.members.splice(limit);
