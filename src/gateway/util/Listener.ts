@@ -7,7 +7,15 @@ import {
 import { API } from "revolt.js";
 import { APIWrapper, createAPI } from "../../common/rvapi";
 import {
-  Channel, Emoji, Guild, Member, PartialEmoji, Relationship, selfUser, User,
+  Channel,
+  Emoji,
+  Guild,
+  HandleChannelsAndCategories,
+  Member,
+  PartialEmoji,
+  Relationship,
+  selfUser,
+  User,
 } from "../../common/models";
 import { WebSocket } from "../Socket";
 import { Send } from "./send";
@@ -82,7 +90,7 @@ export async function startListener(this: WebSocket, token: string) {
 
               const guild = {
                 ...discordGuild,
-                channels: await Promise.all(rvChannels.map((x) => Channel.from_quark(x))),
+                channels: await HandleChannelsAndCategories(rvChannels, server.categories),
                 properties: discordGuild,
               };
 

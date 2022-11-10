@@ -1,7 +1,12 @@
-import { Channel as rvChannel } from "revolt-api";
+import { Category, Channel as rvChannel } from "revolt-api";
 import {
-  APIChannel, APIOverwrite, ChannelType as discordChannelType, OverwriteType,
+  APIChannel,
+  APIGuildCategoryChannel,
+  APIOverwrite,
+  ChannelType as discordChannelType,
+  OverwriteType,
 } from "discord.js";
+import { API } from "revolt.js";
 import { QuarkConversion } from "../QuarkConversion";
 import { toSnowflake } from "../util";
 import { User } from "./user";
@@ -12,6 +17,7 @@ export type ChannelATQ = {};
 export type ChannelAFQ = Partial<{
   categoryId: string | null | undefined,
   excludedUser: string | null | undefined,
+  allCategories: API.Category[] | null | undefined,
 }>;
 
 export const ChannelCreateType: QuarkConversion<"Text" | "Voice", discordChannelType> = {
@@ -89,6 +95,29 @@ export const ChannelType: QuarkConversion<rvChannel["channel_type"], discordChan
   },
 };
 
+export const GuildCategory: QuarkConversion<
+  Category,
+  APIGuildCategoryChannel,
+  ChannelATQ,
+  ChannelAFQ
+> = {
+  async to_quark(category) {
+    return {
+      title: category.name ?? "",
+      id: category.id,
+      channels: [],
+    };
+  },
+
+  async from_quark(category) {
+    return {
+      id: category.id,
+      name: category.title,
+      type: discordChannelType.GuildCategory,
+    };
+  },
+};
+
 export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, ChannelAFQ> = {
   async to_quark(channel) {
     const { id, type } = channel;
@@ -147,6 +176,10 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
   async from_quark(channel, extra) {
     const id = await toSnowflake(channel._id);
 
+    const categoryId = extra?.categoryId
+      ?? extra?.allCategories?.find((x) => x.channels.includes(channel._id))?.id
+      ?? null;
+
     return {
       bitrate: undefined,
       guild_id: await (() => {
@@ -194,7 +227,7 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
           })));
         }
 
-        return null;
+        return;
       })(),
       owner_id: await (() => {
         if (channel.channel_type === "Group") {
@@ -249,6 +282,22 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
         return discordOverrides;
       })(),
       topic: ("description" in channel) ? channel.description : null,
+      parent_id: categoryId,
     };
   },
 };
+
+export async function HandleChannelsAndCategories(
+  channels: rvChannel[],
+  categories?: Category[] | null,
+) {
+  const discordChannels = await Promise.all(channels
+    .map((x) => Channel.from_quark(x, {
+      allCategories: categories,
+    })));
+  const discordCategories = categories ? await Promise.all(categories
+    .map((x) => GuildCategory.from_quark(x)))
+    : [];
+
+  return [...discordChannels, ...discordCategories];
+}

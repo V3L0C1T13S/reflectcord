@@ -3,7 +3,7 @@ import { Application, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
 import { APIChannel } from "discord.js";
-import { Channel } from "../../../../common/models";
+import { Channel, HandleChannelsAndCategories } from "../../../../common/models";
 import { fromSnowflake } from "../../../../common/models/util";
 
 export default (express: Application) => <Resource> {
@@ -20,7 +20,6 @@ export default (express: Application) => <Resource> {
     const channels = await Promise.all(rvGuild.channels
       .map((channel) => api.get(`/channels/${channel}`))) as API.Channel[];
 
-    return res.json(await Promise.all(channels
-      .map((channel) => Channel.from_quark(channel))));
+    return res.json(await HandleChannelsAndCategories(channels, rvGuild.categories));
   },
 };
