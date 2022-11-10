@@ -34,4 +34,18 @@ export class ServerManager extends BaseManager<string, ServerContainer> {
       discord: await Guild.from_quark(res),
     });
   }
+
+  /**
+   * Leave or delete a server
+  */
+  async leave(id: string) {
+    return this.rvAPI.delete(`/servers/${id as ""}`);
+  }
+
+  /**
+   * Alias for leave
+  */
+  deleteServer(id: string) {
+    return this.leave(id);
+  }
 }

@@ -19,11 +19,11 @@ export default (express: Application) => <Resource> {
       if (!unread.mentions) return;
 
       await Promise.all(unread.mentions.map(async (mention) => {
-        const message = await res.rvAPI.get(`/channels/${unread._id.channel}/messages/${mention}`)
+        const message = await res.rvAPI.get(`/channels/${unread._id.channel as ""}/messages/${mention as ""}`)
           .catch(() => {});
         if (!message) return;
 
-        rvMessages.push(message as API.Message);
+        rvMessages.push(message);
       }));
     }));
 
