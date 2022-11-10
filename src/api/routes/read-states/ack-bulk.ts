@@ -1,5 +1,4 @@
-/* eslint-disable no-await-in-loop */
-/* eslint-disable no-restricted-syntax */
+import { Request } from "express";
 import { Resource } from "express-automatic-routes";
 import { fromSnowflake } from "../../../common/models/util";
 
@@ -8,15 +7,21 @@ interface AckRequest {
   message_id: string,
 }
 
-export default () => <Resource> {
-  post: async (req, res) => {
-    const requests = req.body.read_states as AckRequest[];
+interface AckBulkBody {
+  read_states: AckRequest[],
+}
 
-    for (const ackRequest of requests) {
-      const rvChannel = await fromSnowflake(ackRequest.channel_id);
-      const rvMsg = await fromSnowflake(ackRequest.message_id);
-      await res.rvAPI.put(`/channels/${rvChannel as ""}/ack/${rvMsg as ""}`);
-    }
+export default () => <Resource> {
+  post: async (req: Request<{}, {}, AckBulkBody>, res) => {
+    const requests = req.body.read_states;
+
+    // FIXME: We may need local rate limiting here
+    await Promise.all(requests
+      .map(async (x) => {
+        const rvChannel = await fromSnowflake(x.channel_id);
+        const rvMsg = await fromSnowflake(x.message_id);
+        await res.rvAPI.put(`/channels/${rvChannel as ""}/ack/${rvMsg as ""}`);
+      }));
 
     res.sendStatus(204);
   },
