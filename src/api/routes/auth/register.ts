@@ -1,16 +1,32 @@
 /* eslint-disable camelcase */
-import { Application, Response } from "express";
+import { Application, Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { ResponseLogin } from "../../../common/models";
 import { loginToRevolt } from "./login";
+import { RegisterSchema } from "../../../common/sparkle";
+import { FieldErrors } from "../../../common/utils/FieldError";
 
 export default (express: Application) => <Resource> {
-  post: async (req, res) => {
+  post: async (req: Request<{}, {}, RegisterSchema>, res) => {
     const api = res.rvAPI;
 
+    const { body } = req;
+
+    if (!body.email) {
+      throw FieldErrors({
+        email: { code: "BASE_TYPE_REQUIRED", message: "This field is required" },
+      });
+    }
+
+    if (!body.password) {
+      throw FieldErrors({
+        password: { code: "BASE_TYPE_REQUIRED", message: "This field is required" },
+      });
+    }
+
     const revoltResponse = await api.post("/auth/account/create", {
-      email: req.body.email,
-      password: req.body.password,
+      email: body.email,
+      password: body.password,
     }).catch(() => {
       res.status(500).json({
         code: 500,
@@ -19,7 +35,10 @@ export default (express: Application) => <Resource> {
     });
     if (!revoltResponse) return;
 
-    const loginRes = await loginToRevolt(api, req);
+    const loginRes = await loginToRevolt(api, {
+      login: body.email,
+      password: body.password,
+    });
 
     res.json(await ResponseLogin.from_quark(loginRes));
   },

@@ -7,3 +7,4 @@ export * from "./Discovery";
 export * from "./AppDirectory";
 export * from "./Guilds";
 export * from "./Gateway";
+export * from "./auth";

@@ -3,6 +3,7 @@ import {
   DataLogin as RevoltDataLogin,
 } from "revolt-api";
 import { QuarkConversion } from "../../QuarkConversion";
+import { LoginSchema } from "../../../sparkle";
 
 export type APILoginResponse = {
   token: string | null,
@@ -10,13 +11,6 @@ export type APILoginResponse = {
   ticket?: string | undefined, // MFA ticket
   sms?: boolean | undefined,
   mfa?: boolean | undefined,
-}
-
-export type APILoginSchema = {
-  /** Email, Phone number */
-  login: string,
-  password: string,
-  captcha_key?: string,
 }
 
 export const ResponseLogin: QuarkConversion<RevoltLoginResponse, APILoginResponse> = {
@@ -52,7 +46,7 @@ export const ResponseLogin: QuarkConversion<RevoltLoginResponse, APILoginRespons
   },
 };
 
-export const DataLogin: QuarkConversion<RevoltDataLogin, APILoginSchema> = {
+export const DataLogin: QuarkConversion<RevoltDataLogin, LoginSchema> = {
   async to_quark(data) {
     return {
       email: data.login,

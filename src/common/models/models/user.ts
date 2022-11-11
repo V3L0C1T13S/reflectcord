@@ -165,9 +165,27 @@ export const selfUser: QuarkConversion<revoltUserInfo, APIUser> = {
   },
 };
 
+export interface activityTimestamp {
+  start?: string,
+}
+
+export interface activityAssets {
+  large_text?: string,
+  small_text?: string,
+}
+
+export interface activityMetadata {
+  button_urls?: string[],
+}
+
 export type internalActivity = ActivitiesOptions & {
   state?: string,
+  details?: string,
   type?: ActivityType,
+  timestamps?: activityTimestamp,
+  assets?: activityAssets,
+  buttons?: string[],
+  metadata?: activityMetadata,
 }
 
 export type internalStatus = PresenceData & {
