@@ -9,7 +9,7 @@ import { GuildDiscoveryRequest } from "../../../common/sparkle";
 import { genLoadId } from "../../../common/utils";
 
 /**
- * FIXME: This seems to be used in older clients but discoverable-guilds
+ * This seems to be used in older clients but discoverable-guilds
  * is favored by newer (november 8th and above) clients.
 */
 export default () => <Resource> {
