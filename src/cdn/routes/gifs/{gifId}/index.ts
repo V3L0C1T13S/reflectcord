@@ -1,9 +1,6 @@
 import { Resource } from "express-automatic-routes";
 import Ffmpeg from "fluent-ffmpeg";
 import ffmpegPath from "ffmpeg-static";
-if (ffmpegPath) {
-  Ffmpeg.setFfmpegPath(ffmpegPath);
-}
 import {
   existsSync, mkdirSync, readFileSync, writeFileSync,
 } from "fs";
@@ -13,6 +10,10 @@ import { join } from "path";
 import { Logger } from "../../../../common/utils";
 import { gifBoxAPIUrl } from "../../../../common/constants";
 import { getMimeType, imageCacheDir } from "../../../util";
+
+if (ffmpegPath) {
+  Ffmpeg.setFfmpegPath(ffmpegPath);
+}
 
 const webpDir = join(imageCacheDir, "gifbox");
 const gifDir = join(webpDir, "__gifscache");

@@ -217,9 +217,7 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
       })(),
       recipients: await (() => {
         if (channel.channel_type === "DirectMessage" || channel.channel_type === "Group") {
-          const excludedRecipients = channel.channel_type === "DirectMessage"
-            ? channel.recipients.filter((x) => x !== extra?.excludedUser)
-            : channel.recipients;
+          const excludedRecipients = channel.recipients.filter((x) => x !== extra?.excludedUser);
 
           return Promise.all(excludedRecipients.map((x) => User.from_quark({
             _id: x,
