@@ -2,22 +2,24 @@
 import { Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
+import { RESTPatchAPIGuildMemberJSONBody } from "discord.js";
 import { Member } from "../../../../../../common/models";
 import { fromSnowflake } from "../../../../../../common/models/util";
 import { HTTPError } from "../../../../../../common/utils";
 
 export async function handleMemberEdit(req: Request, res: Response, fullMember: boolean) {
   const { guild_id, memberId } = req.params;
-  const { nick } = req.body;
-
   if (!guild_id || !memberId) throw new HTTPError("Invalid params");
+
+  const { nick, roles } = req.body as RESTPatchAPIGuildMemberJSONBody;
 
   const serverId = await fromSnowflake(guild_id);
   const rvMemberId = await fromSnowflake(memberId);
 
-  const member = await res.rvAPI.patch(`/servers/${serverId}/members/${rvMemberId}`, {
+  const member = await res.rvAPI.patch(`/servers/${serverId as ""}/members/${rvMemberId as ""}`, {
     nickname: nick ?? null,
-  }) as API.Member;
+    roles: roles ? await Promise.all(roles.map((x) => fromSnowflake(x))) : null,
+  });
 
   if (fullMember) res.json(await Member.from_quark(member));
   else res.sendStatus(200);

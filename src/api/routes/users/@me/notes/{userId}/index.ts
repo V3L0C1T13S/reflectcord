@@ -42,14 +42,23 @@ export default (express: Application) => <Resource> {
   put: async (req: Request<any, any, noteRequest>, res: Response<noteResponse>) => {
     const { userId } = req.params;
     const { note } = req.body;
-    if (!userId || !note) throw new HTTPError("Invalid request", 422);
+    if (!userId) throw new HTTPError("Invalid request", 422);
 
     const ulid = await fromSnowflake(userId);
     if (!ulid) throw new HTTPError("User does not exist.");
 
     const selfUser = await res.rvAPI.get("/auth/account/");
-
     const user = await fetchUser(res.rvAPI, ulid);
+
+    if (!note) {
+      await notes.deleteOne({ owner_id: selfUser._id, "note.user_id": user.id });
+
+      res.json({
+        user_id: user.id,
+        note_user_id: await toSnowflake(selfUser._id),
+        note: "",
+      });
+    }
 
     const newNote = await notes.findOneAndUpdate(
       { owner_id: selfUser._id, "note.user_id": user.id },
@@ -64,7 +73,7 @@ export default (express: Application) => <Resource> {
         },
       },
 
-      { upsert: true },
+      { upsert: true, returnDocument: "after" },
     );
 
     if (!newNote.value) throw new HTTPError("Note failed to update", 500);

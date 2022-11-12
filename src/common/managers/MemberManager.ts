@@ -22,4 +22,12 @@ export class MemberManager extends BaseManager<string, MemberContainer> {
 
     return data;
   }
+
+  async fetchMembers(serverId: string, excludeOffline = true) {
+    const members = await this.rvAPI.get(`/servers/${serverId as ""}/members`, {
+      exclude_offline: excludeOffline,
+    });
+
+    return members;
+  }
 }
