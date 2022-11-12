@@ -6,5 +6,5 @@ export enum VoiceOPCodes {
   Ready = 3,
   Heartbeat = 4,
   HeartbeatAck = 5,
-  info = 6,
+  Info = 6,
 }
