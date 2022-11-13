@@ -2,6 +2,7 @@
 import { Application, Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
+import { decodeTime } from "ulid";
 import { HTTPError } from "../../../../common/utils";
 import { fetchUser } from ".";
 import { UserProfile } from "../../../../common/models";
@@ -40,6 +41,7 @@ export default (express: Application) => <Resource> {
       connected_accounts: [],
       user,
       user_profile: await UserProfile.from_quark(rvProfile),
+      premium_since: new Date(decodeTime(rvId)).toISOString(),
     });
   },
 

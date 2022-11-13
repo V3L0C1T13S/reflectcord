@@ -15,6 +15,7 @@ import { Badges } from "../../rvapi";
 import { UserRelationshipType } from "../../sparkle";
 import { QuarkConversion } from "../QuarkConversion";
 import { toSnowflake } from "../util";
+import { priviligedUsers } from "../../constants/admin";
 
 export type APIUserProfile = {
   bio: string | null,
@@ -37,15 +38,23 @@ export type revoltUserInfo = {
   mfaInfo?: MFAInfo | null;
 }
 
-export const PublicFlags: QuarkConversion<Badges, UserFlags> = {
+export const PublicFlags: QuarkConversion<
+  Badges,
+  UserFlags,
+  {},
+  { id: string }
+> = {
   async to_quark(flags) {
     return 0;
   },
 
-  async from_quark(flags) {
+  async from_quark(flags, extra) {
     const bf = new UserFlagsBitField();
 
-    if (flags & Badges.Developer) bf.add("Staff");
+    if (
+      flags & Badges.Developer
+      || (extra?.id && priviligedUsers.includes(extra.id))
+    ) bf.add("Staff");
     if (flags & Badges.ResponsibleDisclosure) bf.add("BugHunterLevel2");
     if (flags & Badges.Supporter) bf.add("PremiumEarlySupporter");
     if (flags & Badges.PlatformModeration) bf.add("CertifiedModerator");
@@ -82,7 +91,9 @@ export const User: QuarkConversion<RevoltUser, APIUser, UserATQ, UserAFQ> = {
   },
 
   async from_quark(user) {
-    const flags = user.badges ? await PublicFlags.from_quark(user.badges) : 0;
+    const flags = await PublicFlags.from_quark(user.badges ?? 0, {
+      id: user._id,
+    });
 
     return {
       id: await toSnowflake(user._id),

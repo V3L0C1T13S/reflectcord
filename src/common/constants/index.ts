@@ -5,6 +5,7 @@ dotenv.config();
 
 export * from "./tests";
 export * from "./features";
+export * from "./admin";
 
 export const baseURL = "http://localhost:3000";
 

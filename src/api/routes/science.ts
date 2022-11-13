@@ -1,5 +1,6 @@
 import { Application } from "express";
 import { Resource } from "express-automatic-routes";
+import { enableTracking } from "../../common/constants";
 
 export type TrackingRequest = {
   headers: {
@@ -9,8 +10,10 @@ export type TrackingRequest = {
 
 export default (express: Application) => <Resource> {
   post: (req, res) => {
+    if (!enableTracking) return res.sendStatus(204);
+
     const { events } = req.body;
 
-    res.sendStatus(204);
+    return res.sendStatus(204);
   },
 };
