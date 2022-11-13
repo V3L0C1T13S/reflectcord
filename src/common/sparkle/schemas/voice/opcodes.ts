@@ -1,10 +1,17 @@
 // eslint-disable-next-line no-shadow
 export enum VoiceOPCodes {
-  Hello = 0,
-  Identify = 1,
-  Resume = 2,
-  Ready = 3,
-  Heartbeat = 4,
-  HeartbeatAck = 5,
-  Info = 6,
+  // CLIENT
+  Identify = 0,
+  SelectProtocol = 1,
+  Heartbeat = 3,
+  Resume = 7,
+  // SERVER
+  Ready = 2,
+  SessionDescription = 4,
+  HeartbeatAck = 6,
+  Hello = 8,
+  Resumed = 9,
+  ClientDisconnect = 13,
+  // BOTH
+  Speaking = 5,
 }
