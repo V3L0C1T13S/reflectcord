@@ -1,7 +1,9 @@
+import { Tuple } from "../../../utils/check";
 /* eslint-disable no-redeclare */
 export const ReqGuildMembersSchema = {
-  guild_id: [String],
-  $user_ids: [String],
+  guild_id: new Tuple([String], String),
+  // According to documentation, bots can also send a string to find a single user
+  $user_ids: new Tuple([String], String),
   $query: String,
   $limit: Number,
   $presences: Boolean,
@@ -10,7 +12,7 @@ export const ReqGuildMembersSchema = {
 
 export interface ReqGuildMembersSchema {
   guild_id: string[] | string,
-  user_ids?: string[],
+  user_ids?: string[] | string,
   query?: string,
   limit?: number,
   presences?: boolean,
