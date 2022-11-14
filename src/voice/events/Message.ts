@@ -9,7 +9,7 @@ export async function onMessage(this: WebSocket, buffer: Buffer) {
   const OPCodeHandler = voiceOPCodeHandlers[data.op];
   if (!OPCodeHandler) {
     // FIXME: Close connection if all opcodes are implemented
-    console.error(`Unknown opcode ${data.op}`);
+    Logger.error(`Unknown opcode ${data.op}`);
     return;
   }
 
@@ -17,6 +17,6 @@ export async function onMessage(this: WebSocket, buffer: Buffer) {
     const res = await OPCodeHandler.call(this, data);
     return res;
   } catch (e) {
-    console.error(e);
+    Logger.error(`RTC: ${e}`);
   }
 }

@@ -1,24 +1,40 @@
 /* eslint-disable no-param-reassign */
 import { IncomingMessage } from "http";
 import ws from "ws";
+import { GatewayCloseCodes } from "discord.js";
 import { Send, setHeartbeat, WebSocket } from "../util";
 import { onMessage } from "./Message";
-import { VoiceOPCodes } from "../../common/sparkle/schemas/voice/opcodes";
 import { Logger } from "../../common/utils";
+import { VoiceOPCodes } from "../../common/sparkle";
+import { onClose } from "./Close";
 
 export async function onConnect(this: ws.Server, socket: WebSocket, request: IncomingMessage) {
   try {
-  // @ts-ignore
+    // @ts-ignore
+    socket.on("close", onClose);
+    // @ts-ignore
     socket.on("message", onMessage);
+
+    socket.encoding = "json";
+    socket.version = 4;
+    if (socket.version < 3) return socket.close(GatewayCloseCodes.UnknownError, "invalid version");
 
     setHeartbeat(socket);
 
     socket.readyTimeout = setTimeout(
-      () => socket.close(4009),
+      () => socket.close(GatewayCloseCodes.SessionTimedOut),
       1000 * 30,
     );
+
+    await Send(socket, {
+      op: VoiceOPCodes.Hello,
+      d: {
+        v: 7,
+        heartbeat_interval: 1000 * 30,
+      },
+    });
   } catch (e) {
     Logger.error(e);
-    return socket.close(4000);
+    return socket.close(GatewayCloseCodes.UnknownError);
   }
 }

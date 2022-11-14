@@ -5,7 +5,7 @@ import {
   GatewayDispatchEvents,
   GatewayOpcodes,
 } from "discord.js";
-import { API } from "revolt.js";
+import { DbManager } from "../../common/db";
 import { fromSnowflake, toSnowflake } from "../../common/models/util";
 import { VoiceStateSchema } from "../../common/sparkle";
 import { WebSocket } from "../Socket";
@@ -29,6 +29,10 @@ interface VoiceStateObject {
   request_to_speak_timestamp: string | null | undefined,
 }
 
+// FIXME: Implement with RPC instead
+const voiceStates = DbManager.client.db("reflectcord")
+  .collection("voiceStates");
+
 export async function VSUpdate(this: WebSocket, data: Payload) {
   check.call(this, VoiceStateSchema, data.d);
   const {
@@ -43,22 +47,28 @@ export async function VSUpdate(this: WebSocket, data: Payload) {
     channel_id,
   };
 
+  const state = await voiceStates.findOneAndUpdate({
+    user_id: this.user_id,
+    session_id: this.session_id,
+  }, {
+    $setOnInsert: {
+      user_id: this.user_id,
+      session_id: this.session_id,
+    },
+    $set: {
+      self_mute,
+      self_deaf,
+      self_video,
+      guild_id,
+      channel_id,
+    },
+  }, { upsert: true });
+
   if (channel_id) {
     const rvChannelId = await fromSnowflake(channel_id);
     const voiceData = await this.rvAPI.post(`/channels/${rvChannelId}/join_call`) as {
       token: string;
     };
-
-    await Send(this, {
-      op: GatewayOpcodes.Dispatch,
-      t: GatewayDispatchEvents.VoiceServerUpdate,
-      s: this.sequence++,
-      d: {
-        token: voiceData.token,
-        guild_id,
-        endpoint: "127.0.0.1:3015",
-      },
-    });
 
     const user_id = await this.rvAPIWrapper.users.getSelfId();
 
@@ -88,6 +98,17 @@ export async function VSUpdate(this: WebSocket, data: Payload) {
       t: GatewayDispatchEvents.VoiceStateUpdate,
       s: this.sequence++,
       d: stateObject,
+    });
+
+    await Send(this, {
+      op: GatewayOpcodes.Dispatch,
+      t: GatewayDispatchEvents.VoiceServerUpdate,
+      s: this.sequence++,
+      d: {
+        token: this.rvClient.session,
+        guild_id,
+        endpoint: "127.0.0.1:3015/voice",
+      },
     });
   }
 }

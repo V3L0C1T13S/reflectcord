@@ -1,17 +1,45 @@
-import { Send, WebSocket } from "../util";
+import SemanticSDP from "semantic-sdp";
+import {
+  endpoint, PublicIP, Send, WebSocket,
+} from "../util";
 import { VoiceOPCodes } from "../../common/sparkle";
 
-export async function selectProtocol(this: WebSocket, data: any) {
-  // FIXME: What the hell is this?
-  await Send(this, {
-    op: 15,
-    d: {
-      any: 100,
-    },
-  });
+export async function selectProtocol(this: WebSocket, payload: any) {
+  const data = payload.d;
+
+  const offer = SemanticSDP.SDPInfo.parse(`m=audio\n${data.sdp!}`);
+  this.client.sdp!.setICE(offer.getICE());
+  this.client.sdp!.setDTLS(offer.getDTLS());
+
+  const transport = endpoint.createTransport(this.client.sdp!);
+  this.client.transport = transport;
+  transport.setRemoteProperties(this.client.sdp!);
+  transport.setLocalProperties(this.client.sdp!);
+
+  const dtls = transport.getLocalDTLSInfo();
+  const ice = transport.getLocalICEInfo();
+  const port = endpoint.getLocalPort();
+  const fingerprint = `${dtls.getHash()} ${dtls.getFingerprint()}`;
+  const candidates = transport.getLocalCandidates();
+  const candidate = candidates[0];
+
+  const answer = `m=audio ${port} ICE/SDP
+a=fingerprint:${fingerprint}
+c=IN IP4 ${PublicIP}
+a=rtcp:${port}
+a=ice-ufrag:${ice.getUfrag()}
+a=ice-pwd:${ice.getPwd()}
+a=fingerprint:${fingerprint}
+a=candidate:1 1 ${candidate?.getTransport()} ${candidate?.getFoundation()} ${candidate?.getAddress()} ${candidate?.getPort()} typ host
+`;
 
   await Send(this, {
     op: VoiceOPCodes.SessionDescription,
-    d: {},
+    d: {
+      video_codec: "H264",
+      sdp: answer,
+      media_session_id: this.sessionId,
+      audio_codec: "opus",
+    },
   });
 }

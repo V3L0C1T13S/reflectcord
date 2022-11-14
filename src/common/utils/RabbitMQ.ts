@@ -3,10 +3,11 @@ import { Logger } from "./Logger";
 import { userStartTyping } from "../events/user";
 
 export const RabbitMQ: {
-  connection: Connection | null; channel: Channel | null; init: () => Promise<void>
+  connection: Connection | null; channel: Channel | null; server: any, init: () => Promise<void>
 } = {
   connection: null,
   channel: null,
+  server: null,
   async init() {
     const host = "amqp://guest:guest@localhost:5672/";
     this.connection = await connect(host, {

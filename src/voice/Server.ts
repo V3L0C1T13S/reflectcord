@@ -6,20 +6,26 @@ import { onConnect } from "./events";
 export class ReflectcordVoice {
   ws: WS.Server;
   port = 3015;
-  server = http.createServer((req, res) => {
-    res.writeHead(200).end("Online");
-  });
+  server: http.Server;
 
   constructor() {
+    this.server = http.createServer((req, res) => {
+      res.writeHead(200).end("Online");
+    });
+
     this.server.on("upgrade", (request, socket, head) => {
+      if (!request.url?.includes("voice")) return;
       // eslint-disable-next-line no-shadow
       this.ws.handleUpgrade(request, socket, head, (socket) => {
+        // @ts-ignore
+        // eslint-disable-next-line no-param-reassign
+        socket.server = this;
         this.ws.emit("connection", socket, request);
       });
     });
 
     this.ws = new WS.Server({
-      maxPayload: 4096,
+      maxPayload: 1024 * 1024 * 100,
       noServer: true,
     });
 

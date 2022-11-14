@@ -12,6 +12,10 @@ export enum VoiceOPCodes {
   Hello = 8,
   Resumed = 9,
   ClientDisconnect = 13,
+  MediaSinkWants = 15,
+  ChannelOptionsUpdate = 17,
   // BOTH
   Speaking = 5,
+  Video = 12,
+  VoiceBackendVersion = 16,
 }
