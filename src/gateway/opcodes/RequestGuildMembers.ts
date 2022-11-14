@@ -6,6 +6,7 @@ import {
   GatewayRequestGuildMembersData,
   APIGuildMember,
 } from "discord.js";
+import { compareTwoStrings } from "string-similarity";
 import { Payload, Send } from "../util";
 import { fromSnowflake } from "../../common/models/util";
 import { WebSocket } from "../Socket";
@@ -77,6 +78,15 @@ export async function RequestGuildMembers(
     }
 
     body.not_found = notFound;
+  } else {
+    const { query } = reqData;
+    // Empty string means get all members
+    if (query !== "") {
+      const membersQuery = discordMembers
+        .filter((x) => x.user && (compareTwoStrings(x.user.username, query) >= 0.8));
+
+      body.members = membersQuery;
+    }
   }
 
   if (presences) {
