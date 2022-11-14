@@ -34,7 +34,7 @@ export async function onConnect(this: ws.Server, socket: WebSocket, request: Inc
       },
     });
   } catch (e) {
-    Logger.error(e);
+    Logger.error(`rtc: ${e}`);
     return socket.close(GatewayCloseCodes.UnknownError);
   }
 }

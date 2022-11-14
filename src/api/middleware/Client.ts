@@ -36,6 +36,16 @@ function applyEnv(html: string): string {
   return html;
 }
 
+function applyInlinePlugins(html: string): string {
+  // inline plugins
+  const files = fs.readdirSync(path.join(AssetsPath, "inline-plugins"));
+  let plugins = "";
+  files.forEach((x) => {
+    if (x.endsWith(".js")) plugins += `<script src='/assets/inline-plugins/${x}'></script>\n\n`;
+  });
+  return html.replaceAll("<!-- inline plugin marker -->", plugins);
+}
+
 function stripHeaders(headers: Headers): Headers {
   [
     "content-length",
@@ -115,6 +125,7 @@ export function Client(app: Application) {
 
   let html = fs.readFileSync(path.join(AssetsPath, "index.html"), { encoding: "utf8" });
   html = applyEnv(html);
+  html = applyInlinePlugins(html);
 
   let newAssetCache: Map<string, AssetCacheItem> = new Map();
   let assetCacheDir = path.join(AssetsPath, "cache");
