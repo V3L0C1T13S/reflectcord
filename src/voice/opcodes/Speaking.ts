@@ -1,7 +1,8 @@
 import { getClients, Send, WebSocket } from "../util";
-import { VoiceOPCodes } from "../../common/sparkle/schemas/voice/opcodes";
+import { VoiceOPCodes } from "../../common/sparkle";
+import { Payload } from "../../gateway/util";
 
-export async function onSpeaking(this: WebSocket, data: any) {
+export async function onSpeaking(this: WebSocket, data: Payload) {
   if (!this.client) return;
 
   getClients(this.client.channel_id).forEach((client) => {

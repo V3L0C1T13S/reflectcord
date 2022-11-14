@@ -1,7 +1,7 @@
 /* eslint-disable no-redeclare */
 export const ReqGuildMembersSchema = {
-  guild_id: [],
-  $user_ids: [],
+  guild_id: [String],
+  $user_ids: [String],
   $query: String,
   $limit: Number,
   $presences: Boolean,
@@ -14,5 +14,5 @@ export interface ReqGuildMembersSchema {
   query?: string,
   limit?: number,
   presences?: boolean,
-  nonce?: string,
+  nonce?: string | undefined,
 }

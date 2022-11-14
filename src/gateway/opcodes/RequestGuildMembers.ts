@@ -10,7 +10,6 @@ import { Payload, Send } from "../util";
 import { fromSnowflake } from "../../common/models/util";
 import { WebSocket } from "../Socket";
 import { Member } from "../../common/models";
-import { gatewayEnableOp8 } from "../../common/constants";
 import { check } from "./instanceOf";
 import { ReqGuildMembersSchema } from "../../common/sparkle";
 
@@ -29,9 +28,8 @@ export async function RequestGuildMembers(
   this: WebSocket,
   data: Payload<GatewayRequestGuildMembersData>,
 ) {
-  if (!gatewayEnableOp8) return;
   // FIXME: Doesn't work 100% of the time
-  // check.call(this, ReqGuildMembersSchema, data.d);
+  check.call(this, ReqGuildMembersSchema, data.d);
 
   const reqData = data.d!;
   const {

@@ -15,6 +15,6 @@ export const LazyRequest = {
   $channels: Object,
   $typing: Boolean,
   $threads: Boolean,
-  $members: [] as any[],
-  $thread_member_lists: [] as any[],
+  $members: [],
+  $thread_member_lists: [],
 };

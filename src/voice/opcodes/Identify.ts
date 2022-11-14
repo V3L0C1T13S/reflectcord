@@ -9,12 +9,13 @@ import { VoiceOPCodes } from "../../common/sparkle";
 import defaultsdp from "../util/sdp.json";
 import { APIWrapper, createAPI } from "../../common/rvapi";
 import { DbManager } from "../../common/db";
+import { Payload } from "../../gateway/util";
 
 // FIXME: Implement with RPC instead
 const voiceStates = DbManager.client.db("reflectcord")
   .collection("voiceStates");
 
-export async function onIdentify(this: WebSocket, data: any) {
+export async function onIdentify(this: WebSocket, data: Payload) {
   clearTimeout(this.readyTimeout);
   Logger.log("Identifying...");
 
