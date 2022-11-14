@@ -289,6 +289,21 @@ export async function startListener(this: WebSocket, token: string) {
           });
           break;
         }
+        case "MessageAppend": {
+          const msg = await this.rvAPIWrapper.messages.getMessage(data.channel, data.id);
+          const channel = await this.rvAPIWrapper.channels.fetch(data.channel);
+
+          await Send(this, {
+            op: GatewayOpcodes.Dispatch,
+            t: GatewayDispatchEvents.MessageUpdate,
+            s: this.sequence++,
+            d: {
+              ...msg.discord,
+              guild_id: channel?.discord && ("guild_id" in channel.discord) ? channel?.discord.guild_id : null,
+            },
+          });
+          break;
+        }
         case "BulkMessageDelete": {
           await Send(this, {
             op: GatewayOpcodes.Dispatch,
