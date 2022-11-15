@@ -3,34 +3,47 @@ import { API, Permission } from "revolt.js";
 import Long from "long";
 import { QuarkConversion } from "../QuarkConversion";
 
-export const PermsMap: Record<number, keyof typeof PermissionFlagsBits> = {
-  [Permission.AssignRoles]: "ManageRoles",
-  [Permission.BanMembers]: "BanMembers",
-  [Permission.ChangeNickname]: "ChangeNickname",
-  [Permission.Connect]: "Connect",
-  [Permission.DeafenMembers]: "DeafenMembers",
-  [Permission.GrantAllSafe]: "Administrator",
-  [Permission.InviteOthers]: "CreateInstantInvite",
-  [Permission.KickMembers]: "KickMembers",
-  [Permission.ManageChannel]: "ManageChannels",
-  [Permission.ManageCustomisation]: "ManageEmojisAndStickers",
-  [Permission.ManageMessages]: "ManageMessages",
-  [Permission.ManageNicknames]: "ManageNicknames",
-  [Permission.ManageRole]: "ManageRoles",
-  [Permission.ManageServer]: "ManageGuild",
-  [Permission.ManageWebhooks]: "ManageWebhooks",
-  [Permission.MoveMembers]: "MoveMembers",
-  [Permission.MuteMembers]: "MuteMembers",
-  [Permission.React]: "AddReactions",
-  [Permission.ReadMessageHistory]: "ReadMessageHistory",
-  [Permission.SendEmbeds]: "EmbedLinks",
-  [Permission.SendMessage]: "SendMessages",
-  [Permission.Speak]: "Speak",
-  [Permission.TimeoutMembers]: "ModerateMembers",
-  [Permission.UploadFiles]: "AttachFiles",
-  [Permission.Video]: "UseVAD",
-  [Permission.ViewChannel]: "ViewChannel",
+type ValueOf<T> = T[keyof T];
+
+// eslint-disable-next-line no-use-before-define, max-len
+const allBigintToString = <T extends Record<string | number | symbol, S>, S extends bigint>(obj: T) => {
+  const res = {} as any;
+  Object.entries(obj).forEach(([key, value]) => {
+    res[`${value}`] = key;
+  });
+  return res as { [K in keyof T as string]: number };
 };
+
+export const PermsMap: Record<number, ValueOf<typeof PermissionFlagsBits>> = {
+  [Permission.AssignRoles]: PermissionFlagsBits.ManageRoles,
+  [Permission.BanMembers]: PermissionFlagsBits.BanMembers,
+  [Permission.ChangeNickname]: PermissionFlagsBits.ChangeNickname,
+  [Permission.Connect]: PermissionFlagsBits.Connect,
+  [Permission.DeafenMembers]: PermissionFlagsBits.DeafenMembers,
+  [Permission.GrantAllSafe]: PermissionFlagsBits.Administrator,
+  [Permission.InviteOthers]: PermissionFlagsBits.CreateInstantInvite,
+  [Permission.KickMembers]: PermissionFlagsBits.KickMembers,
+  [Permission.ManageChannel]: PermissionFlagsBits.ManageChannels,
+  [Permission.ManageCustomisation]: PermissionFlagsBits.ManageEmojisAndStickers,
+  [Permission.ManageMessages]: PermissionFlagsBits.ManageMessages,
+  [Permission.ManageNicknames]: PermissionFlagsBits.ManageNicknames,
+  [Permission.ManageRole]: PermissionFlagsBits.ManageRoles,
+  [Permission.ManageServer]: PermissionFlagsBits.ManageGuild,
+  [Permission.ManageWebhooks]: PermissionFlagsBits.ManageWebhooks,
+  [Permission.MoveMembers]: PermissionFlagsBits.MoveMembers,
+  [Permission.MuteMembers]: PermissionFlagsBits.MuteMembers,
+  [Permission.React]: PermissionFlagsBits.AddReactions,
+  [Permission.ReadMessageHistory]: PermissionFlagsBits.ReadMessageHistory,
+  [Permission.SendEmbeds]: PermissionFlagsBits.EmbedLinks,
+  [Permission.SendMessage]: PermissionFlagsBits.SendMessages,
+  [Permission.Speak]: PermissionFlagsBits.Speak,
+  [Permission.TimeoutMembers]: PermissionFlagsBits.ModerateMembers,
+  [Permission.UploadFiles]: PermissionFlagsBits.AttachFiles,
+  [Permission.Video]: PermissionFlagsBits.UseVAD,
+  [Permission.ViewChannel]: PermissionFlagsBits.ViewChannel,
+};
+
+export const DiscordPermsMap = allBigintToString(PermsMap);
 
 export type rvPermission = {
   /** Allow */

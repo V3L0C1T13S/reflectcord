@@ -46,17 +46,17 @@ export async function Connection(this: ws.Server, socket: WebSocket, request: In
 
     setHeartbeat(socket);
 
+    socket.readyTimeout = setTimeout(
+      () => socket.close(GatewayCloseCodes.SessionTimedOut),
+      1000 * 30,
+    );
+
     await Send(socket, {
       op: GatewayOpcodes.Hello,
       d: {
         heartbeat_interval: 1000 * 30,
       },
     });
-
-    socket.readyTimeout = setTimeout(
-      () => socket.close(GatewayCloseCodes.SessionTimedOut),
-      1000 * 30,
-    );
   } catch (e) {
     Logger.error(e);
     return socket.close(GatewayCloseCodes.UnknownError);

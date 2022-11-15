@@ -15,6 +15,7 @@ import {
   PartialEmoji,
   Relationship,
   selfUser,
+  Status,
   User,
 } from "../../common/models";
 import { WebSocket } from "../Socket";
@@ -121,6 +122,24 @@ export async function startListener(this: WebSocket, token: string) {
               email: "fixme@gmail.com",
             },
             mfaInfo,
+          });
+
+          setImmediate(async () => {
+            const status = await Status.from_quark(currentUser.status);
+            Send(this, {
+              op: GatewayOpcodes.Dispatch,
+              t: GatewayDispatchEvents.PresenceUpdate,
+              s: this.sequence++,
+              d: {
+                user: currentUserDiscord,
+                activities: status.activities,
+                client_status: {
+                  client: "desktop",
+                  os: "Unknown",
+                  version: 0,
+                },
+              },
+            });
           });
 
           const members = await Promise.all(data.members.map((x) => Member.from_quark(x)));

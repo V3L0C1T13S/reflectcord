@@ -62,6 +62,7 @@
     "node-fetch": "^2.6.7",
     "node-html-parser": "^6.1.1",
     "nodejs-snowflake": "^2.0.1",
+    "protobufjs": "^7.1.2",
     "proxy-agent": "^5.0.0",
     "revolt-api": "^0.5.5-4",
     "revolt.js": "^6.0.18",

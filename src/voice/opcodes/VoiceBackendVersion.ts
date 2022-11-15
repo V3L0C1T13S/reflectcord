@@ -1,7 +1,8 @@
 import { Send, WebSocket } from "../util";
-import { VoiceOPCodes } from "../../common/sparkle/schemas/voice/opcodes";
+import { VoiceOPCodes } from "../../common/sparkle";
+import { Payload } from "../../gateway/util";
 
-export async function VoiceBackendVersion(this: WebSocket, data: any) {
+export async function VoiceBackendVersion(this: WebSocket, data: Payload) {
   await Send(this, {
     op: VoiceOPCodes.VoiceBackendVersion,
     d: {

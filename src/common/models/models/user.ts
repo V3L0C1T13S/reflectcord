@@ -289,11 +289,15 @@ export const Status: QuarkConversion<RevoltUser["status"], internalStatus, Statu
           }
         }
       })(),
-      activities: [{
-        name: status?.text ?? "fixme", // @ts-ignore
-        type: ActivityType.Custom,
-      }],
+      activities: [],
     };
+
+    if (status?.text) {
+      discordStatus.activities?.push({
+        name: status.text,
+        type: ActivityType.Custom as any,
+      });
+    }
 
     return discordStatus;
   },

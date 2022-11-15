@@ -3,7 +3,7 @@ export const VoiceStateSchema = {
   $channel_id: String,
   self_mute: Boolean,
   self_deaf: Boolean,
-  self_video: Boolean,
+  $self_video: Boolean,
 };
 
 export interface VoiceStateUpdate {

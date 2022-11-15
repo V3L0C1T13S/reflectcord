@@ -66,11 +66,9 @@ export async function VSUpdate(this: WebSocket, data: Payload) {
 
   if (channel_id) {
     const rvChannelId = await fromSnowflake(channel_id);
-    const voiceData = await this.rvAPI.post(`/channels/${rvChannelId}/join_call`) as {
-      token: string;
-    };
+    const voiceData = await this.rvAPI.post(`/channels/${rvChannelId as ""}/join_call`);
 
-    const user_id = await this.rvAPIWrapper.users.getSelfId();
+    const user_id = await fromSnowflake(this.user_id);
 
     const stateObject: VoiceStateObject = {
       guild_id,
