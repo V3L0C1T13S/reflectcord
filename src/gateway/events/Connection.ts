@@ -21,6 +21,7 @@ export async function Connection(this: ws.Server, socket: WebSocket, request: In
     socket.on("message", Message);
 
     const { searchParams } = new URL(`http://localhost${request.url}`);
+    Logger.log(searchParams.toString());
     // @ts-ignore
     socket.encoding = searchParams.get("encoding") || "json";
     if (!["json", "etf"].includes(socket.encoding)) {
