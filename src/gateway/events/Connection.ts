@@ -23,12 +23,15 @@ export async function Connection(this: ws.Server, socket: WebSocket, request: In
     const { searchParams } = new URL(`http://localhost${request.url}`);
     // @ts-ignore
     socket.encoding = searchParams.get("encoding") || "json";
+    if (!["json", "etf"].includes(socket.encoding)) {
+      return socket.close(GatewayCloseCodes.DecodeError);
+    }
 
     socket.version = 8;
     if (socket.version !== 8) return socket.close(GatewayCloseCodes.InvalidAPIVersion);
 
     // @ts-ignore
-    socket.compress = "zlib-stream";
+    socket.compress = searchParams.get("compress") || "";
     if (socket.compress) {
       if (socket.compress !== "zlib-stream") return socket.close(GatewayCloseCodes.DecodeError);
       socket.deflate = createDeflate({ chunkSize: 65535 });
