@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 /* eslint-disable no-undef */
 import { Replies } from "amqplib";
 import { API } from "revolt-api";
@@ -5,6 +6,11 @@ import { Client } from "revolt.js";
 import WS from "ws";
 import { Deflate } from "zlib";
 import { APIWrapper } from "../common/rvapi";
+import { Payload } from "./util";
+
+export class SocketState {
+  store: Payload[] = [];
+}
 
 export interface WebSocket extends WS {
   version: number;
@@ -34,4 +40,5 @@ export interface WebSocket extends WS {
     guild_id?: string,
   }
   typingConsumer?: Replies.Consume | undefined,
+  state: SocketState,
 }

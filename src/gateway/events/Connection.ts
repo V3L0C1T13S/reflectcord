@@ -6,7 +6,7 @@ import { createDeflate } from "zlib";
 import { Client } from "revolt.js";
 import { API } from "revolt-api";
 import { Send, setHeartbeat } from "../util";
-import { WebSocket } from "../Socket";
+import { SocketState, WebSocket } from "../Socket";
 import { Message } from "./Message";
 import { Close } from "./Close";
 import { APIWrapper } from "../../common/rvapi";
@@ -47,6 +47,7 @@ export async function Connection(this: ws.Server, socket: WebSocket, request: In
     socket.rvClient = new Client();
     socket.rvAPI = new API();
     socket.rvAPIWrapper = new APIWrapper(socket.rvAPI);
+    socket.state = new SocketState();
 
     setHeartbeat(socket);
 

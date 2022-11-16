@@ -1,7 +1,7 @@
 /* eslint-disable no-plusplus */
 import { GatewayCloseCodes } from "discord.js";
 import { startListener } from "../util/Listener";
-import { Payload } from "../util";
+import { Payload, StateManager } from "../util";
 import { WebSocket } from "../Socket";
 import { Logger } from "../../common/utils";
 import { check } from "./instanceOf";
@@ -31,4 +31,6 @@ export async function onIdentify(this: WebSocket, data: Payload<IdentifySchema>)
 
   // HACK!
   this.rvClient.api = this.rvAPI;
+
+  // StateManager.insert(this);
 }

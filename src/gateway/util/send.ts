@@ -21,6 +21,7 @@ export async function Send(socket: WebSocket, data: Payload) {
     }
     socket.send(buffer, (err: any) => {
       if (err) return rej(err);
+      // if (data.s) socket.state.store.push(data);
       return res(null);
     });
   });
