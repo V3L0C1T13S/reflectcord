@@ -2,33 +2,18 @@
 /* eslint-disable camelcase */
 import {
   GatewayOpcodes, GatewayDispatchEvents,
-  APIGuildMember,
 } from "discord.js";
 import { compareTwoStrings } from "string-similarity";
 import { API } from "revolt.js";
+import { clamp } from "lodash";
 import { Payload, Send } from "../util";
 import { fromSnowflake } from "../../common/models/util";
 import { WebSocket } from "../Socket";
 import { Member, Status, User } from "../../common/models";
 import { check } from "./instanceOf";
-import { ReqGuildMembersSchema } from "../../common/sparkle";
+import { ReqGuildMembersSchema, GuildMembersChunk } from "../../common/sparkle";
 
 const memberExists = (uid: string, member_ids: string[]) => member_ids.includes(uid);
-
-type RequestGuildMembersBody = {
-  guild_id: string | string[],
-  members: APIGuildMember[],
-  not_found?: string[],
-  presences?: any[],
-}
-
-interface RequestGuildMembersData {
-  guild_id: string | string[],
-  user_ids?: string | string[],
-  presences?: boolean,
-  nonce?: string,
-  query?: string,
-}
 
 async function HandleRequest(
   this: WebSocket,
@@ -40,7 +25,10 @@ async function HandleRequest(
   nonce?: string,
   limit = 1000,
 ) {
-  const body: RequestGuildMembersBody = {
+  members.members.splice(limit);
+  members.users.splice(limit);
+
+  const body: GuildMembersChunk = {
     guild_id: guildId,
     members: [],
   };
@@ -102,34 +90,39 @@ async function HandleRequest(
 
 export async function RequestGuildMembers(
   this: WebSocket,
-  data: Payload<RequestGuildMembersData>,
+  data: Payload<ReqGuildMembersSchema>,
 ) {
   check.call(this, ReqGuildMembersSchema, data.d);
 
   const reqData = data.d!;
   const {
-    guild_id, presences, nonce, user_ids, query,
+    guild_id, presences, nonce, user_ids, query, limit,
   } = reqData;
 
-  const limit = 1000;
+  const maxMembers = limit ? clamp(limit, 1, 1000) : undefined;
 
   if (typeof guild_id === "string") {
     const rvId = await fromSnowflake(guild_id);
     const members = await this.rvAPI.get(`/servers/${rvId as ""}/members`, {
       exclude_offline: false,
     });
-    members.members.splice(limit);
-    members.users.splice(limit);
-    await HandleRequest.call(this, guild_id, members, presences, user_ids, query, nonce);
+    await HandleRequest.call(
+      this,
+      guild_id,
+      members,
+      presences,
+      user_ids,
+      query,
+      nonce,
+      maxMembers,
+    );
   } else {
     await Promise.all(guild_id.map(async (x) => {
       const rvId = await fromSnowflake(x);
       const members = await this.rvAPI.get(`/servers/${rvId as ""}/members`, {
         exclude_offline: false,
       });
-      members.members.splice(limit);
-      members.users.splice(limit);
-      await HandleRequest.call(this, x, members, presences, user_ids, query, nonce);
+      await HandleRequest.call(this, x, members, presences, user_ids, query, nonce, maxMembers);
     }));
   }
 }

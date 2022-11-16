@@ -1,3 +1,4 @@
+import { APIGuildMember } from "discord.js";
 import { Tuple } from "../../../utils/check";
 /* eslint-disable no-redeclare */
 export const ReqGuildMembersSchema = {
@@ -17,4 +18,14 @@ export interface ReqGuildMembersSchema {
   limit?: number,
   presences?: boolean,
   nonce?: string | undefined,
+}
+
+/**
+ * Sent in response to an OP8 Request guild members
+ */
+export interface GuildMembersChunk {
+  guild_id: string | string[],
+  members: APIGuildMember[],
+  not_found?: string[],
+  presences?: any[],
 }
