@@ -8,3 +8,4 @@ export * from "./AppDirectory";
 export * from "./Guilds";
 export * from "./Gateway";
 export * from "./auth";
+export * from "./Channels";

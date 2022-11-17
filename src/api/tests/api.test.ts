@@ -119,6 +119,14 @@ describe("api get requests", () => {
 
       expect(Array.isArray(guildFeed.data.results?.items));
     });
+
+    test("threads", async () => {
+      const searchThreads = await getFromAPI(`guilds/${TestServerId}/channels/${TestChannelId}/threads/search`);
+      const activeThreads = await getFromAPI(`guilds/${TestServerId}/channels/${TestChannelId}/active`);
+
+      expect(searchThreads.data).toBeInstanceOf(Array);
+      expect(activeThreads.data).toBeInstanceOf(Array);
+    });
   });
 
   describe("discovery", () => {

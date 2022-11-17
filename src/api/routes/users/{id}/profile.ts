@@ -12,12 +12,12 @@ export async function getProfile(api: API.API, id: string) {
   // why cant it just be /users/@me/profile ???
   if (id === "@me") {
     const accountInfo = await api.get("/auth/account/");
-    const rvProfile = await api.get(`/users/${accountInfo._id}/profile`) as API.UserProfile;
+    const rvProfile = await api.get(`/users/${accountInfo._id as ""}/profile`);
 
     return rvProfile;
   }
 
-  const rvProfile = await api.get(`/users/${id}/profile`) as API.UserProfile;
+  const rvProfile = await api.get(`/users/${id as ""}/profile`);
 
   return rvProfile;
 }
@@ -29,7 +29,7 @@ export default (express: Application) => <Resource> {
 
     if (!id) throw new HTTPError("Invalid params");
 
-    const rvId = id !== "@me" ? await fromSnowflake(id) : id;
+    const rvId = id !== "@me" ? await fromSnowflake(id) : await res.rvAPIWrapper.users.getSelfId();
 
     const api = res.rvAPI;
 
