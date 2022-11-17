@@ -14,7 +14,7 @@ import {
 import { Server } from "revolt-api";
 import { Logger } from "../../../utils";
 import { QuarkConversion } from "../../QuarkConversion";
-import { toSnowflake } from "../../util";
+import { fromSnowflake, toSnowflake } from "../../util";
 import { Attachment } from "../attachment";
 import { convertPermNumber } from "../permissions";
 import { Role } from "../role";
@@ -62,9 +62,11 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
       id, name, owner_id: ownerId, description,
     } = guild;
 
+    const _id = await fromSnowflake(id);
+
     return {
-      _id: id,
-      owner: ownerId,
+      _id,
+      owner: await fromSnowflake(ownerId),
       name,
       description,
       channels: [],

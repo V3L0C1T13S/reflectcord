@@ -4,7 +4,7 @@ import { API } from "revolt.js";
 import { Member } from "../../../../../../common/models";
 import { HTTPError } from "../../../../../../common/utils";
 import { fromSnowflake } from "../../../../../../common/models/util";
-import { handleMemberEdit } from "./nick";
+import { handleMemberEdit } from "../@me/nick";
 
 export default () => <Resource> {
   get: async (req, res) => {
@@ -15,7 +15,7 @@ export default () => <Resource> {
     const serverId = await fromSnowflake(guild_id);
     const rvMemberId = await fromSnowflake(memberId);
 
-    const member = await res.rvAPI.get(`/servers/${serverId}/members/${rvMemberId}`) as API.Member;
+    const member = await res.rvAPI.get(`/servers/${serverId as ""}/members/${rvMemberId as ""}`);
 
     res.json(await Member.from_quark(member));
   },

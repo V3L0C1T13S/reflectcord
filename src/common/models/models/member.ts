@@ -1,9 +1,9 @@
 /* eslint-disable camelcase */
-import { APIGuildMember, APIUser } from "discord.js";
+import { APIGuildMember, APIUser, RESTPatchAPIGuildMemberJSONBody } from "discord.js";
 import { Member as RevoltMember } from "revolt-api";
 import { API } from "revolt.js";
 import { QuarkConversion } from "../QuarkConversion";
-import { toSnowflake } from "../util";
+import { fromSnowflake, toSnowflake } from "../util";
 import { User } from "./user";
 
 export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, API.User> = {
@@ -13,7 +13,7 @@ export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, API.
     return {
       _id: {
         server: "0",
-        user: user?.id ?? "0",
+        user: user?.id ? await fromSnowflake(user?.id) : "0",
       },
       joined_at: member.joined_at,
       nickname: member.nick ?? null,
@@ -44,6 +44,40 @@ export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, API.
         username: member.nickname ?? "fixme",
         avatar: member.avatar ?? null,
       }),
+    };
+  },
+};
+
+export const MemberEditBody: QuarkConversion<
+API.DataMemberEdit,
+RESTPatchAPIGuildMemberJSONBody
+> = {
+  async to_quark(data) {
+    const { nick, roles, communication_disabled_until } = data;
+
+    const remove: API.FieldsMember[] = [];
+
+    if (nick === "") remove.push("Nickname");
+
+    const body: API.DataMemberEdit = {
+      nickname: nick || null,
+      remove: remove.length > 0 ? remove : null,
+      roles: roles ? await Promise.all(roles.map((x) => fromSnowflake(x))) : null,
+      timeout: communication_disabled_until ?? null,
+    };
+
+    return body;
+  },
+
+  async from_quark(data) {
+    const {
+      nickname, roles, remove, timeout,
+    } = data;
+
+    return {
+      nick: nickname,
+      roles: roles ? await Promise.all(roles.map((x) => toSnowflake(x))) : null,
+      communication_disabled_until: timeout,
     };
   },
 };

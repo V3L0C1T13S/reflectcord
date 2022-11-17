@@ -46,8 +46,8 @@ export const MessageReference: QuarkConversion<
 > = {
   async to_quark(reference) {
     return {
-      id: reference.messageId ?? "0",
-      channel_id: reference.channelId,
+      id: reference.messageId ? await fromSnowflake(reference.messageId) : "0",
+      channel_id: await fromSnowflake(reference.channelId),
     };
   },
 
@@ -69,8 +69,8 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
     return {
       _id: id,
       content: content?.replace(/\|\|(([\w\s])+)\|\|/g, "!!$1!!"),
-      author: author.id,
-      channel: channel_id,
+      author: await fromSnowflake(author.id),
+      channel: await fromSnowflake(channel_id),
       embeds: await Promise.all(embeds.map((x) => Embed.to_quark(x))),
       attachments: await Promise.all(attachments.map((x) => Attachment.to_quark(x))),
       replies: message_reference?.message_id

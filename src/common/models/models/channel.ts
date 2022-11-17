@@ -1,14 +1,15 @@
-import { Category, Channel as rvChannel } from "revolt-api";
+import { Category, Channel as rvChannel, DataCreateChannel } from "revolt-api";
 import {
   APIChannel,
   APIGuildCategoryChannel,
   APIOverwrite,
   ChannelType as discordChannelType,
   OverwriteType,
+  RESTPostAPIGuildChannelJSONBody,
 } from "discord.js";
 import { API } from "revolt.js";
 import { QuarkConversion } from "../QuarkConversion";
-import { toSnowflake } from "../util";
+import { fromSnowflake, toSnowflake } from "../util";
 import { User } from "./user";
 import { convertPermNumber } from "./permissions";
 
@@ -122,48 +123,54 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
   async to_quark(channel) {
     const { id, type } = channel;
 
+    const _id = await fromSnowflake(id);
+
     switch (type) {
       case discordChannelType.GuildText: {
         return {
           channel_type: "TextChannel",
-          _id: id,
-          server: channel.guild_id!,
-          name: channel.name!,
+          _id,
+          server: channel.guild_id ? await fromSnowflake(channel.guild_id) : "0",
+          name: channel.name ?? "fixme",
           description: channel.topic ?? null,
           icon: null,
-          last_message_id: channel.last_message_id ?? null,
+          last_message_id: channel.last_message_id
+            ? await fromSnowflake(channel.last_message_id)
+            : null,
           default_permissions: null, // FIXME,
-          role_permissions: {
-            a: 0,
-            d: 0,
-          } as any,
           nsfw: !!channel.nsfw,
         };
       }
       case discordChannelType.DM: {
         return {
           channel_type: "DirectMessage",
-          _id: id,
+          _id,
           active: true,
-          recipients: channel.recipients?.map((u) => u.id) ?? [""],
-          last_message_id: channel.last_message_id ?? null,
+          recipients: channel.recipients
+            ? await Promise.all(channel.recipients.map((u) => fromSnowflake(u.id)))
+            : [],
+          last_message_id: channel.last_message_id
+            ? await fromSnowflake(channel.last_message_id)
+            : null,
         };
       }
       case discordChannelType.GroupDM: {
         return {
           channel_type: "Group",
-          _id: id,
+          _id,
           active: true,
-          owner: channel.owner_id ?? "0",
+          owner: channel.owner_id ? await fromSnowflake(channel.owner_id) : "0",
           name: channel.name ?? "fixme",
-          recipients: channel.recipients?.map((u) => u.id) ?? [],
+          recipients: channel.recipients
+            ? await Promise.all(channel.recipients.map((u) => fromSnowflake(u.id)))
+            : [],
         };
       }
       case discordChannelType.GuildVoice: {
         return {
           channel_type: "VoiceChannel",
-          _id: id,
-          server: channel.guild_id ?? "0",
+          _id,
+          server: channel.guild_id ? await fromSnowflake(channel.guild_id) : "0",
           name: channel.name ?? "fixme",
         };
       }
@@ -299,3 +306,26 @@ export async function HandleChannelsAndCategories(
 
   return [...discordChannels, ...discordCategories];
 }
+
+export const ChannelCreateBody: QuarkConversion<
+DataCreateChannel, RESTPostAPIGuildChannelJSONBody
+> = {
+  async to_quark(data) {
+    const { name, type, nsfw } = data;
+    return {
+      name,
+      type: type ? await ChannelCreateType.to_quark(type) : "Text",
+      nsfw: nsfw ?? null,
+      description: ("topic" in data && data.topic) ? data.topic : null,
+    };
+  },
+
+  async from_quark(data) {
+    const { name, type, nsfw } = data;
+    return {
+      name,
+      // type: type ? await ChannelCreateType.from_quark(type) : discordChannelType.GuildText,
+      nsfw: !!nsfw,
+    };
+  },
+};

@@ -2,7 +2,7 @@ import { APIRole } from "discord.js";
 import { API } from "revolt.js";
 import { hexToRgbCode } from "../../utils";
 import { QuarkConversion } from "../QuarkConversion";
-import { toSnowflake } from "../util";
+import { fromSnowflake, toSnowflake } from "../util";
 import { Permissions } from "./permissions";
 
 export const Role: QuarkConversion<API.Role, APIRole> = {
@@ -11,7 +11,7 @@ export const Role: QuarkConversion<API.Role, APIRole> = {
 
     return {
       name,
-      _id: id,
+      _id: await fromSnowflake(id),
       permissions: {
         a: 0,
         d: 0,

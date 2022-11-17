@@ -1,5 +1,6 @@
 import { APIBan } from "discord.js";
 import { API } from "revolt.js";
+import { fromSnowflake } from "../../util";
 import { QuarkConversion } from "../../QuarkConversion";
 import { User } from "../user";
 
@@ -16,7 +17,7 @@ export const Ban: QuarkConversion<API.ServerBan, APIBan, BanATQ, BanAFQ> = {
     return {
       reason: ban.reason,
       _id: {
-        user: ban.user.id,
+        user: await fromSnowflake(ban.user.id),
         server: extra?.server ?? "0",
       },
     };

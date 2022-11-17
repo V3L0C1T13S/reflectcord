@@ -14,7 +14,7 @@ import {
 import { Badges } from "../../rvapi";
 import { UserRelationshipType } from "../../sparkle";
 import { QuarkConversion } from "../QuarkConversion";
-import { toSnowflake } from "../util";
+import { fromSnowflake, toSnowflake } from "../util";
 import { priviligedUsers } from "../../constants/admin";
 
 export type APIUserProfile = {
@@ -73,8 +73,10 @@ export const User: QuarkConversion<RevoltUser, APIUser, UserATQ, UserAFQ> = {
   async to_quark(user) {
     const { bot, id, username } = user;
 
+    const _id = await fromSnowflake(id);
+
     return {
-      _id: id,
+      _id,
       username,
       relations: null,
       badges: null,
@@ -91,12 +93,13 @@ export const User: QuarkConversion<RevoltUser, APIUser, UserATQ, UserAFQ> = {
   },
 
   async from_quark(user) {
+    const { _id, username } = user;
     const flags = await PublicFlags.from_quark(user.badges ?? 0, {
-      id: user._id,
+      id: _id,
     });
 
     return {
-      id: await toSnowflake(user._id),
+      id: await toSnowflake(_id),
       accent_color: null,
       avatar: user.avatar?._id ?? null,
       bot: !!user.bot,
@@ -104,7 +107,7 @@ export const User: QuarkConversion<RevoltUser, APIUser, UserATQ, UserAFQ> = {
       discriminator: "1",
       flags,
       locale: "en-US",
-      username: user.username,
+      username,
       public_flags: flags,
       verified: true, // all accounts on revolt are implicitly verified
       premium_type: UserPremiumType.Nitro, // unlocks all nitro features
