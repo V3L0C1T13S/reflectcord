@@ -1,7 +1,7 @@
 /* eslint-disable no-plusplus */
 import { GatewayCloseCodes } from "discord.js";
 import { startListener } from "../util/Listener";
-import { Payload, StateManager } from "../util";
+import { Payload } from "../util";
 import { WebSocket } from "../Socket";
 import { Logger } from "../../common/utils";
 import { check } from "./instanceOf";

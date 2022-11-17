@@ -1,9 +1,6 @@
-import { Send, WebSocket } from "../util";
-import { VoiceOPCodes } from "../../common/sparkle";
+import { GatewayCloseCodes } from "discord.js";
+import { WebSocket } from "../util";
 
 export async function onResume(this: WebSocket, data: any) {
-  await Send(this, {
-    op: VoiceOPCodes.Resumed,
-    d: {},
-  });
+  return this.close(GatewayCloseCodes.SessionTimedOut);
 }

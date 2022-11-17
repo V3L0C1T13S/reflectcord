@@ -192,7 +192,10 @@ export interface activityMetadata {
 export type internalActivity = ActivitiesOptions & {
   state?: string,
   details?: string,
-  type?: ActivityType,
+  // FIXME: i want whatever typescript is taking for it to need me to do this garbage
+  type?: ActivityType & {
+    Custom: 4,
+  },
   timestamps?: activityTimestamp,
   assets?: activityAssets,
   buttons?: string[],
@@ -213,7 +216,7 @@ export const Status: QuarkConversion<RevoltUser["status"], internalStatus, Statu
   async to_quark(status) {
     const activity = status.activities?.[0] as internalActivity;
     const text = (() => {
-      switch (activity?.type as internalActivity) {
+      switch (activity?.type) {
         case ActivityType.Playing: {
           return `Playing ${activity.name}`;
         }
@@ -263,7 +266,7 @@ export const Status: QuarkConversion<RevoltUser["status"], internalStatus, Statu
   },
 
   async from_quark(status, extra) {
-    const discordStatus: PresenceData = {
+    const discordStatus: internalStatus = {
       status: (() => {
         if (extra && !extra?.online) return "invisible";
 

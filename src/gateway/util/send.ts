@@ -1,3 +1,4 @@
+import { GatewayOpcodes } from "discord.js";
 import erlpack from "erlpack";
 import { WebSocket } from "../Socket";
 import { Payload } from "./Constants";
@@ -24,5 +25,18 @@ export async function Send(socket: WebSocket, data: Payload) {
       // if (data.s) socket.state.store.push(data);
       return res(null);
     });
+  });
+}
+
+/**
+ * Send an OPCode, but only the actual OP. The rest is
+ * filled with null values.
+*/
+export function sendOp(socket: WebSocket, op: GatewayOpcodes, data: Payload["d"]) {
+  return Send(socket, {
+    op,
+    // t: null,
+    // s: null,
+    d: data,
   });
 }

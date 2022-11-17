@@ -3,5 +3,6 @@
     "conventionalCommits.scopes": [
         "api",
         "gateway"
-    ]
+    ],
+    "typescript.tsdk": "node_modules/typescript/lib"
 }

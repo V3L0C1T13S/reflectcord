@@ -5,7 +5,7 @@ import ws from "ws";
 import { createDeflate } from "zlib";
 import { Client } from "revolt.js";
 import { API } from "revolt-api";
-import { Send, setHeartbeat } from "../util";
+import { sendOp, setHeartbeat } from "../util";
 import { SocketState, WebSocket } from "../Socket";
 import { Message } from "./Message";
 import { Close } from "./Close";
@@ -56,11 +56,8 @@ export async function Connection(this: ws.Server, socket: WebSocket, request: In
       1000 * 30,
     );
 
-    await Send(socket, {
-      op: GatewayOpcodes.Hello,
-      d: {
-        heartbeat_interval: 1000 * 30,
-      },
+    await sendOp(socket, GatewayOpcodes.Hello, {
+      heartbeat_interval: 1000 * 30,
     });
   } catch (e) {
     Logger.error(e);
