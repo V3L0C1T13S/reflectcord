@@ -11,14 +11,20 @@ export async function handleMemberEdit(req: Request, res: Response, fullMember: 
   const { guild_id, memberId } = req.params;
   if (!guild_id || !memberId) throw new HTTPError("Invalid params");
 
-  const { nick, roles } = req.body as RESTPatchAPIGuildMemberJSONBody;
+  const { nick, roles, communication_disabled_until } = req.body as RESTPatchAPIGuildMemberJSONBody;
 
   const serverId = await fromSnowflake(guild_id);
   const rvMemberId = await fromSnowflake(memberId);
 
+  const toRemove: API.FieldsMember[] = [];
+
+  if (nick === "") toRemove.push("Nickname");
+
   const member = await res.rvAPI.patch(`/servers/${serverId as ""}/members/${rvMemberId as ""}`, {
-    nickname: nick ?? null,
+    nickname: nick || null,
     roles: roles ? await Promise.all(roles.map((x) => fromSnowflake(x))) : null,
+    remove: toRemove,
+    timeout: communication_disabled_until ?? null,
   });
 
   if (fullMember) res.json(await Member.from_quark(member));
