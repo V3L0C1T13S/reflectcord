@@ -2,9 +2,9 @@
 import { Application, Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
-import { HTTPError } from "../../../common/utils";
-import { APILoginResponse, DataLogin, ResponseLogin } from "../../../common/models";
-import { LoginSchema } from "../../../common/sparkle";
+import { LoginSchema } from "@reflectcord/common/sparkle";
+import { APILoginResponse, DataLogin, ResponseLogin } from "@reflectcord/common/models";
+import { HTTPError } from "@reflectcord/common/utils";
 
 export async function loginToRevolt(api: API.API, body: LoginSchema) {
   const loginResponse = await api.post(

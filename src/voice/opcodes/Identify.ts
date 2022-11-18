@@ -1,14 +1,14 @@
 /* eslint-disable camelcase */
 import SemanticSDP from "semantic-sdp";
 import { GatewayCloseCodes } from "discord.js";
-import { Logger } from "../../common/utils";
+import { Logger } from "@reflectcord/common/utils";
+import { VoiceOPCodes } from "@reflectcord/common/sparkle";
+import { APIWrapper, createAPI } from "@reflectcord/common/rvapi";
+import { DbManager } from "@reflectcord/common/db";
+import defaultsdp from "../util/sdp.json";
 import {
   endpoint, getClients, Send, WebSocket,
 } from "../util";
-import { VoiceOPCodes } from "../../common/sparkle";
-import defaultsdp from "../util/sdp.json";
-import { APIWrapper, createAPI } from "../../common/rvapi";
-import { DbManager } from "../../common/db";
 import { Payload } from "../../gateway/util";
 
 // FIXME: Implement with RPC instead

@@ -1,0 +1,23 @@
+{
+  "name": "@reflectcord/api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/V3L0C1T13S/reflectcord.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/V3L0C1T13S/reflectcord/issues"
+  },
+  "homepage": "https://github.com/V3L0C1T13S/reflectcord#readme"
+}

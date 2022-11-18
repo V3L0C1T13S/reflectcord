@@ -97,5 +97,13 @@
     "ts-jest": "^29.0.3",
     "tsx": "^3.12.1",
     "typescript": "^4.8.4"
-  }
+  },
+  "workspaces": [
+    "src/api",
+    "src/common",
+    "src/cdn",
+    "src/gateway",
+    "src/voice",
+    "src/evil"
+  ]
 }

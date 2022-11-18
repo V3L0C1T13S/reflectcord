@@ -1,5 +1,5 @@
+import { VoiceOPCodes } from "@reflectcord/common/sparkle";
 import { getClients, Send, WebSocket } from "../util";
-import { VoiceOPCodes } from "../../common/sparkle";
 import { Payload } from "../../gateway/util";
 
 export async function onSpeaking(this: WebSocket, data: Payload) {
