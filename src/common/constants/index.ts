@@ -32,6 +32,8 @@ export const reflectcordCDNURL = process.env["REFLECTCORD_CDN_URL"] ?? "localhos
 
 export const reflectcordWsURL = process.env["REFLECTCORD_WS_URL"] ?? "ws://localhost:3002";
 
+export const reflectcordVoiceURL = process.env["REFLECTCORD_VOICE_URL"] ?? "localhost:3015/voice";
+
 export const gifBoxURL = process.env["GIFBOX_URL"] ?? "https://gifbox.me";
 
 export const gifBoxAPIUrl = process.env["GIFBOX_API_URL"] ?? "https://api.gifbox.me";

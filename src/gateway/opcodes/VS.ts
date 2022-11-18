@@ -12,6 +12,7 @@ import { WebSocket } from "../Socket";
 import { Payload, Send } from "../util";
 import { check } from "./instanceOf";
 import { Member } from "../../common/models";
+import { reflectcordVoiceURL } from "../../common/constants";
 
 interface VoiceStateObject {
   guild_id?: string,
@@ -47,7 +48,7 @@ export async function VSUpdate(this: WebSocket, data: Payload) {
     channel_id,
   };
 
-  const state = await voiceStates.findOneAndUpdate({
+  await voiceStates.findOneAndUpdate({
     user_id: this.user_id,
     session_id: this.session_id,
   }, {
@@ -105,7 +106,7 @@ export async function VSUpdate(this: WebSocket, data: Payload) {
       d: {
         token: this.rvClient.session,
         guild_id,
-        endpoint: "127.0.0.1:3015/voice",
+        endpoint: reflectcordVoiceURL,
       },
     });
   }
