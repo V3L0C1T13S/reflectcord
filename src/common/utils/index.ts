@@ -9,3 +9,4 @@ export * from "./Logger";
 export * from "./discord";
 export * from "./removeNull";
 export * from "./check";
+export * from "./RabbitMQ";

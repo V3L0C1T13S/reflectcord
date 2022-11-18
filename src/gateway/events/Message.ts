@@ -1,10 +1,10 @@
 /* eslint-disable no-console */
 import { GatewayCloseCodes, GatewayOpcodes } from "discord.js";
 import erlpack from "erlpack";
+import { Logger } from "@reflectcord/common/utils";
 import { Payload } from "../util";
 import { WebSocket } from "../Socket";
 import { OPCodeHandlers } from "../opcodes";
-import { Logger } from "../../common/utils";
 
 export async function Message(this: WebSocket, buffer: Buffer) {
   let data: Payload;

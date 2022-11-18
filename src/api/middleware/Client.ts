@@ -6,8 +6,8 @@ import path from "path";
 import fetch, { Headers, Response as FetchResponse } from "node-fetch";
 import axios from "axios";
 import favicon from "serve-favicon";
-import { Logger } from "../../common/utils";
-import { reflectcordWsURL, reflectcordCDNURL } from "../../common/constants/index";
+import { Logger } from "@reflectcord/common/utils";
+import { reflectcordWsURL, reflectcordCDNURL } from "@reflectcord/common/constants/index";
 
 const AssetsPath = path.join(__dirname, "..", "..", "..", "assets");
 

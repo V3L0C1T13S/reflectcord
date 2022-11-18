@@ -2,8 +2,8 @@
 import { Application } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
-import { fromSnowflake } from "../../../../common/models/util";
-import { Guild } from "../../../../common/models";
+import { fromSnowflake } from "@reflectcord/common/models/util";
+import { Guild } from "@reflectcord/common/models";
 
 export default (express: Application) => <Resource> {
   get: async (req, res) => {

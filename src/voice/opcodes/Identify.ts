@@ -5,11 +5,11 @@ import { Logger } from "@reflectcord/common/utils";
 import { VoiceOPCodes } from "@reflectcord/common/sparkle";
 import { APIWrapper, createAPI } from "@reflectcord/common/rvapi";
 import { DbManager } from "@reflectcord/common/db";
+import { Payload } from "@reflectcord/gateway/util";
 import defaultsdp from "../util/sdp.json";
 import {
   endpoint, getClients, Send, WebSocket,
 } from "../util";
-import { Payload } from "../../gateway/util";
 
 // FIXME: Implement with RPC instead
 const voiceStates = DbManager.client.db("reflectcord")

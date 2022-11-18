@@ -1,9 +1,8 @@
 /* eslint-disable camelcase */
 import { Response } from "express";
 import { Resource } from "express-automatic-routes";
-import { fromSnowflake, toSnowflake } from "../../../../common/models/util";
-import { GuildFeedResponse } from "../../../../common/sparkle/schemas";
-import { HTTPError } from "../../../../common/utils";
+import { fromSnowflake, toSnowflake } from "@reflectcord/common/models";
+import { HTTPError } from "@reflectcord/common/utils";
 
 export default () => <Resource> {
   get: async (req, res: Response) => {

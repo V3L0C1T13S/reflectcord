@@ -1,7 +1,7 @@
 import ws from "ws";
 import http from "http";
+import { RabbitMQ } from "@reflectcord/common/utils";
 import { Connection } from "./events";
-import { RabbitMQ } from "../common/utils/RabbitMQ";
 
 export class ReflectcordGateway {
   websocketServer: ws.Server;

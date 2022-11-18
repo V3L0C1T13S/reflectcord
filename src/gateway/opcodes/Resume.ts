@@ -1,11 +1,11 @@
 /* eslint-disable no-plusplus */
 import { GatewayOpcodes, GatewayDispatchEvents } from "discord.js";
+import { ResumeSchema } from "@reflectcord/common/sparkle";
 import {
   Payload, StateManager, invalidateSession, Send,
 } from "../util";
 import { WebSocket } from "../Socket";
 import { check } from "./instanceOf";
-import { ResumeSchema } from "../../common/sparkle";
 
 async function resume(this: WebSocket, startAt: number) {
   await Promise.all(this.state.store.map(async (x, i) => {

@@ -1,6 +1,6 @@
 import { Application, Response } from "express";
 import { Resource } from "express-automatic-routes";
-import { reflectcordWsURL } from "../../../common/constants";
+import { reflectcordWsURL } from "@reflectcord/common/constants";
 
 export interface GatewayBotResponse {
   url: string;

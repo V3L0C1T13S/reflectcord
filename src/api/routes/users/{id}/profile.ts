@@ -1,12 +1,11 @@
 /* eslint-disable camelcase */
-import { Application, Request, Response } from "express";
+import { Application } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
 import { decodeTime } from "ulid";
-import { HTTPError } from "../../../../common/utils";
+import { HTTPError } from "@reflectcord/common/utils";
+import { UserProfile, fromSnowflake } from "@reflectcord/common/models";
 import { fetchUser } from ".";
-import { UserProfile } from "../../../../common/models";
-import { fromSnowflake } from "../../../../common/models/util";
 
 export async function getProfile(api: API.API, id: string) {
   // why cant it just be /users/@me/profile ???

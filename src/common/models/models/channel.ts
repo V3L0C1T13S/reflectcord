@@ -3,6 +3,7 @@ import {
   APIChannel,
   APIGuildCategoryChannel,
   APIOverwrite,
+  APIPartialChannel,
   ChannelType as discordChannelType,
   OverwriteType,
   RESTPostAPIGuildChannelJSONBody,
@@ -116,6 +117,38 @@ export const GuildCategory: QuarkConversion<
       name: category.title,
       type: discordChannelType.GuildCategory,
     };
+  },
+};
+
+export interface PartialRevoltChannel {
+  _id: rvChannel["_id"],
+  channel_type: rvChannel["channel_type"]
+  name?: string | undefined | null,
+}
+
+export const PartialChannel: QuarkConversion<PartialRevoltChannel, APIPartialChannel> = {
+  async to_quark(channel) {
+    const { name, id, type } = channel;
+
+    return {
+      name,
+      channel_type: await ChannelType.to_quark(type),
+      _id: await fromSnowflake(id),
+    };
+  },
+
+  async from_quark(channel) {
+    // eslint-disable-next-line camelcase
+    const { name, _id, channel_type } = channel;
+
+    const discordChannel: APIPartialChannel = {
+      id: await toSnowflake(_id),
+      type: await ChannelType.from_quark(channel_type),
+    };
+
+    if (name) discordChannel.name = name;
+
+    return discordChannel;
   },
 };
 

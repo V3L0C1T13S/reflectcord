@@ -3,11 +3,10 @@ import { APIMessage, RESTPostAPIChannelMessageJSONBody } from "discord.js";
 import { Application, Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
-import { fromSnowflake } from "../../../../../common/models/util";
 import {
-  Message, MessageSendData, SendableEmbed, User,
-} from "../../../../../common/models";
-import { HTTPError } from "../../../../../common/utils";
+  fromSnowflake,
+  Message, MessageSendData,
+} from "@reflectcord/common/models";
 
 export type sendReq = Request<any, any, RESTPostAPIChannelMessageJSONBody & { payload_json: any }>;
 

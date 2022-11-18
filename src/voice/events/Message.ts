@@ -1,5 +1,5 @@
+import { Logger } from "@reflectcord/common/utils";
 import { voiceOPCodeHandlers } from "../opcodes";
-import { Logger } from "../../common/utils";
 import { WebSocket } from "../util";
 
 export async function onMessage(this: WebSocket, buffer: Buffer) {

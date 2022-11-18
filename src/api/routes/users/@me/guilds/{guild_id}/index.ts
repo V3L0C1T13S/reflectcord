@@ -1,9 +1,9 @@
 /* eslint-disable camelcase */
 import { Application } from "express";
 import { Resource } from "express-automatic-routes";
-import { fromSnowflake } from "../../../../../../common/models/util";
-import { selfEnableServerLeaves } from "../../../../../../common/constants";
-import { HTTPError } from "../../../../../../common/utils";
+import { fromSnowflake } from "@reflectcord/common/models";
+import { selfEnableServerLeaves } from "@reflectcord/common/constants";
+import { HTTPError } from "@reflectcord/common/utils";
 
 export default (express: Application) => <Resource> {
   delete: async (req, res) => {

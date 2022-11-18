@@ -1,9 +1,8 @@
 /* eslint-disable camelcase */
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
-import { InviteFull } from "../../../../common/models/models/invite";
-import { fromSnowflake } from "../../../../common/models/util";
-import { HTTPError } from "../../../../common/utils";
+import { InviteFull, fromSnowflake } from "@reflectcord/common/models";
+import { HTTPError } from "@reflectcord/common/utils";
 
 export default () => <Resource> {
   get: async (req, res) => {

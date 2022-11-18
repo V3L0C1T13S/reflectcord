@@ -1,7 +1,6 @@
 import bodyParser from "body-parser";
 import path from "path";
-import { Server } from "../common/utils";
-import { RabbitMQ } from "../common/utils/RabbitMQ";
+import { Server, RabbitMQ } from "@reflectcord/common/utils";
 import "express-async-errors";
 
 export class ReflectcordCDN extends Server {

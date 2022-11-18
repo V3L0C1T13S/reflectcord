@@ -4,10 +4,9 @@ import {
 import { join } from "path";
 import morgan from "morgan";
 import fileUpload from "express-fileupload";
-import { Server } from "@reflectcord/common/utils";
+import { Server, RabbitMQ } from "@reflectcord/common/utils";
 import { DbManager } from "@reflectcord/common/db";
 import { enableLogging } from "@reflectcord/common/constants";
-import { RabbitMQ } from "@reflectcord/common/utils/RabbitMQ";
 import {
   Authentication, BodyParser, Client, CORS, ErrorHandler,
 } from "./middleware";

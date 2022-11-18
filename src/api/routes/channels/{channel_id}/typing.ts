@@ -1,12 +1,12 @@
 /* eslint-disable camelcase */
 import { Application } from "express";
 import { Resource } from "express-automatic-routes";
-import { HTTPError } from "../../../../common/utils";
-import { fromSnowflake } from "../../../../common/models/util";
-import { userStartTyping } from "../../../../common/events";
-import { RabbitMQ } from "../../../../common/utils/RabbitMQ";
+import { HTTPError } from "@reflectcord/common/utils";
+import { fromSnowflake } from "@reflectcord/common/models";
+import { userStartTyping } from "@reflectcord/common/events";
+import { RabbitMQ } from "@reflectcord/common/utils/RabbitMQ";
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   post: async (req, res) => {
     const { channel_id } = req.params;
     if (!channel_id) throw new HTTPError("Invalid id");

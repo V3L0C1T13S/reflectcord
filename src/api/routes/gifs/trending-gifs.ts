@@ -1,7 +1,7 @@
 import { Application } from "express";
 import { Resource } from "express-automatic-routes";
-import { gifBoxAPIUrl, gifBoxURL, reflectcordCDNURL } from "../../../common/constants";
-import { GifboxClient } from "../../../common/rvapi";
+import { gifBoxAPIUrl, gifBoxURL, reflectcordCDNURL } from "@reflectcord/common/constants";
+import { GifboxClient } from "@reflectcord/common/rvapi";
 
 export default (express: Application) => <Resource> {
   get: async (req, res) => {

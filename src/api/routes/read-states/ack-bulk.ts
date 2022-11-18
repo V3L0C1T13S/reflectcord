@@ -1,6 +1,6 @@
 import { Request } from "express";
 import { Resource } from "express-automatic-routes";
-import { fromSnowflake } from "../../../common/models/util";
+import { fromSnowflake } from "@reflectcord/common/models";
 
 interface AckRequest {
   channel_id: string,

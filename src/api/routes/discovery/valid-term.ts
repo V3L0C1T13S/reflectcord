@@ -1,8 +1,8 @@
 import axios from "axios";
 import { Resource } from "express-automatic-routes";
-import { HTTPError } from "../../../common/utils";
-import { getRevoltDiscoveryDataURL } from "../../../common/constants";
-import { ServerDiscoveryResponse } from "../../../common/rvapi";
+import { HTTPError } from "@reflectcord/common/utils";
+import { getRevoltDiscoveryDataURL } from "@reflectcord/common/constants";
+import { ServerDiscoveryResponse } from "@reflectcord/common/rvapi";
 
 export default () => <Resource> {
   get: async (req, res) => {

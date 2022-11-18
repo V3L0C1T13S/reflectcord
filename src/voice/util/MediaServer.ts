@@ -1,6 +1,6 @@
 import MediaServer, { IncomingStream, OutgoingStream, Transport } from "medooze-media-server";
 import SemanticSDP from "semantic-sdp";
-import { Logger } from "../../common/utils";
+import { Logger } from "@reflectcord/common/utils";
 import { WebSocket } from "./WebSocket";
 
 export const PublicIP = process.env.PUBLIC_IP || "127.0.0.1";

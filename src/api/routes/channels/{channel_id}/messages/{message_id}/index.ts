@@ -2,10 +2,10 @@
 import { APIMessage } from "discord.js";
 import { Application, Response } from "express";
 import { Resource } from "express-automatic-routes";
-import { API } from "revolt.js";
-import { fromSnowflake } from "../../../../../../common/models/util";
-import { Message, MessageSendData, User } from "../../../../../../common/models";
-import { HTTPError } from "../../../../../../common/utils";
+import {
+  fromSnowflake, Message, MessageSendData,
+} from "@reflectcord/common/models";
+import { HTTPError } from "@reflectcord/common/utils";
 import { sendReq } from "..";
 
 export default (express: Application) => <Resource> {

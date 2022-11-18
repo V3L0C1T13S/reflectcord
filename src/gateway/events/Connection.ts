@@ -5,12 +5,12 @@ import ws from "ws";
 import { createDeflate } from "zlib";
 import { Client } from "revolt.js";
 import { API } from "revolt-api";
+import { APIWrapper } from "@reflectcord/common/rvapi";
+import { Logger } from "@reflectcord/common/utils";
 import { sendOp, setHeartbeat } from "../util";
 import { SocketState, WebSocket } from "../Socket";
 import { Message } from "./Message";
 import { Close } from "./Close";
-import { APIWrapper } from "../../common/rvapi";
-import { Logger } from "../../common/utils";
 
 export async function Connection(this: ws.Server, socket: WebSocket, request: IncomingMessage) {
   try {

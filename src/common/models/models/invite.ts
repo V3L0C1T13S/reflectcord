@@ -1,9 +1,12 @@
-import { APIExtendedInvite, APIInvite, ChannelType } from "discord.js";
+import {
+  APIExtendedInvite, APIInvite,
+} from "discord.js";
 import { API } from "revolt.js";
-import { decodeTime } from "ulid";
 import { QuarkConversion } from "../QuarkConversion";
-import { toSnowflake } from "../util";
-import { Channel } from "./channel";
+import { PartialChannel } from "./channel";
+import { User } from "./user";
+import { systemUserID } from "../../rvapi";
+import { Guild } from "./guilds";
 
 export const Invite: QuarkConversion<API.InviteResponse, APIInvite> = {
   async to_quark(invite) {
@@ -24,10 +27,35 @@ export const Invite: QuarkConversion<API.InviteResponse, APIInvite> = {
   async from_quark(invite) {
     const { code } = invite;
 
-    return {
+    const discordInvite: APIInvite = {
       code,
-      channel: null,
+      channel: {
+        ...await PartialChannel.from_quark({
+          _id: invite.channel_id,
+          channel_type: "TextChannel",
+          name: invite.channel_name,
+        }),
+        name: invite.channel_name ?? "fixme",
+      },
+      inviter: await User.from_quark({
+        username: invite.user_name,
+        _id: systemUserID,
+      }),
     };
+
+    if (invite.type === "Server") {
+      discordInvite.guild = await Guild.from_quark({
+        _id: invite.server_id,
+        name: invite.server_name,
+        icon: invite.server_icon ?? null,
+        banner: invite.server_banner ?? null,
+        owner: systemUserID,
+        channels: [invite.channel_id],
+        default_permissions: 0,
+      });
+    }
+
+    return discordInvite;
   },
 };
 
@@ -44,6 +72,29 @@ export const InviteFull: QuarkConversion<API.InviteResponse, APIExtendedInvite> 
       max_age: 0,
       temporary: false,
       created_at: new Date().toISOString(),
+    };
+  },
+};
+
+export const InviteCreate: QuarkConversion<API.Invite, APIInvite> = {
+  async to_quark(invite) {
+    const { code } = invite;
+
+    return {
+      type: "Server",
+      _id: code,
+      creator: invite.inviter?.id ?? "0",
+      channel: invite.channel?.id ?? "0",
+      server: invite.guild?.id ?? "0",
+    };
+  },
+
+  async from_quark(invite) {
+    const { _id } = invite;
+
+    return {
+      code: _id,
+      channel: null,
     };
   },
 };

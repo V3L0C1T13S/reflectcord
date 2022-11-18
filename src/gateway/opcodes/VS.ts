@@ -5,14 +5,13 @@ import {
   GatewayDispatchEvents,
   GatewayOpcodes,
 } from "discord.js";
-import { DbManager } from "../../common/db";
-import { fromSnowflake, toSnowflake } from "../../common/models/util";
-import { VoiceStateSchema } from "../../common/sparkle";
+import { DbManager } from "@reflectcord/common/db";
+import { fromSnowflake, toSnowflake, Member } from "@reflectcord/common/models";
+import { VoiceStateSchema } from "@reflectcord/common/sparkle";
+import { reflectcordVoiceURL } from "@reflectcord/common/constants";
 import { WebSocket } from "../Socket";
 import { Payload, Send } from "../util";
 import { check } from "./instanceOf";
-import { Member } from "../../common/models";
-import { reflectcordVoiceURL } from "../../common/constants";
 
 interface VoiceStateObject {
   guild_id?: string,

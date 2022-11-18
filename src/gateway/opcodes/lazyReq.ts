@@ -3,14 +3,15 @@
 /* eslint-disable camelcase */
 import { APIGuildMember, GatewayOpcodes } from "discord.js";
 import { API } from "revolt.js";
-import { internalStatus, Member, Status } from "../../common/models";
+import {
+  internalStatus, Member, Status, fromSnowflake, toSnowflake,
+} from "@reflectcord/common/models";
+import { LazyRequest } from "@reflectcord/common/sparkle";
+import { MemberContainer } from "@reflectcord/common/managers";
 import { Send, Payload } from "../util";
 import { WebSocket } from "../Socket";
-import { fromSnowflake, toSnowflake } from "../../common/models/util";
 import { check } from "./instanceOf";
-import { LazyRequest } from "../../common/sparkle/schemas";
 import "missing-native-js-functions";
-import { MemberContainer } from "../../common/managers";
 
 type LazyGroup = {
   /** Group ID */

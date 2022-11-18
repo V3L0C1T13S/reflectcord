@@ -5,10 +5,10 @@ import { APIUser } from "discord.js";
 import { Application, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
-import { UserRelations } from "../../../../common/sparkle";
+import { UserRelations } from "@reflectcord/common/sparkle";
+import { fromSnowflake } from "@reflectcord/common/models";
+import { HTTPError } from "@reflectcord/common/utils";
 import { fetchUser } from ".";
-import { fromSnowflake } from "../../../../common/models/util";
-import { HTTPError } from "../../../../common/utils";
 
 export default (express: Application) => <Resource> {
   get: async (req, res: Response<UserRelations[]>) => {

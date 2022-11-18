@@ -4,9 +4,9 @@
 import { Application } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
-import { UserRelationshipType } from "../../../../../common/sparkle";
-import { Relationship, User } from "../../../../../common/models";
-import { HTTPError } from "../../../../../common/utils";
+import { UserRelationshipType } from "@reflectcord/common/sparkle";
+import { Relationship, User } from "@reflectcord/common/models";
+import { HTTPError } from "@reflectcord/common/utils";
 
 export default (express: Application) => <Resource> {
   get: async (req, res) => {

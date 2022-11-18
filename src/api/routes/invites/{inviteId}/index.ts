@@ -1,6 +1,5 @@
 import { Application } from "express";
 import { Resource } from "express-automatic-routes";
-import { API } from "revolt.js";
 import { Invite } from "../../../../common/models/models/invite";
 import { HTTPError } from "../../../../common/utils";
 

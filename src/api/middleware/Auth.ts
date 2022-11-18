@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { API } from "revolt.js";
-import { APIWrapper, createAPI } from "../../common/rvapi";
-import { HTTPError } from "../../common/utils";
+import { HTTPError } from "@reflectcord/common/utils";
+import { APIWrapper, createAPI } from "@reflectcord/common/rvapi";
 
 export const NoAuthRoutes = [
   "/auth/login",

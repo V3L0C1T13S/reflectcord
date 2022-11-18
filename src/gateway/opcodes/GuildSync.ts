@@ -1,12 +1,11 @@
 /* eslint-disable no-plusplus */
 /* eslint-disable camelcase */
 import { GatewayOpcodes } from "discord.js";
+import { fromSnowflake, Member, internalActivity } from "@reflectcord/common/models";
+import { GuildSyncSchema } from "@reflectcord/common/sparkle";
 import { Send } from "../util";
-import { fromSnowflake } from "../../common/models/util";
 import { WebSocket } from "../Socket";
 import { Payload } from "../util/Constants";
-import { Member, internalActivity } from "../../common/models";
-import { GuildSyncSchema } from "../../common/sparkle";
 
 async function GuildSync(this: WebSocket, guild_id: string) {
   const rvServerId = await fromSnowflake(guild_id);

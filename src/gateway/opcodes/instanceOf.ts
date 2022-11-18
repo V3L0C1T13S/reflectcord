@@ -1,5 +1,5 @@
 import { GatewayCloseCodes } from "discord.js";
-import { instanceOf } from "../../common/utils";
+import { instanceOf } from "@reflectcord/common/utils";
 import { WebSocket } from "../Socket";
 
 export function check(this: WebSocket, schema: any, data: any) {

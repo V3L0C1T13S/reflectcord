@@ -1,9 +1,9 @@
 import axios from "axios";
 import { Application } from "express";
 import { Resource } from "express-automatic-routes";
-import { getRevoltDiscoveryDataURL } from "../../common/constants";
-import { ServerDiscoveryResponse } from "../../common/rvapi";
-import { DiscoverableGuild } from "../../common/models";
+import { getRevoltDiscoveryDataURL } from "@reflectcord/common/constants";
+import { ServerDiscoveryResponse } from "@reflectcord/common/rvapi";
+import { DiscoverableGuild } from "@reflectcord/common/models";
 
 export default (express: Application) => <Resource> {
   get: async (req, res) => {

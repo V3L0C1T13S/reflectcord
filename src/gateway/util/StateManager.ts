@@ -1,4 +1,4 @@
-import { Logger } from "../../common/utils";
+import { Logger } from "@reflectcord/common/utils";
 import { WebSocket } from "../Socket";
 
 export class UserState {

@@ -1,6 +1,6 @@
 import { Response } from "express";
 import { Resource } from "express-automatic-routes";
-import { ThreadSearchResponse } from "../../../../../common/sparkle";
+import { ThreadSearchResponse } from "@reflectcord/common/sparkle";
 
 export default () => <Resource> {
   get: (req, res: Response<ThreadSearchResponse>) => {

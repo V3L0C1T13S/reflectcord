@@ -1,9 +1,9 @@
 import { Request } from "express";
 import { Resource } from "express-automatic-routes";
-import { check, instanceOf } from "../../common/utils/check";
-import { DbManager } from "../../common/db";
-import { HTTPError } from "../../common/utils";
-import { enableMetrics } from "../../common/constants";
+import { check, instanceOf } from "@reflectcord/common/utils/check";
+import { DbManager } from "@reflectcord/common/db";
+import { HTTPError } from "@reflectcord/common/utils";
+import { enableMetrics } from "@reflectcord/common/constants";
 
 export type MetricsTags = "platform:web" | "platform:desktop";
 

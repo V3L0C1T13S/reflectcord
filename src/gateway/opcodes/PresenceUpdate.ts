@@ -1,6 +1,6 @@
+import { internalStatus, Status } from "@reflectcord/common/models";
 import { Payload } from "../util";
 import { WebSocket } from "../Socket";
-import { internalStatus, Status } from "../../common/models";
 
 export async function presenceUpdate(this: WebSocket, data: Payload<internalStatus>) {
   if (!data.d) return;

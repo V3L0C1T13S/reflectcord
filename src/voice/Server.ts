@@ -1,6 +1,6 @@
 import http from "http";
 import WS from "ws";
-import { RabbitMQ } from "../common/utils/RabbitMQ";
+import { RabbitMQ } from "@reflectcord/common/utils";
 import { onConnect } from "./events";
 
 export class ReflectcordVoice {

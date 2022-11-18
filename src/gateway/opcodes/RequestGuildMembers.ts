@@ -6,12 +6,13 @@ import {
 import { compareTwoStrings } from "string-similarity";
 import { API } from "revolt.js";
 import { clamp } from "lodash";
+import {
+  fromSnowflake, Member, Status, User,
+} from "@reflectcord/common/models";
+import { ReqGuildMembersSchema, GuildMembersChunk } from "@reflectcord/common/sparkle";
 import { Payload, Send } from "../util";
-import { fromSnowflake } from "../../common/models/util";
 import { WebSocket } from "../Socket";
-import { Member, Status, User } from "../../common/models";
 import { check } from "./instanceOf";
-import { ReqGuildMembersSchema, GuildMembersChunk } from "../../common/sparkle";
 
 const memberExists = (uid: string, member_ids: string[]) => member_ids.includes(uid);
 

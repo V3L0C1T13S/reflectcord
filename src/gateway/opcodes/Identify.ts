@@ -1,11 +1,11 @@
 /* eslint-disable no-plusplus */
 import { GatewayCloseCodes } from "discord.js";
+import { Logger } from "@reflectcord/common/utils";
+import { IdentifySchema } from "@reflectcord/common/sparkle";
 import { startListener } from "../util/Listener";
 import { Payload } from "../util";
 import { WebSocket } from "../Socket";
-import { Logger } from "../../common/utils";
 import { check } from "./instanceOf";
-import { IdentifySchema } from "../../common/sparkle";
 
 export async function onIdentify(this: WebSocket, data: Payload<IdentifySchema>) {
   clearTimeout(this.readyTimeout);

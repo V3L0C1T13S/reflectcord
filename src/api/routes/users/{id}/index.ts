@@ -1,9 +1,8 @@
 import { Application } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
-import { HTTPError } from "../../../../common/utils";
-import { User } from "../../../../common/models";
-import { fromSnowflake } from "../../../../common/models/util";
+import { HTTPError } from "@reflectcord/common/utils";
+import { User, fromSnowflake } from "@reflectcord/common/models";
 
 export async function fetchUser(api: API.API, id: string) {
   const rvUser = await api.get(`/users/${id}`) as API.User;

@@ -2,11 +2,11 @@
 import axios from "axios";
 import { Response } from "express";
 import { Resource } from "express-automatic-routes";
-import { DiscoverableGuild } from "../../../common/models";
-import { ServerDiscoveryResponse } from "../../../common/rvapi";
-import { getRevoltDiscoveryDataURL } from "../../../common/constants";
-import { GuildDiscoveryRequest } from "../../../common/sparkle";
-import { genLoadId } from "../../../common/utils";
+import { DiscoverableGuild } from "@reflectcord/common/models";
+import { ServerDiscoveryResponse } from "@reflectcord/common/rvapi";
+import { getRevoltDiscoveryDataURL } from "@reflectcord/common/constants";
+import { GuildDiscoveryRequest } from "@reflectcord/common/sparkle";
+import { genLoadId } from "@reflectcord/common/utils";
 
 /**
  * This seems to be used in older clients but discoverable-guilds

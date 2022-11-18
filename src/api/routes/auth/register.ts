@@ -3,7 +3,7 @@ import { Application, Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { ResponseLogin } from "@reflectcord/common/models";
 import { RegisterSchema } from "@reflectcord/common/sparkle";
-import { FieldErrors } from "@reflectcord/common/utils/FieldError";
+import { FieldErrors } from "@reflectcord/common/utils";
 import { loginToRevolt } from "./login";
 
 export default (express: Application) => <Resource> {

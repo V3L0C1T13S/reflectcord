@@ -2,10 +2,10 @@
 import { IncomingMessage } from "http";
 import ws from "ws";
 import { GatewayCloseCodes } from "discord.js";
+import { Logger } from "@reflectcord/common/utils";
+import { VoiceOPCodes } from "@reflectcord/common/sparkle";
 import { Send, setHeartbeat, WebSocket } from "../util";
 import { onMessage } from "./Message";
-import { Logger } from "../../common/utils";
-import { VoiceOPCodes } from "../../common/sparkle";
 import { onClose } from "./Close";
 
 export async function onConnect(this: ws.Server, socket: WebSocket, request: IncomingMessage) {

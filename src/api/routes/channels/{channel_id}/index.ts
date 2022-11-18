@@ -2,9 +2,8 @@
 import { Application } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
-import { fromSnowflake } from "../../../../common/models/util";
-import { Channel } from "../../../../common/models";
-import { HTTPError } from "../../../../common/utils";
+import { fromSnowflake, Channel } from "@reflectcord/common/models";
+import { HTTPError } from "@reflectcord/common/utils";
 
 export async function getChannel(api: API.API, id: string) {
   const rvChannel = await api.get(`/channels/${id}`) as API.Channel;

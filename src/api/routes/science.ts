@@ -1,6 +1,6 @@
 import { Application } from "express";
 import { Resource } from "express-automatic-routes";
-import { enableTracking } from "../../common/constants";
+import { enableTracking } from "@reflectcord/common/constants";
 
 export type TrackingRequest = {
   headers: {

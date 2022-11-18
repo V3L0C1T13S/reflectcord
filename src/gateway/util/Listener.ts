@@ -5,7 +5,7 @@ import {
   GatewayCloseCodes, GatewayDispatchEvents, GatewayOpcodes,
 } from "discord.js";
 import { API } from "revolt.js";
-import { APIWrapper, createAPI } from "../../common/rvapi";
+import { APIWrapper, createAPI } from "@reflectcord/common/rvapi";
 import {
   Channel,
   Emoji,
@@ -17,14 +17,13 @@ import {
   selfUser,
   Status,
   User,
-} from "../../common/models";
+  toSnowflake,
+} from "@reflectcord/common/models";
+import { genSessionId, Logger, RabbitMQ } from "@reflectcord/common/utils";
+import { userStartTyping } from "@reflectcord/common/events";
 import { WebSocket } from "../Socket";
 import { Send } from "./send";
 import experiments from "./experiments.json";
-import { toSnowflake } from "../../common/models/util";
-import { genSessionId, Logger } from "../../common/utils";
-import { userStartTyping } from "../../common/events";
-import { RabbitMQ } from "../../common/utils/RabbitMQ";
 
 export async function startListener(this: WebSocket, token: string) {
   this.rvClient.on("packet", async (data) => {

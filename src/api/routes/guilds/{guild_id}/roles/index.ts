@@ -2,9 +2,8 @@
 import { APIGuildCreateRole, APIRole } from "discord.js";
 import { Application, Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
-import { HTTPError } from "../../../../../common/utils";
-import { Guild, Role } from "../../../../../common/models";
-import { fromSnowflake } from "../../../../../common/models/util";
+import { HTTPError } from "@reflectcord/common/utils";
+import { Guild, Role, fromSnowflake } from "@reflectcord/common/models";
 
 export default (express: Application) => <Resource> {
   get: async (req, res: Response<APIRole[]>) => {

@@ -1,6 +1,6 @@
+import { VoiceOPCodes } from "@reflectcord/common/sparkle";
+import { Payload } from "@reflectcord/gateway/util";
 import { Send, WebSocket } from "../util";
-import { VoiceOPCodes } from "../../common/sparkle";
-import { Payload } from "../../gateway/util";
 
 export async function VoiceBackendVersion(this: WebSocket, data: Payload) {
   await Send(this, {

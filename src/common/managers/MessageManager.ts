@@ -3,13 +3,14 @@ import { API } from "revolt.js";
 import { Message, User } from "../models";
 import { BaseManager } from "./BaseManager";
 import { QuarkContainer } from "./types";
+import { systemUserID } from "../rvapi/users";
 
 export type MessageContainer = QuarkContainer<API.Message, APIMessage>
 
 export class MessageManager extends BaseManager<string, MessageContainer> {
   async convertMessageObj(rvMessage: API.Message) {
     const authorInfo = await (async () => {
-      if (rvMessage.author === "00000000000000000000000000") {
+      if (rvMessage.author === systemUserID) {
         if (rvMessage.system) {
           switch (rvMessage.system.type) {
             case "user_remove": {

@@ -1,6 +1,6 @@
 /* eslint-disable no-multi-assign */
 import { NextFunction, Request, Response } from "express";
-import { ApiError, HTTPError, FieldError } from "../../common/utils";
+import { ApiError, HTTPError, FieldError } from "@reflectcord/common/utils";
 
 const EntityNotFoundErrorRegex = /"(\w+)"/;
 

@@ -1,8 +1,8 @@
 import { Router } from "express";
 import morgan from "morgan";
 import { join } from "path";
-import { enableLogging } from "../common/constants";
-import { Server } from "../common/utils";
+import { enableLogging } from "@reflectcord/common/constants";
+import { Server } from "@reflectcord/common/utils";
 
 export class ReflectcordEvil extends Server {
   async start() {

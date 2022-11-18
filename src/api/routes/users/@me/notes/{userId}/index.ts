@@ -1,11 +1,10 @@
 /* eslint-disable camelcase */
 import { Application, Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
-import { API } from "revolt.js";
+import { HTTPError } from "@reflectcord/common/utils";
+import { DbManager } from "@reflectcord/common/db";
+import { fromSnowflake, toSnowflake } from "@reflectcord/common/models";
 import { fetchUser } from "../../../{id}";
-import { HTTPError } from "../../../../../../common/utils";
-import { fromSnowflake, toSnowflake } from "../../../../../../common/models/util";
-import { DbManager } from "../../../../../../common/db";
 
 export type noteRequest = {
   note: string,
