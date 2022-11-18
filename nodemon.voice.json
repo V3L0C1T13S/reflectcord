@@ -1,4 +1,0 @@
-{
-  "extends": "./nodemon.json",
-  "watch": ["src/voice/**/*.ts", "src/common/**/*.ts"]
-}
