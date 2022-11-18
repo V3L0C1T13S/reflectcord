@@ -3,9 +3,8 @@ import { APIApplication } from "discord.js";
 import { Application, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
-import { HTTPError } from "../../../../common/utils";
-import { Application as botApplication, OwnedApplication } from "../../../../common/models";
-import { fromSnowflake } from "../../../../common/models/util";
+import { HTTPError } from "@reflectcord/common/utils";
+import { Application as botApplication, OwnedApplication, fromSnowflake } from "@reflectcord/common/models";
 
 export default (express: Application) => <Resource> {
   get: async (req, res: Response<APIApplication>) => {

@@ -2,10 +2,10 @@
 import { Response } from "express";
 import { Resource } from "express-automatic-routes";
 import axios from "axios";
-import { DiscoverableBot } from "../../../common/models";
-import { AppCategory } from "../../../common/sparkle";
-import { getRevoltDiscoveryDataURL } from "../../../common/constants";
-import { BotDiscoveryResponse } from "../../../common/rvapi";
+import { DiscoverableBot } from "@reflectcord/common/models";
+import { AppCategory } from "@reflectcord/common/sparkle";
+import { getRevoltDiscoveryDataURL } from "@reflectcord/common/constants";
+import { BotDiscoveryResponse } from "@reflectcord/common/rvapi";
 
 export default () => <Resource> {
   get: async (req, res: Response<AppCategory[]>) => {

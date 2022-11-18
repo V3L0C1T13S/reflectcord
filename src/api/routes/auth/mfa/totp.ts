@@ -1,6 +1,6 @@
 import { Resource } from "express-automatic-routes";
-import { ResponseLogin } from "../../../../common/models";
-import { HTTPError } from "../../../../common/utils";
+import { ResponseLogin } from "@reflectcord/common/models";
+import { HTTPError } from "@reflectcord/common/utils";
 
 export default () => <Resource> {
   post: async (req, res) => {

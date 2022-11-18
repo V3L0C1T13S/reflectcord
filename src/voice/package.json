@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -16,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/V3L0C1T13S/reflectcord/issues"
   },
-  "homepage": "https://github.com/V3L0C1T13S/reflectcord#readme"
+  "homepage": "https://github.com/V3L0C1T13S/reflectcord#readme",
+  "dependencies": {
+    "medooze-media-server": "^0.125.2"
+  }
 }

@@ -2,7 +2,7 @@ import { APIApplication } from "discord.js";
 import { Application, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
-import { Application as botApplication, OwnedApplication } from "../../../common/models";
+import { Application as botApplication, OwnedApplication } from "@reflectcord/common/models";
 
 export default (express: Application) => <Resource> {
   get: async (req, res) => {

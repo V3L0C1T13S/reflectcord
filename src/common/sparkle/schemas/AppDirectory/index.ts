@@ -40,3 +40,4 @@ export type AppCategory = {
 }
 
 export * from "./FullApp";
+export * from "./bots";

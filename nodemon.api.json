@@ -1,0 +1,9 @@
+{
+  "execMap": {
+    "ts": "tsx"
+  },
+  "watch": [
+    "src/api/**/*.ts",
+    "src/common/**/*.ts"
+  ]
+}

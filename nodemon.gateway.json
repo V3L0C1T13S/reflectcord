@@ -1,0 +1,9 @@
+{
+  "execMap": {
+    "ts": "tsx"
+  },
+  "watch": [
+    "src/gateway/**/*.ts",
+    "src/common/**/*.ts"
+  ]
+}

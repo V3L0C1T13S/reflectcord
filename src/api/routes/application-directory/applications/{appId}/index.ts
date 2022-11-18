@@ -1,9 +1,8 @@
 import { Resource } from "express-automatic-routes";
 import { Response } from "express";
-import { FullDiscoveryBot } from "../../../../../common/sparkle/schemas/AppDirectory/bots";
-import { fromSnowflake } from "../../../../../common/models/util";
-import { HTTPError } from "../../../../../common/utils";
-import { FullDiscoverableBot } from "../../../../../common/models/models/discovery/index";
+import { FullDiscoveryBot } from "@reflectcord/common/sparkle";
+import { fromSnowflake, FullDiscoverableBot } from "@reflectcord/common/models";
+import { HTTPError } from "@reflectcord/common/utils";
 
 // FIXME
 export default () => <Resource> {

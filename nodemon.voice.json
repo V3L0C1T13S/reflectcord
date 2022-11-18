@@ -1,0 +1,9 @@
+{
+  "execMap": {
+    "ts": "tsx"
+  },
+  "watch": [
+    "src/voice/**/*.ts",
+    "src/common/**/*.ts"
+  ]
+}

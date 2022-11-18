@@ -1,0 +1,6 @@
+{
+  "execMap": {
+      "ts": "tsx"
+  },
+  "watch": ["src/**/*.ts"]
+}
