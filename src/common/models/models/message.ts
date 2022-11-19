@@ -11,13 +11,14 @@ import fileUpload from "express-fileupload";
 import { Message as RevoltMessage } from "revolt-api";
 import { API } from "revolt.js";
 import { decodeTime } from "ulid";
+import { uploadFile } from "@reflectcord/cdn/util";
+import { systemUserID } from "@reflectcord/common/rvapi";
 import { QuarkConversion } from "../QuarkConversion";
 import { fromSnowflake, toSnowflake } from "../util";
 import { Attachment } from "./attachment";
 import { Embed, SendableEmbed } from "./embed";
 import { Reactions } from "./emoji";
 import { User } from "./user";
-import { uploadFile } from "../../../cdn/util";
 
 export type APIMention = {
   id: string,
@@ -109,19 +110,30 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
           (match) => `||${match.substring(2, match.length - 2)}||`,
         ) ?? "",
       author: await (async () => {
-        if (message.system) {
-          if (
-            message.system.type === "user_added"
+        if (message.author === systemUserID) {
+          if (message.system) {
+            if (
+              message.system.type === "user_added"
             || message.system.type === "user_remove"
             || message.system.type === "user_kicked"
             || message.system.type === "user_banned"
-          ) {
-            return {
-              id: await toSnowflake(message.system.id),
-              username: "System",
-              discriminator: "1",
-              avatar: null,
-            };
+            || message.system.type === "user_joined"
+            ) {
+              return {
+                id: await toSnowflake(message.system.id),
+                username: "System",
+                discriminator: "1",
+                avatar: null,
+              };
+            }
+            if (message.system.type === "channel_renamed") {
+              return {
+                id: await toSnowflake(message.system.by),
+                username: "System",
+                discriminator: "1",
+                avatar: null,
+              };
+            }
           }
         }
 

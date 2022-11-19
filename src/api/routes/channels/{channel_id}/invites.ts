@@ -19,6 +19,18 @@ export default (express: Application) => <Resource> {
     res.json(await InviteCreate.from_quark(rvInvite));
   },
   get: async (req, res) => {
-    res.json([]);
+    const { channel_id } = req.params;
+
+    if (!channel_id) throw new HTTPError("Invalid params");
+
+    const rvChannelId = await fromSnowflake(channel_id);
+    const rvChannel = await res.rvAPI.get(`/channels/${rvChannelId as ""}`);
+
+    if (!("server" in rvChannel && rvChannel.server)) return res.json([]);
+
+    const invites = (await res.rvAPI.get(`/servers/${rvChannel.server as ""}/invites`))
+      .filter((x) => x.channel === rvChannelId);
+
+    return res.json(await Promise.all(invites.map((x) => InviteCreate.from_quark(x))));
   },
 };

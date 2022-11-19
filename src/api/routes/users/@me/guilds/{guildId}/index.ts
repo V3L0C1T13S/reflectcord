@@ -7,11 +7,11 @@ import { HTTPError } from "@reflectcord/common/utils";
 
 export default (express: Application) => <Resource> {
   delete: async (req, res) => {
-    const { guild_id } = req.params;
+    const { guildId } = req.params;
 
-    if (!selfEnableServerLeaves || !guild_id) throw new HTTPError("Guild not found", 404);
+    if (!selfEnableServerLeaves || !guildId) throw new HTTPError("Guild not found", 404);
 
-    const rvServerId = await fromSnowflake(guild_id);
+    const rvServerId = await fromSnowflake(guildId);
 
     await res.rvAPIWrapper.servers.leave(rvServerId);
 

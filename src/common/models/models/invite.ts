@@ -92,9 +92,31 @@ export const InviteCreate: QuarkConversion<API.Invite, APIInvite> = {
   async from_quark(invite) {
     const { _id } = invite;
 
-    return {
+    const discordInvite: APIInvite = {
       code: _id,
-      channel: null,
+      channel: {
+        ...await PartialChannel.from_quark({
+          _id: invite.channel,
+          channel_type: "TextChannel",
+        }),
+        name: "fixme",
+      },
+      inviter: await User.from_quark({
+        username: "fixme",
+        _id: invite.creator,
+      }),
     };
+
+    if (invite.type === "Server") {
+      discordInvite.guild = await Guild.from_quark({
+        _id: invite.server,
+        name: "fixme",
+        owner: systemUserID,
+        channels: [invite.channel],
+        default_permissions: 0,
+      });
+    }
+
+    return discordInvite;
   },
 };

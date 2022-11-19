@@ -53,7 +53,7 @@ export const DiscoverableGuild: QuarkConversion<DiscoveryServer, GuildDiscoveryI
       preferred_locale: "en-US",
       auto_removed: false,
       primary_category_id: 0,
-      vanity_url_code: "fixme",
+      vanity_url_code: data._id,
       is_published: false,
       features,
     };
