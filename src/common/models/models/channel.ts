@@ -109,9 +109,18 @@ export const GuildCategory: QuarkConversion<
   GuildCategoryAFQ
 > = {
   async to_quark(category) {
+    const id = await (async () => {
+      try {
+        const sf = await fromSnowflake(category.id);
+        return sf;
+      } catch (e) {
+        return category.id;
+      }
+    })();
+
     return {
       title: category.name ?? "",
-      id: category.id,
+      id,
       channels: [],
     };
   },
@@ -235,9 +244,19 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
   async from_quark(channel, extra) {
     const id = await toSnowflake(channel._id);
 
-    const categoryId = extra?.categoryId
-      ?? extra?.allCategories?.find((x) => x.channels.includes(channel._id))?.id
-      ?? null;
+    const categoryId = await (async () => {
+      const category = extra?.allCategories
+        ?.find((x) => x.channels.includes(channel._id))?.id;
+
+      if (!category) return null;
+
+      try {
+        const sf = await toSnowflake(category);
+        return sf;
+      } catch (e) {
+        return category;
+      }
+    })();
 
     return {
       bitrate: undefined,
