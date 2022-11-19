@@ -18,6 +18,7 @@ import {
   Status,
   User,
   toSnowflake,
+  GuildCategory,
 } from "@reflectcord/common/models";
 import { genSessionId, Logger, RabbitMQ } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
@@ -88,11 +89,18 @@ export async function startListener(this: WebSocket, token: string) {
               const rvChannels: API.Channel[] = server.channels
                 .map((x) => this.rvAPIWrapper.channels.$get(x)?.revolt).filter((x) => x);
 
-              const discordGuild = await Guild.from_quark(server);
+              const discordGuild = this.rvAPIWrapper.servers.createObj({
+                revolt: server,
+                discord: await Guild.from_quark(server),
+              }).discord;
 
               const guild = {
                 ...discordGuild,
-                channels: await HandleChannelsAndCategories(rvChannels, server.categories),
+                channels: await HandleChannelsAndCategories(
+                  rvChannels,
+                  server.categories,
+                  server._id,
+                ),
                 properties: discordGuild,
               };
 
@@ -409,11 +417,16 @@ export async function startListener(this: WebSocket, token: string) {
           break;
         }
         case "ServerCreate": {
+          const guild = this.rvAPIWrapper.servers.createObj({
+            revolt: data.server,
+            discord: await Guild.from_quark(data.server),
+          });
+
           await Send(this, {
             op: GatewayOpcodes.Dispatch,
             t: GatewayDispatchEvents.GuildCreate,
             s: this.sequence++,
-            d: await Guild.from_quark(data.server),
+            d: guild.discord,
           });
           break;
         }
@@ -426,6 +439,49 @@ export async function startListener(this: WebSocket, token: string) {
               id: await toSnowflake(data.id),
               unavailable: true,
             },
+          });
+          break;
+        }
+        case "ServerUpdate": {
+          const oldServer = this.rvAPIWrapper.servers.$get(data.id);
+          const server = this.rvAPIWrapper.servers.$get(data.id, {
+            revolt: data.data ?? {},
+            discord: {},
+          });
+
+          if (!server.revolt) return;
+
+          const guild = await Guild.from_quark(server.revolt);
+          const updatedGuild = this.rvAPIWrapper.servers.$get(data.id, {
+            revolt: {},
+            discord: guild,
+          });
+
+          if (data.data.categories) {
+            await Promise.all(data.data.categories.map(async (x) => {
+              // Only emit channelcreate for new categories - the rest get "updated"
+              const eventType = oldServer.revolt.categories?.find((c) => x.id === c.id)
+                ? GatewayDispatchEvents.ChannelUpdate
+                : GatewayDispatchEvents.ChannelCreate;
+
+              const discordCategory = await GuildCategory.from_quark(x, {
+                server: data.id,
+              });
+
+              await Send(this, {
+                op: GatewayOpcodes.Dispatch,
+                t: eventType,
+                s: this.sequence++,
+                d: discordCategory,
+              });
+            }));
+          }
+
+          await Send(this, {
+            op: GatewayOpcodes.Dispatch,
+            t: GatewayDispatchEvents.GuildUpdate,
+            s: this.sequence++,
+            d: updatedGuild.discord,
           });
           break;
         }

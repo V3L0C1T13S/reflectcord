@@ -1,9 +1,8 @@
 /* eslint-disable camelcase */
 import { Application, Response } from "express";
 import { Resource } from "express-automatic-routes";
-import { API } from "revolt.js";
 import { APIChannel } from "discord.js";
-import { Channel, HandleChannelsAndCategories } from "../../../../common/models";
+import { HandleChannelsAndCategories } from "../../../../common/models";
 import { fromSnowflake } from "../../../../common/models/util";
 
 export default (express: Application) => <Resource> {
@@ -16,10 +15,10 @@ export default (express: Application) => <Resource> {
 
     const api = res.rvAPI;
 
-    const rvGuild = await api.get(`/servers/${rvId}`) as API.Server;
+    const rvGuild = await api.get(`/servers/${rvId as ""}`);
     const channels = await Promise.all(rvGuild.channels
-      .map((channel) => api.get(`/channels/${channel}`))) as API.Channel[];
+      .map((channel) => api.get(`/channels/${channel as ""}`)));
 
-    return res.json(await HandleChannelsAndCategories(channels, rvGuild.categories));
+    return res.json(await HandleChannelsAndCategories(channels, rvGuild.categories, rvId));
   },
 };

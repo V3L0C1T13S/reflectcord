@@ -97,11 +97,16 @@ export const ChannelType: QuarkConversion<rvChannel["channel_type"], discordChan
   },
 };
 
+export type GuildCategoryATQ = {};
+export type GuildCategoryAFQ = Partial<{
+  server: string | null | undefined,
+}>;
+
 export const GuildCategory: QuarkConversion<
   Category,
   APIGuildCategoryChannel,
-  ChannelATQ,
-  ChannelAFQ
+  GuildCategoryATQ,
+  GuildCategoryAFQ
 > = {
   async to_quark(category) {
     return {
@@ -111,12 +116,26 @@ export const GuildCategory: QuarkConversion<
     };
   },
 
-  async from_quark(category) {
-    return {
-      id: category.id,
+  async from_quark(category, extra) {
+    // FIXME: For some reason, some categories are "a" "b" or "c" (possible legacy format?)
+    const id = await (async () => {
+      try {
+        const sf = await toSnowflake(category.id);
+        return sf;
+      } catch (e) {
+        return category.id;
+      }
+    })();
+
+    const discordCategory: APIGuildCategoryChannel = {
+      id,
       name: category.title,
       type: discordChannelType.GuildCategory,
     };
+
+    if (extra?.server) discordCategory.guild_id = await toSnowflake(extra.server);
+
+    return discordCategory;
   },
 };
 
@@ -328,13 +347,16 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
 export async function HandleChannelsAndCategories(
   channels: rvChannel[],
   categories?: Category[] | null,
+  server?: string,
 ) {
   const discordChannels = await Promise.all(channels
     .map((x) => Channel.from_quark(x, {
       allCategories: categories,
     })));
   const discordCategories = categories ? await Promise.all(categories
-    .map((x) => GuildCategory.from_quark(x)))
+    .map((x) => GuildCategory.from_quark(x, {
+      server,
+    })))
     : [];
 
   return [...discordChannels, ...discordCategories];
