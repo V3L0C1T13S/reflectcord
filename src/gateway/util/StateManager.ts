@@ -18,7 +18,10 @@ export namespace StateManager {
 
   export function insert(state: WebSocket) {
     const userStates = states.get(state.user_id)
-      ?? states.set(state.user_id, new UserState(state.rvClient.session))
+      ?? states.set(state.user_id, new UserState(
+        typeof state.rvClient.session === "string"
+          ? state.rvClient.session : state.rvClient.session!.token,
+      ))
         .get(state.user_id);
 
     Logger.log(`inserting state ${state}`);

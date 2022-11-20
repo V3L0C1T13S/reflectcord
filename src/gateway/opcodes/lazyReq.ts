@@ -94,7 +94,7 @@ async function getMembers(
     const otherHighest = Math.min(...otherRoleRanks);
 
     // eslint-disable-next-line no-nested-ternary
-    return (highestRank < otherHighest ? 0 : highestRank > otherHighest ? -1 : 1);
+    return (highestRank > otherHighest ? 0 : highestRank < otherHighest ? -1 : 1);
   });
 
   type extendMemberContainer = MemberContainer & {

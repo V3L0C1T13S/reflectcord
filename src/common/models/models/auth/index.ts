@@ -51,7 +51,7 @@ export const DataLogin: QuarkConversion<RevoltDataLogin, LoginSchema> = {
     return {
       email: data.login,
       password: data.password,
-      captcha: data.captcha_key ?? null,
+      // captcha: data.captcha_key ?? null,
     };
   },
 
@@ -61,7 +61,7 @@ export const DataLogin: QuarkConversion<RevoltDataLogin, LoginSchema> = {
     return {
       login: isMFA ? "fixme" : data.email,
       password: isMFA ? "fixme" : data.password,
-      captcha_key: isMFA ? "fixme" : data.captcha ?? "fixme",
+      // captcha_key: isMFA ? "fixme" : data.captcha ?? "fixme",
     };
   },
 };
