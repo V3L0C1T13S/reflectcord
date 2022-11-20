@@ -225,6 +225,15 @@ export async function startListener(this: WebSocket, token: string) {
           const msgObj = await this.rvAPIWrapper.messages.convertMessageObj(data);
           const channel = await this.rvAPIWrapper.channels.fetch(data.channel);
 
+          this.rvAPIWrapper.channels.update(data.channel, {
+            revolt: {
+              last_message_id: data._id,
+            },
+            discord: {
+              last_message_id: await toSnowflake(data._id),
+            },
+          });
+
           await Send(this, {
             op: GatewayOpcodes.Dispatch,
             t: GatewayDispatchEvents.MessageCreate,
@@ -403,11 +412,14 @@ export async function startListener(this: WebSocket, token: string) {
           break;
         }
         case "ChannelDelete": {
+          // FIXME: Potentially undefined?
+          const channel = this.rvAPIWrapper.channels.get(data.id);
+
           await Send(this, {
             op: GatewayOpcodes.Dispatch,
             t: GatewayDispatchEvents.ChannelDelete,
             s: this.sequence++,
-            d: await Channel.from_quark({
+            d: channel?.discord ?? await Channel.from_quark({
               _id: data.id,
               channel_type: "DirectMessage",
               active: false,

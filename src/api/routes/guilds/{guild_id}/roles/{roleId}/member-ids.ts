@@ -1,8 +1,8 @@
 import { Resource } from "express-automatic-routes";
 import { Response } from "express";
-import { fromSnowflake, toSnowflake } from "../../../../../../common/models/util";
-import { HTTPError } from "../../../../../../common/utils";
-import { MemberIdsResponse } from "../../../../../../common/sparkle";
+import { fromSnowflake, toSnowflake } from "@reflectcord/common/models";
+import { HTTPError } from "@reflectcord/common/utils";
+import { MemberIdsResponse } from "@reflectcord/common/sparkle";
 
 export default () => <Resource> {
   // FIXME: 429 hell

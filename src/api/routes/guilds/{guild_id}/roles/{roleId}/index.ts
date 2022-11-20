@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 import { Resource } from "express-automatic-routes";
-import { fromSnowflake } from "../../../../../../common/models/util";
-import { HTTPError } from "../../../../../../common/utils";
+import { fromSnowflake } from "@reflectcord/common/models/util";
+import { HTTPError } from "@reflectcord/common/utils";
 
 export default () => <Resource> {
   // FIXME

@@ -3,9 +3,8 @@ import { APIBan } from "discord.js";
 import { Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
-import { Ban } from "../../../../../common/models";
-import { fromSnowflake } from "../../../../../common/models/util";
-import { HTTPError } from "../../../../../common/utils";
+import { Ban, fromSnowflake } from "@reflectcord/common/models";
+import { HTTPError } from "@reflectcord/common/utils";
 
 export default () => <Resource> {
   get: async (req, res: Response<APIBan[]>) => {
