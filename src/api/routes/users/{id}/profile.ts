@@ -1,10 +1,12 @@
 /* eslint-disable camelcase */
-import { Application } from "express";
+import { Application, Request } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
 import { decodeTime } from "ulid";
 import { HTTPError } from "@reflectcord/common/utils";
 import { UserProfile, fromSnowflake } from "@reflectcord/common/models";
+import { uploadBase64File } from "@reflectcord/cdn/util";
+import { PatchCurrentUserBody } from "@reflectcord/common/sparkle";
 import { fetchUser } from ".";
 
 export async function getProfile(api: API.API, id: string) {
@@ -44,19 +46,39 @@ export default (express: Application) => <Resource> {
     });
   },
 
-  patch: async (req, res) => {
-    const { bio, banner } = req.body;
+  patch: async (
+    req: Request<any, any, PatchCurrentUserBody>,
+    res,
+  ) => {
+    const {
+      username, avatar, bio, banner,
+    } = req.body;
 
-    await res.rvAPI.patch("/users/@me", {
+    const avatarId = avatar && avatar.startsWith("data:") ? await uploadBase64File("avatars", {
+      name: "avatar.png",
+      file: avatar,
+    }) : null;
+
+    const bannerId = banner && banner.startsWith("data:") ? await uploadBase64File("backgrounds", {
+      name: "banner.png",
+      file: banner,
+    }) : null;
+
+    const updatedSelf = await res.rvAPI.patch("/users/@me", {
+      avatar: avatarId,
       profile: {
         content: bio ?? null,
+        background: bannerId,
       },
     });
 
+    const fullUpdatedSelf = await getProfile(res.rvAPI, "@me");
+
     res.json({
       accent_color: null,
-      bio: bio ?? null,
-      banner: banner ?? null,
+      avatar: updatedSelf?.avatar?._id ?? null,
+      bio: fullUpdatedSelf?.content ?? null,
+      banner: fullUpdatedSelf?.background?._id,
     });
   },
 };

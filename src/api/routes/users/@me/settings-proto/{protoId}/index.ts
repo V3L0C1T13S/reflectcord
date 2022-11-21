@@ -53,6 +53,9 @@ const settingsSchema: INamespace = {
 
 // FIXME
 export default (express: Application) => <Resource> {
+  get: (req, res) => {
+    res.sendStatus(500);
+  },
   patch: (req, res) => {
     const { required_data_version, settings } = req.body;
     if (!settings) throw new HTTPError("Invalid request");
