@@ -11,3 +11,5 @@ export const enableMetrics = process.env["ENABLE_ANALYTICS"] ?? false;
 export const enableTracking = process.env["ENABLE_TRACKING"] ?? false;
 
 export const enableRoleMemberCounts = process.env["ROLE_MEMBER_COUNTS"] ?? false;
+
+export const messageFullMentions = process.env["MESSAGE_FULL_MENTIONS"] ?? false;
