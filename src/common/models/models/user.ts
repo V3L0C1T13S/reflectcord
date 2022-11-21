@@ -175,6 +175,10 @@ export const selfUser: QuarkConversion<revoltUserInfo, APIUser> = {
       ...await User.from_quark(user.user),
       email: user.authInfo.email,
       mfa_enabled,
+      // Revolt doesn't require age verification
+      nsfw_allowed: true,
+      // This doesn't seem to be required but it exists in actual discord so
+      premium: true,
     };
   },
 };

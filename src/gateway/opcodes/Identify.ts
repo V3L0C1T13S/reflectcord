@@ -22,7 +22,7 @@ export async function onIdentify(this: WebSocket, data: Payload<IdentifySchema>)
     return this.close(GatewayCloseCodes.AuthenticationFailed);
   }
 
-  await startListener.call(this, token);
+  await startListener.call(this, token, identify);
 
   await this.rvClient.loginBot(token).catch(() => {
     Logger.error("Revolt failed authentication");

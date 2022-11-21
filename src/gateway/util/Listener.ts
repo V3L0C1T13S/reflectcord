@@ -22,11 +22,16 @@ import {
 } from "@reflectcord/common/models";
 import { genSessionId, Logger, RabbitMQ } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
+import { IdentifySchema } from "@reflectcord/common/sparkle";
 import { WebSocket } from "../Socket";
 import { Send } from "./send";
 import experiments from "./experiments.json";
 
-export async function startListener(this: WebSocket, token: string) {
+export async function startListener(
+  this: WebSocket,
+  token: string,
+  identifyPayload: IdentifySchema,
+) {
   this.rvClient.on("packet", async (data) => {
     try {
       switch (data.type) {
@@ -142,9 +147,10 @@ export async function startListener(this: WebSocket, token: string) {
                 activities: status.activities,
                 client_status: {
                   client: "desktop",
-                  os: "Unknown",
+                  os: identifyPayload.properties?.os,
                   version: 0,
                 },
+                status: identifyPayload?.presence?.status ?? "offline",
               },
             });
           });
