@@ -245,6 +245,15 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
     const id = await toSnowflake(channel._id);
 
     const categoryId = await (async () => {
+      if (extra?.categoryId) {
+        try {
+          const sf = await toSnowflake(extra.categoryId);
+          return sf;
+        } catch {
+          return extra.categoryId;
+        }
+      }
+
       const category = extra?.allCategories
         ?.find((x) => x.channels.includes(channel._id))?.id;
 

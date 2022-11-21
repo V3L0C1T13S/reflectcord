@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 import { Resource } from "express-automatic-routes";
-import { HTTPError } from "../../../../../../common/utils";
-import { Emoji } from "../../../../../../common/models";
+import { HTTPError } from "@reflectcord/common/utils";
+import { Emoji } from "@reflectcord/common/models";
 
 export default () => <Resource> {
   get: async (req, res) => {

@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 /* eslint-disable no-bitwise */
 import {
   APIGuild,
@@ -10,8 +11,10 @@ import {
   GuildPremiumTier,
   GuildSystemChannelFlags,
   GuildVerificationLevel,
+  RESTPatchAPIGuildJSONBody,
 } from "discord.js";
-import { Server } from "revolt-api";
+import { DataEditServer, Server } from "revolt-api";
+import { uploadBase64File } from "@reflectcord/cdn/util";
 import { Logger } from "../../../utils";
 import { QuarkConversion } from "../../QuarkConversion";
 import { fromSnowflake, toSnowflake } from "../../util";
@@ -191,6 +194,47 @@ export const PartialGuild: QuarkConversion<revoltPartialServer, DiscordPartialGu
       owner: false,
       permissions: "",
       features: getServerFeatures(data),
+    };
+  },
+};
+
+export const GuildEditBody: QuarkConversion<DataEditServer, RESTPatchAPIGuildJSONBody> = {
+  async to_quark(data) {
+    const {
+      name, description, system_channel_id, icon, banner,
+    } = data;
+
+    const iconId = icon ? await uploadBase64File("icons", {
+      file: icon,
+    }, "image/png") : null;
+    const bannerId = banner ? await uploadBase64File("banners", {
+      file: banner,
+    }, "image/png") : null;
+
+    return {
+      name: name ?? null,
+      description: description ?? null,
+      system_messages: system_channel_id ? await (async () => {
+        const channelId = await fromSnowflake(system_channel_id);
+
+        return {
+          user_joined: channelId,
+          user_left: channelId,
+          user_kicked: channelId,
+          user_banned: channelId,
+        };
+      })() : null,
+      icon: iconId,
+      banner: bannerId,
+    };
+  },
+
+  async from_quark(data) {
+    const { name, description } = data;
+
+    return {
+      name: name ?? undefined,
+      description,
     };
   },
 };

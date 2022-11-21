@@ -1,10 +1,8 @@
 /* eslint-disable camelcase */
-import { Application, Request } from "express";
+import { Request } from "express";
 import { Resource } from "express-automatic-routes";
-import { API } from "revolt.js";
-import { Message, User } from "../../../../../common/models";
-import { HTTPError } from "../../../../../common/utils";
-import { fromSnowflake } from "../../../../../common/models/util";
+import { Message, User, fromSnowflake } from "@reflectcord/common/models";
+import { HTTPError } from "@reflectcord/common/utils";
 
 export default () => <Resource> {
   get: async (req: Request<any, any, any, { content: string, channel_id?: string }>, res) => {

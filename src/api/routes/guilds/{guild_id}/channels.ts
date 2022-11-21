@@ -2,8 +2,7 @@
 import { Application, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { APIChannel } from "discord.js";
-import { HandleChannelsAndCategories } from "../../../../common/models";
-import { fromSnowflake } from "../../../../common/models/util";
+import { HandleChannelsAndCategories, fromSnowflake } from "@reflectcord/common/models";
 
 export default (express: Application) => <Resource> {
   get: async (req, res: Response<APIChannel[]>) => {

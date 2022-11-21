@@ -3,9 +3,8 @@ import { RESTPatchAPIGuildMemberJSONBody } from "discord.js";
 import { Request } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
-import { Member } from "../../../../../../common/models";
-import { fromSnowflake } from "../../../../../../common/models/util";
-import { HTTPError } from "../../../../../../common/utils";
+import { Member, fromSnowflake } from "@reflectcord/common/models";
+import { HTTPError } from "@reflectcord/common/utils";
 
 type editMemberBody = RESTPatchAPIGuildMemberJSONBody & {
   banner?: string;
@@ -21,10 +20,10 @@ export default () => <Resource> {
     const serverId = await fromSnowflake(guild_id);
     const rvMemberId = await fromSnowflake(memberId);
 
-    const member = await res.rvAPI.patch(`/servers/${serverId}/members/${rvMemberId}`, {
+    const member = await res.rvAPI.patch(`/servers/${serverId as ""}/members/${rvMemberId as ""}`, {
       nickname: nick ?? null,
       roles: roles ? await Promise.all(roles.map((x) => fromSnowflake(x))) : null,
-    }) as API.Member;
+    });
 
     res.json(await Member.from_quark(member));
   },
