@@ -204,12 +204,12 @@ export const GuildEditBody: QuarkConversion<DataEditServer, RESTPatchAPIGuildJSO
       name, description, system_channel_id, icon, banner,
     } = data;
 
-    const iconId = icon ? await uploadBase64File("icons", {
+    const iconId = icon && icon.startsWith("data:") ? await uploadBase64File("icons", {
       file: icon,
-    }, "image/png") : null;
-    const bannerId = banner ? await uploadBase64File("banners", {
+    }) : null;
+    const bannerId = banner && banner.startsWith("data:") ? await uploadBase64File("banners", {
       file: banner,
-    }, "image/png") : null;
+    }) : null;
 
     return {
       name: name ?? null,

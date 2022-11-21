@@ -67,20 +67,6 @@ export async function uploadFile(
   return response.data.id;
 }
 
-export async function uploadBase64File(
-  type: ImageType,
-  file: { name?: string; file: string },
-  contentType = "image/png",
-) {
-  const imgData = Buffer.from(file.file, "base64");
-  const id = await uploadFile(type, {
-    name: file.name ?? "image.png",
-    file: imgData,
-  }, contentType);
-
-  return id;
-}
-
 export async function getMimeType(file: Buffer) {
   const fallback = "application/octet-stream";
 
@@ -93,6 +79,23 @@ export async function getMimeType(file: Buffer) {
   }
 
   return mimeType;
+}
+
+export async function uploadBase64File(
+  type: ImageType,
+  file: { name?: string; file: string },
+  contentType?: string,
+) {
+  const dataParsed = file.file.split("base64,").pop();
+  if (!dataParsed) throw new Error("Invalid img data");
+  const imgData = Buffer.from(dataParsed, "base64");
+  const dataType = await getMimeType(imgData);
+  const id = await uploadFile(type, {
+    name: file.name ?? "image.png",
+    file: imgData,
+  }, contentType ?? dataType);
+
+  return id;
 }
 
 export async function handleFile(path: ImageType, body?: string) {
