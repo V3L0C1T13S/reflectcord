@@ -2,9 +2,11 @@
 import { Resource } from "express-automatic-routes";
 import { Ban, fromSnowflake } from "@reflectcord/common/models";
 import { HTTPError } from "@reflectcord/common/utils";
+import { Request, Response } from "express";
+import { APIBan, RESTPutAPIGuildBanJSONBody } from "discord.js";
 
 export default () => <Resource> {
-  get: async (req, res) => {
+  get: async (req, res: Response<APIBan>) => {
     const { guild_id, userId } = req.params;
     if (!guild_id || !userId) throw new HTTPError("Invalid params");
 
@@ -21,6 +23,17 @@ export default () => <Resource> {
     res.json(await Ban.from_quark(rvBan, {
       user,
     }));
+  },
+  put: async (req: Request<any, any, RESTPutAPIGuildBanJSONBody>, res: Response<APIBan>) => {
+    const { guild_id, userId } = req.params;
+    if (!guild_id || !userId) throw new HTTPError("Invalid params");
+
+    const rvServer = await fromSnowflake(guild_id);
+    const rvUserId = await fromSnowflake(userId);
+
+    const rvBan = await res.rvAPI.put(`/servers/${rvServer as ""}/bans/${rvUserId as ""}`, {});
+
+    res.json(await Ban.from_quark(rvBan));
   },
   delete: async (req, res) => {
     const { guild_id, userId } = req.params;
