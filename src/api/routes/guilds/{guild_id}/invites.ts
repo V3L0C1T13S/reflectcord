@@ -1,7 +1,6 @@
 /* eslint-disable camelcase */
 import { Resource } from "express-automatic-routes";
-import { API } from "revolt.js";
-import { InviteFull, fromSnowflake } from "@reflectcord/common/models";
+import { fromSnowflake, InviteCreate } from "@reflectcord/common/models";
 import { HTTPError } from "@reflectcord/common/utils";
 
 export default () => <Resource> {
@@ -12,8 +11,8 @@ export default () => <Resource> {
 
     const serverId = await fromSnowflake(guild_id);
 
-    const rvInvites = await res.rvAPI.get(`/servers/${serverId}/invites`) as API.InviteResponse[];
+    const rvInvites = await res.rvAPI.get(`/servers/${serverId as ""}/invites`);
 
-    res.json(await Promise.all(rvInvites.map((x) => InviteFull.from_quark(x))));
+    res.json(await Promise.all(rvInvites.map((x) => InviteCreate.from_quark(x))));
   },
 };
