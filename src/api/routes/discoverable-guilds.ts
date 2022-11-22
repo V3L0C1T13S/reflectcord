@@ -4,16 +4,32 @@ import { Resource } from "express-automatic-routes";
 import { getRevoltDiscoveryDataURL } from "@reflectcord/common/constants";
 import { ServerDiscoveryResponse } from "@reflectcord/common/rvapi";
 import { DiscoverableGuild } from "@reflectcord/common/models";
+import { HTTPError } from "@reflectcord/common/utils";
 
 export default (express: Application) => <Resource> {
   get: async (req, res) => {
-    const discoveryURL = await getRevoltDiscoveryDataURL();
-    const revoltServers = await axios.get<ServerDiscoveryResponse>(`${discoveryURL}/discover/servers.json`);
+    const { categories } = req.query as { categories: string };
 
-    const total = revoltServers.data.pageProps.servers.length;
+    const discoveryURL = await getRevoltDiscoveryDataURL();
+    const revoltData = await axios.get<ServerDiscoveryResponse>(`${discoveryURL}/discover/servers.json`);
+    let revoltServers = revoltData.data.pageProps.servers;
+
+    if (categories) {
+      const categoryNumber = parseInt(categories, 10);
+      const categoryName = revoltData.data.pageProps.popularTags[categoryNumber];
+
+      if (!categoryName) throw new HTTPError("Invalid category ID");
+
+      const filteredServers = revoltServers
+        .filter((x) => x.tags.includes(categoryName));
+
+      revoltServers = filteredServers;
+    }
+
+    const total = revoltServers.length;
     res.json({
       total,
-      guilds: await Promise.all(revoltServers.data.pageProps.servers
+      guilds: await Promise.all(revoltServers
         .map((x) => DiscoverableGuild.from_quark(x))),
     });
   },
