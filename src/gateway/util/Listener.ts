@@ -615,6 +615,41 @@ export async function startListener(
 
           break;
         }
+        case "UserRelationship": {
+          const id = await toSnowflake(data.user._id);
+          const type = await Relationship.from_quark(data.status);
+          const nickname = data.user.username;
+          const user = await User.from_quark(data.user);
+
+          Logger.log(`rl type: ${data.status}`);
+
+          if (["Friend", "Outgoing", "Incoming", "Blocked"].includes(data.status)) {
+            await Send(this, {
+              op: GatewayOpcodes.Dispatch,
+              t: "RELATIONSHIP_ADD",
+              s: this.sequence++,
+              d: {
+                id,
+                type,
+                nickname,
+                user,
+              },
+            });
+          } else {
+            await Send(this, {
+              op: GatewayOpcodes.Dispatch,
+              t: "RELATIONSHIP_REMOVE",
+              s: this.sequence++,
+              d: {
+                id,
+                type,
+                nickname,
+                user,
+              },
+            });
+          }
+          break;
+        }
         case "Pong": {
           break;
         }

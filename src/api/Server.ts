@@ -5,7 +5,7 @@ import { join } from "path";
 import morgan from "morgan";
 import fileUpload from "express-fileupload";
 import { Server, RabbitMQ } from "@reflectcord/common/utils";
-import { DbManager } from "@reflectcord/common/db";
+import { initDb } from "@reflectcord/common/db";
 import { enableLogging } from "@reflectcord/common/constants";
 import {
   Authentication, BodyParser, Client, CORS, ErrorHandler,
@@ -22,7 +22,7 @@ export class ReflectcordAPI extends Server {
     this.app.use(CORS);
     this.app.use(BodyParser({ inflate: true, limit: "10mb" }));
 
-    await DbManager.client.connect();
+    await initDb();
 
     const { app } = this;
     const api = Router(); // @ts-ignore

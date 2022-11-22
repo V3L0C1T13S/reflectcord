@@ -2,6 +2,7 @@ import bodyParser from "body-parser";
 import path from "path";
 import { Server, RabbitMQ } from "@reflectcord/common/utils";
 import "express-async-errors";
+import { initDb } from "@reflectcord/common/db";
 
 export class ReflectcordCDN extends Server {
   port = 3001;
@@ -24,6 +25,8 @@ export class ReflectcordCDN extends Server {
       next();
     });
     this.app.use(bodyParser.json({ inflate: true, limit: "10mb" }));
+
+    await initDb();
 
     this.registerRoutesDirectory(path.join(__dirname, "routes"));
 

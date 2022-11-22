@@ -1,6 +1,7 @@
 import ws from "ws";
 import http from "http";
 import { RabbitMQ } from "@reflectcord/common/utils";
+import { initDb } from "@reflectcord/common/db";
 import { Connection } from "./events";
 
 export class ReflectcordGateway {
@@ -38,6 +39,7 @@ export class ReflectcordGateway {
   }
 
   async start() {
+    await initDb();
     if (!this.server.listening) {
       this.server.listen(this.port);
       // eslint-disable-next-line no-console
