@@ -1,20 +1,21 @@
 import SemanticSDP from "semantic-sdp";
 import { VoiceOPCodes } from "@reflectcord/common/sparkle";
+import { Payload } from "@reflectcord/gateway/util";
 import {
   endpoint, PublicIP, Send, WebSocket,
 } from "../util";
 
-export async function selectProtocol(this: WebSocket, payload: any) {
+export async function selectProtocol(this: WebSocket, payload: Payload) {
   const data = payload.d;
 
-  const offer = SemanticSDP.SDPInfo.parse(`m=audio\n${data.sdp!}`);
-  this.client.sdp!.setICE(offer.getICE());
-  this.client.sdp!.setDTLS(offer.getDTLS());
+  const offer = SemanticSDP.SDPInfo.parse(`m=audio\n${data.sdp}`);
+  this.client.sdp.setICE(offer.getICE());
+  this.client.sdp.setDTLS(offer.getDTLS());
 
-  const transport = endpoint.createTransport(this.client.sdp!);
+  const transport = endpoint.createTransport(this.client.sdp);
   this.client.transport = transport;
-  transport.setRemoteProperties(this.client.sdp!);
-  transport.setLocalProperties(this.client.sdp!);
+  transport.setRemoteProperties(this.client.sdp);
+  transport.setLocalProperties(this.client.sdp);
 
   const dtls = transport.getLocalDTLSInfo();
   const ice = transport.getLocalICEInfo();

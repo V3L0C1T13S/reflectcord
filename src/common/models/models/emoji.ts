@@ -1,5 +1,6 @@
 import { APIEmoji, APIPartialEmoji, APIReaction } from "discord.js";
 import { API } from "revolt.js";
+import { emojis } from "../../emojilib";
 import { QuarkConversion } from "../QuarkConversion";
 import { User } from "./user";
 
@@ -27,9 +28,14 @@ export const PartialEmoji: QuarkConversion<API.Emoji, APIPartialEmoji> = {
   async from_quark(emoji) {
     const { name, _id, animated } = emoji;
 
+    const unicodeEmoji = emojis[_id]?.[0];
+
+    const id = unicodeEmoji ? null : _id;
+    const emojiName = unicodeEmoji ? _id : name;
+
     return {
-      name,
-      id: _id,
+      name: emojiName,
+      id,
       animated: animated ?? false,
     };
   },
@@ -76,9 +82,14 @@ export const Reactions: QuarkConversion<API.Message["reactions"]
 
     return Promise.all(discordEmojis.map((x) => ({
       // FIXME: ugly ugly ugly ew ew ew
-      count: reactionEntires.find(([em, k]) => x.id === em)?.[1].length ?? 0,
-      me: false,
+      count: reactionEntires
+        .find(([em, k]) => (x.id ? x.id === em : x.name === em))?.[1].length ?? 0,
       emoji: x,
+      burst_user_ids: [],
+      burst_count: 0,
+      burst_colors: [],
+      burst_me: false,
+      me: false,
     })));
   },
 };
