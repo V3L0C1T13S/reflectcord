@@ -20,6 +20,7 @@ export default (express: Application) => <Resource> {
   },
   get: async (req, res) => {
     const { channel_id, message_id, emoji } = req.params;
+    const { limit } = req.query as { limit: string };
 
     if (!channel_id || !message_id || !emoji) throw new HTTPError("Invalid params");
 
@@ -36,6 +37,11 @@ export default (express: Application) => <Resource> {
       : [];
 
     if (!emojis?.[1]) throw new HTTPError("Message has no reactions");
+
+    if (limit) {
+      const parsedLimit = parseInt(limit, 10);
+      if (!Number.isNaN(parsedLimit)) emojis.splice(parsedLimit - 1);
+    }
 
     // FIXME: Partially implemented - Needs full info
     const users = await Promise.all(emojis[1].map((x) => User.from_quark({
