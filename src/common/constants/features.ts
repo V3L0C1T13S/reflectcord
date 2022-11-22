@@ -13,3 +13,5 @@ export const enableTracking = process.env["ENABLE_TRACKING"] ?? false;
 export const enableRoleMemberCounts = process.env["ROLE_MEMBER_COUNTS"] ?? false;
 
 export const messageFullMentions = process.env["MESSAGE_FULL_MENTIONS"] ?? false;
+
+export const RPCUseStub = process.env["RPC_USE_STUB"] ?? false;
