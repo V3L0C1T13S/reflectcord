@@ -32,7 +32,7 @@ Reflectcord uses a feature called git submodules. In order to download the requi
 
 RabbitMQ is needed for the microservices in Reflectcord to communicate with each other. To start RabbitMQ, simply use the command below.
 
-`docker run -d --hostname reflectcord --name reflectcord-rabbit -p 5672:5672 rabbitmq:3.8-management`
+`docker run -d --hostname reflectcord --name reflectcord-rabbit -p 5672:5672 rabbitmq:3.11-management`
 
 #### Dependencies
 
