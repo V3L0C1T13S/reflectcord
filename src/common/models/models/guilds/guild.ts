@@ -15,10 +15,8 @@ import {
 } from "discord.js";
 import { DataEditServer, Server } from "revolt-api";
 import { uploadBase64File } from "@reflectcord/cdn/util";
-import { Logger } from "../../../utils";
 import { QuarkConversion } from "../../QuarkConversion";
 import { fromSnowflake, toSnowflake } from "../../util";
-import { Attachment } from "../attachment";
 import { convertPermNumber } from "../permissions";
 import { Role } from "../role";
 
@@ -62,7 +60,7 @@ export function getServerFeatures(server: revoltPartialServer) {
 export const Guild: QuarkConversion<Server, APIGuild> = {
   async to_quark(guild) {
     const {
-      id, name, owner_id: ownerId, description,
+      id, name, owner_id: ownerId, description, nsfw_level,
     } = guild;
 
     const _id = await fromSnowflake(id);
@@ -80,9 +78,9 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
       icon: null,
       banner: null,
       flags: null,
-      nsfw: false,
+      nsfw: !!(nsfw_level & GuildNSFWLevel.AgeRestricted),
       analytics: false,
-      discoverable: false,
+      discoverable: guild.features.includes(GuildFeature.Discoverable),
     };
   },
 
@@ -138,7 +136,7 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
       rules_channel_id: null,
       max_presences: null,
       max_members: 100000,
-      vanity_url_code: null,
+      vanity_url_code: server.discoverable ? server._id : null, // TODO: Verify this works
       banner: server.banner ? `${server.banner?._id}/background/${server.banner?._id}` : null,
       premium_tier: GuildPremiumTier.None,
       premium_subscription_count: 0,
