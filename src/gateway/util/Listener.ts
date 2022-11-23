@@ -96,7 +96,10 @@ export async function startListener(
 
               const discordGuild = this.rvAPIWrapper.servers.createObj({
                 revolt: server,
-                discord: await Guild.from_quark(server),
+                discord: await Guild.from_quark(server, {
+                  emojis: data.emojis
+                    ?.filter((x) => x.parent.type === "Server" && x.parent.id === server._id),
+                }),
               }).discord;
 
               const guild = {

@@ -15,10 +15,12 @@ import {
 } from "discord.js";
 import { DataEditServer, Server } from "revolt-api";
 import { uploadBase64File } from "@reflectcord/cdn/util";
+import { API } from "revolt.js";
 import { QuarkConversion } from "../../QuarkConversion";
 import { fromSnowflake, toSnowflake } from "../../util";
 import { convertPermNumber } from "../permissions";
 import { Role } from "../role";
+import { Emoji } from "../emoji";
 
 export type DiscordPartialGuild = {
   id: string,
@@ -57,7 +59,12 @@ export function getServerFeatures(server: revoltPartialServer) {
   return features;
 }
 
-export const Guild: QuarkConversion<Server, APIGuild> = {
+export type GuildATQ = {};
+export type GuildAFQ = Partial<{
+  emojis: API.Emoji[] | undefined | null,
+}>
+
+export const Guild: QuarkConversion<Server, APIGuild, GuildATQ, GuildAFQ> = {
   async to_quark(guild) {
     const {
       id, name, owner_id: ownerId, description, nsfw_level,
@@ -84,7 +91,7 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
     };
   },
 
-  async from_quark(server) {
+  async from_quark(server, extra) {
     const {
       _id, name, owner, description, icon, nsfw,
     } = server;
@@ -127,7 +134,8 @@ export const Guild: QuarkConversion<Server, APIGuild> = {
 
         return discordRoles;
       })(),
-      emojis: [],
+      emojis: extra?.emojis ? await Promise.all(extra.emojis
+        .map((x) => Emoji.from_quark(x))) : [],
       features,
       mfa_level: GuildMFALevel.None,
       application_id: null,
