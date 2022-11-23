@@ -59,7 +59,7 @@
     "mongodb": "^4.10.0",
     "mongoose": "^6.7.3",
     "morgan": "^1.10.0",
-    "node-fetch": "^2.6.7",
+    "node-fetch": "^3.3.0",
     "node-html-parser": "^6.1.1",
     "nodejs-snowflake": "^2.0.1",
     "protobufjs": "^7.1.2",
