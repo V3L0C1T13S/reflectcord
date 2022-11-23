@@ -140,6 +140,7 @@ export const GuildCategory: QuarkConversion<
       id,
       name: category.title,
       type: discordChannelType.GuildCategory,
+      position: 0,
     };
 
     if (extra?.server) discordCategory.guild_id = await toSnowflake(extra.server);
@@ -368,6 +369,7 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
       })(),
       topic: ("description" in channel) ? channel.description : null,
       parent_id: categoryId,
+      position: 0,
     };
   },
 };

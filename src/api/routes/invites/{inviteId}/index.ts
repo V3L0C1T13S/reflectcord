@@ -1,7 +1,7 @@
 import { Application } from "express";
 import { Resource } from "express-automatic-routes";
-import { Invite } from "../../../../common/models/models/invite";
-import { HTTPError } from "../../../../common/utils";
+import { Invite } from "@reflectcord/common/models";
+import { HTTPError } from "@reflectcord/common/utils";
 
 export default (express: Application) => <Resource> {
   get: async (req, res) => {
