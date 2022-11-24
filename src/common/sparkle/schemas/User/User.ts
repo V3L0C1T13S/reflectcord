@@ -6,3 +6,8 @@ export interface PatchCurrentUserBody extends RESTPatchAPICurrentUserJSONBody {
   /** Modifies users bio if passed */
   bio?: string,
 }
+
+export interface PatchCurrentAccountBody extends RESTPatchAPICurrentUserJSONBody {
+  password?: string,
+  email?: string,
+}

@@ -4,9 +4,12 @@ import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
 import { decodeTime } from "ulid";
 import { HTTPError } from "@reflectcord/common/utils";
-import { UserProfile, fromSnowflake } from "@reflectcord/common/models";
+import {
+  UserProfile, fromSnowflake, Guild, toSnowflake,
+} from "@reflectcord/common/models";
 import { uploadBase64File } from "@reflectcord/cdn/util";
 import { PatchCurrentUserBody } from "@reflectcord/common/sparkle";
+import { APIGuild } from "discord.js";
 import { fetchUser } from ".";
 
 export async function getProfile(api: API.API, id: string) {
@@ -25,7 +28,7 @@ export async function getProfile(api: API.API, id: string) {
 
 export default (express: Application) => <Resource> {
   get: async (req, res) => {
-    const { guild_id, with_mutuals } = req.query;
+    const { guild_id, with_mutuals, with_mutual_guilds } = req.query;
     const { id } = req.params;
 
     if (!id) throw new HTTPError("Invalid params");
@@ -34,18 +37,31 @@ export default (express: Application) => <Resource> {
 
     const api = res.rvAPI;
 
+    const mutual_guilds: any[] = [];
+
     const user = await fetchUser(api, rvId);
     const rvProfile = await getProfile(api, rvId);
     if (!rvProfile || !user) throw new HTTPError("User not found", 422);
+
+    if (with_mutual_guilds) {
+      const mutuals = await api.get(`/users/${rvId as ""}/mutual`);
+
+      await Promise.all(mutuals.servers.map(async (x) => {
+        mutual_guilds.push({
+          id: await toSnowflake(x),
+          nick: null,
+        });
+      }));
+    }
 
     res.json({
       connected_accounts: [],
       user,
       user_profile: await UserProfile.from_quark(rvProfile),
       premium_since: new Date(decodeTime(rvId)).toISOString(),
+      mutual_guilds,
     });
   },
-
   patch: async (
     req: Request<any, any, PatchCurrentUserBody>,
     res,
