@@ -463,7 +463,6 @@ export async function startListener(
             s: this.sequence++,
             d: {
               id: await toSnowflake(data.id),
-              unavailable: true,
             },
           });
           break;
@@ -551,6 +550,20 @@ export async function startListener(
           break;
         }
         case "ServerMemberLeave": {
+          // TODO: Validate if this is correct
+          if (data.user === this.rv_user_id) {
+            await Send(this, {
+              op: GatewayOpcodes.Dispatch,
+              t: GatewayDispatchEvents.GuildDelete,
+              s: this.sequence++,
+              d: {
+                id: await toSnowflake(data.id),
+              },
+            });
+
+            return;
+          }
+
           await Send(this, {
             op: GatewayOpcodes.Dispatch,
             t: GatewayDispatchEvents.GuildMemberRemove,
