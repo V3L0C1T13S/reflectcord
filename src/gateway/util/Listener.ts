@@ -51,6 +51,7 @@ export async function startListener(
           this.rvAPIWrapper = new APIWrapper(this.rvAPI);
 
           this.user_id = await toSnowflake(currentUser._id);
+          this.rv_user_id = currentUser._id;
 
           this.session_id = genSessionId();
 
@@ -137,6 +138,10 @@ export async function startListener(
               email: "fixme@gmail.com",
             },
             mfaInfo,
+          });
+          this.rvAPIWrapper.users.createObj({
+            revolt: currentUser,
+            discord: currentUserDiscord,
           });
 
           setImmediate(async () => {
@@ -563,18 +568,28 @@ export async function startListener(
           break;
         }
         case "UserUpdate": {
-          /*
+          if (data.id !== this.rv_user_id) return;
+
+          const currentUser = this.rvAPIWrapper.users.$get(this.rv_user_id, {
+            revolt: data.data,
+            discord: {},
+          });
+
+          const updatedUser = this.rvAPIWrapper.users.$get(this.rv_user_id, {
+            revolt: {},
+            discord: await User.from_quark({
+              ...currentUser.revolt,
+              ...data.data,
+            }),
+          });
+
           await Send(this, {
             op: GatewayOpcodes.Dispatch,
             t: GatewayDispatchEvents.UserUpdate,
             s: this.sequence++,
-            d: await User.from_quark({
-              _id: data.id,
-              username: data.data.username ?? "fixme",
-              flags: data.data.flags ?? null,
-            }),
+            d: updatedUser.discord,
           });
-          */
+
           break;
         }
         case "ChannelAck": {
@@ -623,8 +638,6 @@ export async function startListener(
           const type = await Relationship.from_quark(data.status);
           const nickname = data.user.username;
           const user = await User.from_quark(data.user);
-
-          Logger.log(`rl type: ${data.status}`);
 
           if (["Friend", "Outgoing", "Incoming", "Blocked"].includes(data.status)) {
             await Send(this, {

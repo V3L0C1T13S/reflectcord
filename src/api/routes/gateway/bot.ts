@@ -1,20 +1,10 @@
 import { Application, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { reflectcordWsURL } from "@reflectcord/common/constants";
-
-export interface GatewayBotResponse {
-  url: string;
-  shards: number;
-  session_start_limit: {
-    total: number;
-    remaining: number;
-    reset_after: number;
-    max_concurrency: number;
-  };
-}
+import { APIGatewayBotResponse } from "@reflectcord/common/sparkle";
 
 export default (express: Application) => <Resource> {
-  get: (req, res: Response<GatewayBotResponse>) => {
+  get: (req, res: Response<APIGatewayBotResponse>) => {
     res.json({
       url: reflectcordWsURL,
       shards: 1,

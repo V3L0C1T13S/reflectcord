@@ -15,6 +15,7 @@ export class SocketState {
 export interface WebSocket extends WS {
   version: number;
   user_id: string;
+  rv_user_id: string;
   session_id: string;
   encoding: "etf" | "json";
   compress?: "zlib-stream";

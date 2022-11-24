@@ -1,6 +1,7 @@
 import { APIUser } from "discord.js";
 import { runInAction } from "mobx";
 import { API } from "revolt.js";
+import { isEqual } from "lodash";
 import { Logger } from "../utils";
 import { User } from "../models";
 import { BaseManager } from "./BaseManager";
@@ -8,6 +9,7 @@ import { QuarkContainer } from "./types";
 import { APIWrapper } from "../rvapi";
 
 export type UserContainer = QuarkContainer<API.User, APIUser>
+export type UserI = QuarkContainer<Partial<API.User>, Partial<APIUser>>;
 
 export class UserManager extends BaseManager<string, UserContainer> {
   selfId?: string;
@@ -29,7 +31,7 @@ export class UserManager extends BaseManager<string, UserContainer> {
     });
   }
 
-  $get(id: string, data?: UserContainer) {
+  $get(id: string, data?: UserI) {
     const user = this.get(id)!;
 
     return user;
@@ -83,5 +85,39 @@ export class UserManager extends BaseManager<string, UserContainer> {
 
   getProfile(id: string) {
     return this.rvAPI.get(`/users/${id as ""}/profile`);
+  }
+
+  update(id: string, data: UserI) {
+    const user = this.get(id)!;
+    const apply = (ctx: string, key: string, target?: string) => {
+      if (
+        // @ts-expect-error TODO: clean up types here
+        typeof data[ctx][key] !== "undefined"
+            // @ts-expect-error TODO: clean up types here
+            && !isEqual(user[ctx][target ?? key], data[ctx][key])
+      ) {
+        // @ts-expect-error TODO: clean up types here
+        user[ctx][target ?? key] = data[ctx][key];
+      }
+    };
+    const applyRevolt = (key: string, target?: string) => apply("revolt", key, target);
+    const applyDiscord = (key: string, target?: string) => apply("discord", key, target);
+
+    applyRevolt("username");
+    applyRevolt("avatar");
+    applyRevolt("badges");
+    applyRevolt("status");
+    applyRevolt("relationship");
+    applyRevolt("online");
+    applyRevolt("priviliged");
+    applyRevolt("flags");
+    applyRevolt("bot");
+
+    applyDiscord("username");
+    applyDiscord("avatar");
+    applyDiscord("banner");
+    applyDiscord("flags");
+    applyDiscord("bot");
+    applyDiscord("public_flags");
   }
 }
