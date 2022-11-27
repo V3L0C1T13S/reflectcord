@@ -48,6 +48,12 @@ export default () => <Resource> {
       });
     }
 
+    if (Object.keys(userPatchBody).length > 0) {
+      const updatedUser = await res.rvAPI.patch("/users/@me", userPatchBody);
+
+      if (updatedUser.avatar) user.avatar = updatedUser.avatar;
+    }
+
     res.json({
       ...await User.from_quark(user),
       token: req.token,

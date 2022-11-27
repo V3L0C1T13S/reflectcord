@@ -43,7 +43,7 @@ export default (express: Application) => <Resource> {
     const rvProfile = await getProfile(api, rvId);
     if (!rvProfile || !user) throw new HTTPError("User not found", 422);
 
-    if (with_mutual_guilds) {
+    if (with_mutual_guilds === "true") {
       const mutuals = await api.get(`/users/${rvId as ""}/mutual`);
 
       await Promise.all(mutuals.servers.map(async (x) => {
