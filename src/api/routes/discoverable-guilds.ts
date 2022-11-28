@@ -8,6 +8,8 @@ const client = new DiscoveryClient();
 
 export default (express: Application) => <Resource> {
   get: async (req, res) => {
+    await client.init();
+
     const { categories } = req.query as { categories: string };
 
     const revoltData = await client.servers.fetchPopular();

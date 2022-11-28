@@ -15,6 +15,8 @@ const client = new DiscoveryClient();
 */
 export default () => <Resource> {
   get: async (req, res: Response<GuildDiscoveryRequest>) => {
+    await client.init();
+
     const revoltServers = await client.servers.fetchPopular();
 
     res.json({
