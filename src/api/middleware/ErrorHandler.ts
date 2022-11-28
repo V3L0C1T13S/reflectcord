@@ -30,6 +30,22 @@ export function ErrorHandler(error: Error, req: Request, res: Response, next: Ne
       console.error(`[Error] ${code} ${req.url}\n`, errors || error, "\nbody:", req.body);
 
       code = httpcode = 500;
+      // TODO: Make this better
+      const err: any = error;
+      if (err?.response) {
+        const { data, headers, status } = err.response;
+
+        const errCode = status;
+        if (errCode === 429) {
+          res.set("X-RateLimit-Limit", `${headers["X-RateLimit-Limit"]}`)
+            .set("X-RateLimit-Remaining", "0")
+            .set("X-RateLimit-Reset-After", `${headers["X-RateLimit-Reset-After"]}`)
+            .set("Retry-After", `${Math.ceil(data.retry_after)}`)
+            .set("X-RateLimit-Bucket", `${headers["X-RateLimit-Bucket"]}`);
+
+          code = httpcode = errCode;
+        }
+      }
     }
 
     if (httpcode > 511) httpcode = 400;
