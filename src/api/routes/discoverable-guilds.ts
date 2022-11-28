@@ -1,22 +1,21 @@
-import axios from "axios";
 import { Application } from "express";
 import { Resource } from "express-automatic-routes";
-import { getRevoltDiscoveryDataURL } from "@reflectcord/common/constants";
-import { ServerDiscoveryResponse } from "@reflectcord/common/rvapi";
+import { DiscoveryClient } from "@reflectcord/common/rvapi";
 import { DiscoverableGuild } from "@reflectcord/common/models";
 import { HTTPError } from "@reflectcord/common/utils";
+
+const client = new DiscoveryClient();
 
 export default (express: Application) => <Resource> {
   get: async (req, res) => {
     const { categories } = req.query as { categories: string };
 
-    const discoveryURL = await getRevoltDiscoveryDataURL();
-    const revoltData = await axios.get<ServerDiscoveryResponse>(`${discoveryURL}/discover/servers.json`);
-    let revoltServers = revoltData.data.pageProps.servers;
+    const revoltData = await client.servers.fetchPopular();
+    let revoltServers = revoltData.pageProps.servers;
 
     if (categories) {
       const categoryNumber = parseInt(categories, 10);
-      const categoryName = revoltData.data.pageProps.popularTags[categoryNumber];
+      const categoryName = revoltData.pageProps.popularTags[categoryNumber];
 
       if (!categoryName) throw new HTTPError("Invalid category ID");
 

@@ -3,10 +3,11 @@ import axios from "axios";
 import { Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { DiscoverableGuild } from "@reflectcord/common/models";
-import { ServerDiscoveryResponse } from "@reflectcord/common/rvapi";
-import { getRevoltDiscoveryDataURL } from "@reflectcord/common/constants";
+import { DiscoveryClient } from "@reflectcord/common/rvapi";
 import { GuildDiscoveryRequest } from "@reflectcord/common/sparkle";
 import { genLoadId } from "@reflectcord/common/utils";
+
+const client = new DiscoveryClient();
 
 /**
  * This seems to be used in older clients but discoverable-guilds
@@ -14,11 +15,10 @@ import { genLoadId } from "@reflectcord/common/utils";
 */
 export default () => <Resource> {
   get: async (req, res: Response<GuildDiscoveryRequest>) => {
-    const discoveryURL = await getRevoltDiscoveryDataURL();
-    const revoltServers = await axios.get<ServerDiscoveryResponse>(`${discoveryURL}/discover/servers.json`);
+    const revoltServers = await client.servers.fetchPopular();
 
     res.json({
-      recommended_guilds: await Promise.all(revoltServers.data.pageProps.servers
+      recommended_guilds: await Promise.all(revoltServers.pageProps.servers
         .map((x) => DiscoverableGuild.from_quark(x))),
       load_id: `server_recs/${genLoadId(32)}`,
     });
