@@ -253,7 +253,13 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
       discordMessage.content = await replaceAsync(
         discordMessage.content,
         REVOLT_EMOJI_REGEX,
-        async (match) => `<a:fixme:${await tryToSnowflake(match.substring(1, match.length - 1))}>`,
+        async (match) => {
+          try {
+            return `<a:fixme:${await toSnowflake(match.substring(1, match.length - 1))}>`;
+          } catch {
+            return match;
+          }
+        },
       );
     }
 

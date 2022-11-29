@@ -14,7 +14,7 @@ const AssetsPath = path.join(__dirname, "..", "..", "..", "assets");
 const useTestClient = true;
 
 class AssetCacheItem {
-  // eslint-disable-next-line no-useless-constructor, no-shadow
+  // eslint-disable-next-line no-useless-constructor, @typescript-eslint/no-shadow
   constructor(public Key: string, public FilePath: string = "", public Headers: any = null as any) {}
 }
 

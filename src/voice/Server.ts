@@ -16,7 +16,7 @@ export class ReflectcordVoice {
 
     this.server.on("upgrade", (request, socket, head) => {
       if (!request.url?.includes("voice")) return;
-      // eslint-disable-next-line no-shadow
+      // eslint-disable-next-line @typescript-eslint/no-shadow
       this.ws.handleUpgrade(request, socket, head, (socket) => {
         // @ts-ignore
         // eslint-disable-next-line no-param-reassign

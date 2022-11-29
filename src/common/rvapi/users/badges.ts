@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-shadow
 export enum Badges {
   Developer = 1,
   Translator = 2,

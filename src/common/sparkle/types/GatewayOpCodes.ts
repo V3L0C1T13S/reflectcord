@@ -1,4 +1,3 @@
-/* eslint-disable no-shadow */
 import { GatewayOpcodes as DiscordjsOPCodes } from "discord.js";
 
 /**

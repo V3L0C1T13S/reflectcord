@@ -10,11 +10,9 @@ export default () => <Resource> {
   get: async (req, res) => {
     const { query, guild_id } = req.query;
 
-    if (!query) throw new HTTPError("Please provide a query.");
-
     const discoveryURL = await getRevoltDiscoveryDataURL();
     const botResponse = await axios
-      .get<BotDiscoveryResponse>(`${discoveryURL}/discover/search.json?query=${query}&type=bots`);
+      .get<BotDiscoveryResponse>(`${discoveryURL}/discover/${query?.length && query.length > 0 ? `search.json?query=${query}&type=bots` : "bots.json"}`);
     const { data } = botResponse;
     const revoltBots = data.pageProps.bots;
 

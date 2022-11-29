@@ -1,5 +1,3 @@
-/* eslint-disable no-shadow */
-
 export enum UserRelationshipType {
   Friends = 1,
   Blocked = 2,

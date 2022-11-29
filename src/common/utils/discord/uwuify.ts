@@ -1,5 +1,4 @@
 /* eslint-disable no-param-reassign */
-/* eslint-disable no-shadow */
 export const owoifyText = (text: string) => {
   try {
     const stutterChance = 0.1;
@@ -59,7 +58,7 @@ export const owoifyText = (text: string) => {
       "hehe",
     ];
 
-    // eslint-disable-next-line no-inner-declarations
+    // eslint-disable-next-line no-inner-declarations, @typescript-eslint/no-shadow
     function replaceAll(text: string, map: { [key: string]: string }) {
       const source = Object.keys(map).map((i) => `\\b${i}`);
       const re = new RegExp(`(?:${source.join(")|(?:")})`, "gi");

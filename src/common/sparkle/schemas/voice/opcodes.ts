@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-shadow
 export enum VoiceOPCodes {
   // CLIENT
   Identify = 0,

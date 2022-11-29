@@ -34,6 +34,8 @@
         "import/prefer-default-export": "off",
         "dot-notation": "off",
         "import/no-dynamic-require": "off",
-        "global-require": "off"
+        "global-require": "off",
+        "no-shadow": "off",
+        "@typescript-eslint/no-shadow": ["error"]
     }
 }

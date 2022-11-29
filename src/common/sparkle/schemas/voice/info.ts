@@ -1,4 +1,3 @@
-/* eslint-disable no-shadow */
 export enum VoiceInfoType {
   ChannelReq = 0,
   ChannelAssign = 1,
