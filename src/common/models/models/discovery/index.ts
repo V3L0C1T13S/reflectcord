@@ -124,14 +124,23 @@ export const FullDiscoverableBot: QuarkConversion<DiscoveryBot, FullDiscoveryBot
   },
 
   async from_quark(data) {
+    const description = data.profile?.content ?? "fixme";
+
     return {
       ...await DiscoverableBot.from_quark(data),
       guild: null,
-      categories: ["fixme"],
+      categories: [],
       directory_entry: {
         guild_count: 0,
-        detailed_description: data.profile?.content ?? "fixme",
+        detailed_description: description,
+        popular_application_command_ids: [],
+        carousel_items: [],
+        short_description: description,
+        supported_locales: [],
+        popular_application_commands: [],
+        external_urls: [],
       },
-    } as any;
+      tags: data.tags,
+    };
   },
 };

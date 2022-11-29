@@ -10,7 +10,7 @@ import {
 } from "discord.js";
 import { API } from "revolt.js";
 import { QuarkConversion } from "../QuarkConversion";
-import { fromSnowflake, toSnowflake } from "../util";
+import { fromSnowflake, toSnowflake, tryToSnowflake } from "../util";
 import { User } from "./user";
 import { convertPermNumber } from "./permissions";
 
@@ -127,14 +127,7 @@ export const GuildCategory: QuarkConversion<
 
   async from_quark(category, extra) {
     // FIXME: For some reason, some categories are "a" "b" or "c" (possible legacy format?)
-    const id = await (async () => {
-      try {
-        const sf = await toSnowflake(category.id);
-        return sf;
-      } catch (e) {
-        return category.id;
-      }
-    })();
+    const id = await tryToSnowflake(category.id);
 
     const discordCategory: APIGuildCategoryChannel = {
       id,
