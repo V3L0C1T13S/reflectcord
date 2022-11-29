@@ -13,22 +13,26 @@ export default () => <Resource> {
     const botResponse = await axios.get<BotDiscoveryResponse>(`${discoveryURL}/discover/bots.json`);
     const revoltBots = botResponse.data;
 
-    res.json([{
-      id: "0",
-      active: true,
-      type: 1,
-      position: 1,
-      title: "Revolt bots",
-      description: "Revolt bots",
-      application_directory_collection_items: await Promise.all(revoltBots
-        .pageProps.bots
-        .map(async (x) => ({
-          id: "0",
-          type: 1,
-          image_hash: "",
-          position: 1,
-          application: await DiscoverableBot.from_quark(x),
-        }))),
-    }]);
+    const categories = await Promise.all(revoltBots.pageProps.popularTags
+      .map(async (name, i) => ({
+        id: "0",
+        active: true,
+        type: 1,
+        position: i,
+        title: name,
+        description: `Bots categorized by ${name}`,
+        application_directory_collection_items: await Promise.all(revoltBots
+          .pageProps.bots
+          .filter((app) => app.tags.includes(name))
+          .map(async (app) => ({
+            id: "0",
+            type: 1,
+            image_hash: "",
+            position: 1,
+            application: await DiscoverableBot.from_quark(app),
+          }))),
+      })));
+
+    res.json(categories);
   },
 };
