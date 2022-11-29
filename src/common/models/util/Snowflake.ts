@@ -47,3 +47,26 @@ export async function fromSnowflake(id: string) {
 
   return existing.ulid;
 }
+
+/**
+ * Only use on stuff that is either user-generted,
+ * or generally unreliable.
+ * @returns A snowflake if successful, original id if not.
+*/
+export async function tryToSnowflake(id: string) {
+  try {
+    const res = await toSnowflake(id);
+    return res;
+  } catch {
+    return id;
+  }
+}
+
+export async function tryFromSnowflake(id: string) {
+  try {
+    const res = await fromSnowflake(id);
+    return res;
+  } catch {
+    return id;
+  }
+}

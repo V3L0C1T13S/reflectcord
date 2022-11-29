@@ -64,6 +64,7 @@
     "nodejs-snowflake": "^2.0.1",
     "protobufjs": "^7.1.2",
     "proxy-agent": "^5.0.0",
+    "rate-limiter-flexible": "^2.4.1",
     "revolt-api": "^0.5.5-4",
     "revolt.js": "^6.0.18",
     "semantic-sdp": "^3.25.1",

@@ -1,6 +1,8 @@
 /* eslint-disable no-multi-assign */
 import { NextFunction, Request, Response } from "express";
-import { ApiError, HTTPError, FieldError } from "@reflectcord/common/utils";
+import {
+  ApiError, HTTPError, FieldError, Logger,
+} from "@reflectcord/common/utils";
 
 const EntityNotFoundErrorRegex = /"(\w+)"/;
 
@@ -27,7 +29,7 @@ export function ErrorHandler(error: Error, req: Request, res: Response, next: Ne
       message = error.message;
       errors = error.errors;
     } else {
-      console.error(`[Error] ${code} ${req.url}\n`, errors || error, "\nbody:", req.body);
+      Logger.error(`[Error] ${code} ${req.url}\n`, errors || error, "\nbody:", req.body);
 
       code = httpcode = 500;
       // TODO: Make this better
@@ -37,13 +39,16 @@ export function ErrorHandler(error: Error, req: Request, res: Response, next: Ne
 
         const errCode = status;
         if (errCode === 429) {
+          const retryAfter = Math.ceil(data.retry_after);
           res.set("X-RateLimit-Limit", `${headers["X-RateLimit-Limit"]}`)
             .set("X-RateLimit-Remaining", "0")
             .set("X-RateLimit-Reset-After", `${headers["X-RateLimit-Reset-After"]}`)
-            .set("Retry-After", `${Math.ceil(data.retry_after)}`)
+            .set("Retry-After", `${retryAfter}`)
             .set("X-RateLimit-Bucket", `${headers["X-RateLimit-Bucket"]}`);
 
           code = httpcode = errCode;
+
+          return res.status(httpcode).json({ message, retry_after: retryAfter, global: null });
         }
       }
     }
@@ -52,7 +57,7 @@ export function ErrorHandler(error: Error, req: Request, res: Response, next: Ne
 
     res.status(httpcode).json({ code, message, errors });
   } catch (e) {
-    console.error("[Internal Server Error] 500", error);
+    Logger.error("[Internal Server Error] 500", error);
     return res.status(500).json({ code: 500, message: "Internal Server Error" });
   }
 }

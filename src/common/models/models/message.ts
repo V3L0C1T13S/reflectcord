@@ -14,11 +14,25 @@ import { decodeTime } from "ulid";
 import { uploadFile } from "@reflectcord/cdn/util";
 import { systemUserID } from "@reflectcord/common/rvapi";
 import { QuarkConversion } from "../QuarkConversion";
-import { fromSnowflake, toSnowflake } from "../util";
+import {
+  fromSnowflake, toSnowflake, tryFromSnowflake, tryToSnowflake,
+} from "../util";
 import { Attachment } from "./attachment";
 import { Embed, SendableEmbed } from "./embed";
 import { Reactions } from "./emoji";
 import { User } from "./user";
+import { CHANNEL_MENTION, REVOLT_CHANNEL_MENTION, REVOLT_USER_MENTION } from "../../utils";
+import { USER_MENTION, EMOJI_REGEX, REVOLT_EMOJI_REGEX } from "../../utils/discord/regex";
+
+async function replaceAsync(
+  str: string,
+  regex: RegExp,
+  asyncFn: (match: string) => Promise<string>,
+): Promise<string> {
+  const promises = (str.match(regex) ?? []).map((match: string) => asyncFn(match));
+  const data = await Promise.all(promises);
+  return str.replace(regex, () => data.shift()!);
+}
 
 export type APIMention = {
   id: string,
@@ -223,6 +237,24 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
           break;
         }
       }
+    } else {
+      discordMessage.content = await replaceAsync(
+        discordMessage.content,
+        REVOLT_CHANNEL_MENTION,
+        async (match) => `<#${await tryToSnowflake(match.substring(2, match.length - 1))}>`,
+      );
+
+      discordMessage.content = await replaceAsync(
+        discordMessage.content,
+        REVOLT_USER_MENTION,
+        async (match) => `<@${await tryToSnowflake(match.substring(2, match.length - 1))}>`,
+      );
+
+      discordMessage.content = await replaceAsync(
+        discordMessage.content,
+        REVOLT_EMOJI_REGEX,
+        async (match) => `<a:fixme:${await tryToSnowflake(match.substring(1, match.length - 1))}>`,
+      );
     }
 
     return discordMessage;
@@ -241,7 +273,7 @@ export const MessageSendData: QuarkConversion<
   async to_quark(data, extra) {
     const { content, embeds, message_reference } = data;
 
-    return {
+    const sendData: API.DataMessageSend = {
       content: content?.replace(
         /!!.+!!/g,
         (match) => `!\u200b!${match.substring(2, match.length - 2)}!!`,
@@ -272,6 +304,32 @@ export const MessageSendData: QuarkConversion<
           return id;
         }))).filter((x) => x) as string[] : null,
     };
+
+    if (sendData.content) {
+      sendData.content = await replaceAsync(
+        sendData.content,
+        CHANNEL_MENTION,
+        async (match) => `<#${await tryFromSnowflake(match.substring(2, match.length - 1))}>`,
+      );
+
+      sendData.content = await replaceAsync(
+        sendData.content,
+        USER_MENTION,
+        async (match) => `<@${await tryFromSnowflake(match.substring(2, match.length - 1))}>`,
+      );
+
+      sendData.content = await replaceAsync(
+        sendData.content,
+        EMOJI_REGEX,
+        async (match) => {
+          const id = match.replaceAll(/(<a?)?:\w+:/g, "");
+
+          return `:${await tryFromSnowflake(id.substring(0, id.length - 1))}:`;
+        },
+      );
+    }
+
+    return sendData;
   },
 
   async from_quark(data) {

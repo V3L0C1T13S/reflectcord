@@ -2,6 +2,7 @@ import { APIEmoji, APIPartialEmoji, APIReaction } from "discord.js";
 import { API } from "revolt.js";
 import { emojis } from "../../emojilib";
 import { QuarkConversion } from "../QuarkConversion";
+import { tryFromSnowflake, tryToSnowflake } from "../util";
 import { User } from "./user";
 
 export type EmojiATQ = {};
@@ -17,7 +18,7 @@ export const PartialEmoji: QuarkConversion<API.Emoji, APIPartialEmoji> = {
     return {
       name: name ?? "fixme",
       animated: animated ?? false,
-      _id: id ?? "0",
+      _id: id ? await tryFromSnowflake(id) : "0",
       creator_id: "0",
       parent: {
         type: "Detached",
@@ -30,7 +31,7 @@ export const PartialEmoji: QuarkConversion<API.Emoji, APIPartialEmoji> = {
 
     const unicodeEmoji = emojis[_id]?.[0];
 
-    const id = unicodeEmoji ? null : _id;
+    const id = unicodeEmoji ? null : await tryToSnowflake(_id);
     const emojiName = unicodeEmoji ? _id : name;
 
     return {
