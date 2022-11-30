@@ -4,7 +4,7 @@ This document contains instructions for setting up Reflectcord on Ubuntu 22.04.1
 
 ## Before we begin...
 
-Keep in mind, Reflectcord is currently DEVELOPMENT stage software, stability is rare, and you will likely have a subpar experience at **most** using the offical Discord client.
+Keep in mind, Reflectcord is currently DEVELOPMENT stage software, stability is rare, and you will likely have a subpar experience at **most** using the official Discord client.
 
 ### For WSL users
 
