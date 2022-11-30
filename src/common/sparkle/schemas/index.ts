@@ -10,3 +10,4 @@ export * from "./Gateway";
 export * from "./auth";
 export * from "./Channels";
 export * from "./AppDirectory";
+export * from "./settings";

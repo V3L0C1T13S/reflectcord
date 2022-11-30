@@ -3,10 +3,12 @@ import { APIMessage, RESTPostAPIChannelMessageJSONBody } from "discord.js";
 import { Application, Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
+import { checkRoute, HTTPError, instanceOf } from "@reflectcord/common/utils";
 import {
   fromSnowflake,
   Message, MessageSendData,
 } from "@reflectcord/common/models";
+import { MessageCreateSchema } from "@reflectcord/common/sparkle";
 
 export type sendReq = Request<any, any, RESTPostAPIChannelMessageJSONBody & { payload_json: any }>;
 
@@ -52,22 +54,25 @@ export default (express: Application) => <Resource> {
 
     return res.json(convMessages);
   },
-  post: async (req: sendReq, res: Response<APIMessage>) => {
-    const { channel_id } = req.params;
+  post: {
+    // middleware: checkRoute(MessageCreateSchema),
+    handler: async (req: sendReq, res: Response<APIMessage>) => {
+      const { channel_id } = req.params;
 
-    if (req.body.payload_json) {
-      req.body = JSON.parse(req.body.payload_json);
-    }
+      if (req.body.payload_json) {
+        req.body = JSON.parse(req.body.payload_json);
+      }
 
-    const rvId = await fromSnowflake(channel_id);
+      const rvId = await fromSnowflake(channel_id);
 
-    const msg = await res.rvAPIWrapper.messages.sendMessage(
-      rvId,
-      await MessageSendData.to_quark(req.body, {
-        files: req.files,
-      }),
-    );
+      const msg = await res.rvAPIWrapper.messages.sendMessage(
+        rvId,
+        await MessageSendData.to_quark(req.body, {
+          files: req.files,
+        }),
+      );
 
-    return res.json(msg.discord);
+      return res.json(msg.discord);
+    },
   },
 };

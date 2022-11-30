@@ -11,3 +11,4 @@ export * from "./removeNull";
 export * from "./check";
 export * from "./RabbitMQ";
 export * from "./ip";
+export * from "./checkRoute";
