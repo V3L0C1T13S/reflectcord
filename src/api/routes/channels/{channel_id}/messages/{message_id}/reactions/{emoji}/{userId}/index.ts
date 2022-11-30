@@ -1,7 +1,8 @@
 /* eslint-disable camelcase */
 import { Resource } from "express-automatic-routes";
-import { HTTPError } from "@reflectcord/common/utils";
-import { fromSnowflake } from "@reflectcord/common/models";
+import { HTTPError, REACTION_EXTRACT_ID } from "@reflectcord/common/utils";
+import { fromSnowflake, tryFromSnowflake } from "@reflectcord/common/models";
+import { emojis as emojisMap } from "@reflectcord/common/emojilib";
 
 export default () => <Resource> {
   delete: async (req, res) => {
@@ -14,8 +15,9 @@ export default () => <Resource> {
     const channelId = await fromSnowflake(channel_id);
     const messageId = await fromSnowflake(message_id);
     const rvUserId = userId !== "@me" ? await fromSnowflake(userId) : null;
+    const emojiId = emojisMap[emoji] ? emoji : await tryFromSnowflake(emoji.replaceAll(REACTION_EXTRACT_ID, ""));
 
-    await res.rvAPI.delete(`/channels/${channelId}/messages/${messageId}/reactions/${encodeURI(emoji)}`, {
+    await res.rvAPI.delete(`/channels/${channelId}/messages/${messageId}/reactions/${encodeURI(emojiId)}`, {
       user_id: rvUserId,
     });
 
@@ -33,8 +35,9 @@ export default () => <Resource> {
 
     const channelId = await fromSnowflake(channel_id);
     const messageId = await fromSnowflake(message_id);
+    const emojiId = emojisMap[emoji] ? emoji : await tryFromSnowflake(emoji.replaceAll(REACTION_EXTRACT_ID, ""));
 
-    await res.rvAPI.put(`/channels/${channelId}/messages/${messageId}/reactions/${encodeURI(emoji)}`);
+    await res.rvAPI.put(`/channels/${channelId}/messages/${messageId}/reactions/${encodeURI(emojiId)}`);
 
     res.sendStatus(204);
   },

@@ -1,8 +1,8 @@
 /* eslint-disable camelcase */
 import { Resource } from "express-automatic-routes";
 import { Application } from "express";
-import { HTTPError } from "@reflectcord/common/utils";
-import { fromSnowflake, User } from "@reflectcord/common/models";
+import { HTTPError, REACTION_EXTRACT_ID } from "@reflectcord/common/utils";
+import { fromSnowflake, tryFromSnowflake, User } from "@reflectcord/common/models";
 import { emojis as emojisMap } from "@reflectcord/common/emojilib";
 
 export default (express: Application) => <Resource> {
@@ -13,8 +13,9 @@ export default (express: Application) => <Resource> {
 
     const channelId = await fromSnowflake(channel_id);
     const messageId = await fromSnowflake(message_id);
+    const emojiId = emojisMap[emoji] ? emoji : await tryFromSnowflake(emoji.replaceAll(REACTION_EXTRACT_ID, ""));
 
-    await res.rvAPI.delete(`/channels/${channelId}/messages/${messageId}/reactions/${encodeURI(emoji)}`);
+    await res.rvAPI.delete(`/channels/${channelId}/messages/${messageId}/reactions/${encodeURI(emojiId)}`);
 
     res.sendStatus(204);
   },
@@ -26,7 +27,7 @@ export default (express: Application) => <Resource> {
 
     const channelId = await fromSnowflake(channel_id);
     const messageId = await fromSnowflake(message_id);
-    const emojiId = emojisMap[emoji] ? emoji : emoji.split(":")?.[1];
+    const emojiId = emojisMap[emoji] ? emoji : await tryFromSnowflake(emoji.replaceAll(/(.*)(:|%)/gs, ""));
     if (!emojiId) throw new HTTPError("Invalid emoji id", 404);
 
     const rvMessage = await res.rvAPI.get(`/channels/${channelId as ""}/messages/${messageId as ""}`);

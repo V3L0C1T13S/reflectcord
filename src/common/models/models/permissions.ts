@@ -32,7 +32,7 @@ export const PermsMap: Record<number, ValueOf<typeof PermissionFlagsBits>> = {
   [Permission.ManageWebhooks]: PermissionFlagsBits.ManageWebhooks,
   [Permission.MoveMembers]: PermissionFlagsBits.MoveMembers,
   [Permission.MuteMembers]: PermissionFlagsBits.MuteMembers,
-  [Permission.React]: PermissionFlagsBits.AddReactions,
+  [Permission.React]: PermissionFlagsBits.AddReactions + PermissionFlagsBits.UseExternalEmojis,
   [Permission.ReadMessageHistory]: PermissionFlagsBits.ReadMessageHistory,
   [Permission.SendEmbeds]: PermissionFlagsBits.EmbedLinks,
   [Permission.SendMessage]: PermissionFlagsBits.SendMessages,

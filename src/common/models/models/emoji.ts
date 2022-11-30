@@ -60,37 +60,49 @@ export const Emoji: QuarkConversion<API.Emoji, APIEmoji, EmojiATQ, EmojiAFQ> = {
   },
 };
 
+export type ReactionsATQ = {};
+export type ReactionsAFQ = Partial<{
+  selfId: string | null,
+  creatorId: string | null,
+}>;
+
 export const Reactions: QuarkConversion<API.Message["reactions"]
-, APIReaction[]> = {
+, APIReaction[], ReactionsATQ, ReactionsAFQ> = {
   async to_quark(reaction) {
     return {};
   },
 
-  async from_quark(reactions) {
+  async from_quark(reactions, extra) {
     if (!reactions) return [];
 
-    const reactionEntires = Object.entries(reactions);
+    const reactionEntries = Object.entries(reactions);
 
-    const discordEmojis = await Promise.all(reactionEntires
+    const discordEmojis = await Promise.all(reactionEntries
       .map(([value, key]) => PartialEmoji.from_quark({
         _id: value,
-        creator_id: "0",
+        creator_id: extra?.creatorId ?? "0",
         parent: {
           type: "Detached",
         },
         name: "fixme",
       })));
 
-    return Promise.all(discordEmojis.map((x) => ({
+    return Promise.all(discordEmojis.map(async (x) => {
+      const emojiId = x.id ? await tryFromSnowflake(x.id) : null;
+      const reaction = reactionEntries
+        .find(([em, k]) => (emojiId ? emojiId === em : x.name === em));
+      const reactedUsers = reaction?.[1];
+
       // FIXME: ugly ugly ugly ew ew ew
-      count: reactionEntires
-        .find(([em, k]) => (x.id ? x.id === em : x.name === em))?.[1].length ?? 0,
-      emoji: x,
-      burst_user_ids: [],
-      burst_count: 0,
-      burst_colors: [],
-      burst_me: false,
-      me: false,
-    })));
+      return {
+        count: reactedUsers?.length ?? 0,
+        emoji: x,
+        burst_user_ids: [],
+        burst_count: 0,
+        burst_colors: [],
+        burst_me: false,
+        me: extra?.selfId ? reactedUsers?.includes(extra.selfId) ?? false : false,
+      };
+    }));
   },
 };

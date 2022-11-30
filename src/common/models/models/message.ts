@@ -82,7 +82,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
     } = message;
 
     return {
-      _id: id,
+      _id: await fromSnowflake(id),
       content: content?.replace(/\|\|(([\w\s])+)\|\|/g, "!!$1!!"),
       author: await fromSnowflake(author.id),
       channel: await fromSnowflake(channel_id),
@@ -115,7 +115,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
     const reply = replies?.[0] ?? null;
 
     const discordMessage: APIMessage = {
-      id: (await toSnowflake(_id)).toString(),
+      id: await toSnowflake(_id),
       channel_id,
       content: content?.replace(/\|\|.+\|\|/gs, (match) => `\\${match}`)
       // Translate !!Revite spoilers!! to ||Discord spoilers||
