@@ -35,7 +35,7 @@ export const PartialEmoji: QuarkConversion<API.Emoji, APIPartialEmoji> = {
     const emojiName = unicodeEmoji ? _id : name;
 
     return {
-      name: emojiName,
+      name: `:${emojiName}:`,
       id,
       animated: animated ?? false,
     };

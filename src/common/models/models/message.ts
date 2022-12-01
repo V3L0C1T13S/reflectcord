@@ -21,8 +21,12 @@ import { Attachment } from "./attachment";
 import { Embed, SendableEmbed } from "./embed";
 import { Reactions } from "./emoji";
 import { User } from "./user";
-import { CHANNEL_MENTION, REVOLT_CHANNEL_MENTION, REVOLT_USER_MENTION } from "../../utils";
-import { USER_MENTION, EMOJI_REGEX, REVOLT_EMOJI_REGEX } from "../../utils/discord/regex";
+import {
+  CHANNEL_MENTION, Logger, REVOLT_CHANNEL_MENTION, REVOLT_USER_MENTION,
+} from "../../utils";
+import {
+  USER_MENTION, EMOJI_REGEX, REVOLT_EMOJI_REGEX, isOnlyEmoji, REVOLT_ULID, SNOWFLAKE,
+} from "../../utils/discord/regex";
 
 async function replaceAsync(
   str: string,
@@ -254,11 +258,12 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
         discordMessage.content,
         REVOLT_EMOJI_REGEX,
         async (match) => {
-          try {
-            return `<a:fixme:${await toSnowflake(match.substring(1, match.length - 1))}>`;
-          } catch {
-            return match;
-          }
+          if (!isOnlyEmoji(match)) return match;
+
+          const emojiId = match.substring(1, match.length - 1);
+          if (!REVOLT_ULID.test(emojiId)) return match;
+
+          return `<a:fixme:${await toSnowflake(emojiId)}>`;
         },
       );
     }
@@ -328,7 +333,10 @@ export const MessageSendData: QuarkConversion<
         sendData.content,
         EMOJI_REGEX,
         async (match) => {
-          const id = match.replaceAll(/(<a?)?:\w+:/g, "");
+          const id = match.match(/(<a?)?:\w+:/g)?.[0];
+          if (!id) return match;
+
+          if (!SNOWFLAKE.test(id)) return match;
 
           return `:${await tryFromSnowflake(id.substring(0, id.length - 1))}:`;
         },
