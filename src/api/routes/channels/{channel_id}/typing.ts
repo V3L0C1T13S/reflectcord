@@ -1,10 +1,8 @@
 /* eslint-disable camelcase */
-import { Application } from "express";
 import { Resource } from "express-automatic-routes";
-import { HTTPError } from "@reflectcord/common/utils";
+import { HTTPError, RabbitMQ } from "@reflectcord/common/utils";
 import { fromSnowflake } from "@reflectcord/common/models";
 import { userStartTyping } from "@reflectcord/common/events";
-import { RabbitMQ } from "@reflectcord/common/utils/RabbitMQ";
 
 export default () => <Resource> {
   post: async (req, res) => {
