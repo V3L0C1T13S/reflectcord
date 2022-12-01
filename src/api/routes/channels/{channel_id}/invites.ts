@@ -4,7 +4,6 @@ import { Resource } from "express-automatic-routes";
 import { HTTPError } from "@reflectcord/common/utils";
 import { fromSnowflake, InviteCreate } from "@reflectcord/common/models";
 
-// FIXME
 export default (express: Application) => <Resource> {
   post: async (req, res) => {
     const { channel_id } = req.params;

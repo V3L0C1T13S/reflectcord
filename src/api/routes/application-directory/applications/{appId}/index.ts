@@ -4,8 +4,8 @@ import { FullDiscoveryBot } from "@reflectcord/common/sparkle";
 import { fromSnowflake, FullDiscoverableBot } from "@reflectcord/common/models";
 import { HTTPError } from "@reflectcord/common/utils";
 
-// FIXME
 export default () => <Resource> {
+  // FIXME: Not all properties are sent
   get: async (req, res: Response<FullDiscoveryBot>) => {
     if (!req.params.appId) throw new HTTPError("Invalid appid");
 

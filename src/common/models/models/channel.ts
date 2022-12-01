@@ -126,7 +126,7 @@ export const GuildCategory: QuarkConversion<
   },
 
   async from_quark(category, extra) {
-    // FIXME: For some reason, some categories are "a" "b" or "c" (possible legacy format?)
+    // Workaround for legacy format ("a", "b", "c") - insert pls migrate
     const id = await tryToSnowflake(category.id);
 
     const discordCategory: APIGuildCategoryChannel = {

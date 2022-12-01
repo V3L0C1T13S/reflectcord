@@ -19,6 +19,7 @@ import {
   User,
   toSnowflake,
   GuildCategory,
+  fromSnowflake,
 } from "@reflectcord/common/models";
 import { genSessionId, Logger, RabbitMQ } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
@@ -231,6 +232,31 @@ export async function startListener(
             t: GatewayDispatchEvents.Ready,
             s: this.sequence++,
             d: readyData,
+          });
+
+          // Sends all of the presences for our friends/blocked users
+          relationships.forEach(async (relationship) => {
+            // DB abuse momento
+            const rvId = await fromSnowflake(relationship.user.id);
+
+            const rvUser = data.users.find((x) => x._id === rvId);
+            if (!rvUser) return;
+
+            const status = await Status.from_quark(rvUser.status, {
+              online: rvUser.online,
+            });
+
+            await Send(this, {
+              op: GatewayOpcodes.Dispatch,
+              t: GatewayDispatchEvents.PresenceUpdate,
+              s: this.sequence++,
+              d: {
+                user: relationship.user,
+                activities: status.activities,
+                // client_status: null // FIXME: Do we need to have this?
+                status: status.status === "invisible" ? "offline" : status.status ?? "offline",
+              },
+            });
           });
 
           break;

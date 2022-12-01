@@ -5,7 +5,7 @@ import { APIChannel, ChannelType as discordChannelType, RESTPostAPIGuildChannelJ
 import { ulid } from "ulid";
 import { HTTPError } from "@reflectcord/common/utils";
 import {
-  fromSnowflake, Channel, ChannelCreateBody, GuildCategory,
+  fromSnowflake, Channel, ChannelCreateBody, GuildCategory, tryFromSnowflake,
 } from "@reflectcord/common/models";
 
 const validTypes = [
@@ -51,14 +51,7 @@ export default () => <Resource> {
       const rvChannel = await res.rvAPI.post(`/servers/${rvId as ""}/channels`, await ChannelCreateBody.to_quark(body));
       // FIXME: Should we throw an error here if not server or just passthrough?
       if (parent_id && ("server" in rvChannel && rvChannel.server)) {
-        const rvCategory = await (async () => {
-          try {
-            const sf = await fromSnowflake(parent_id.toString());
-            return sf;
-          } catch {
-            return parent_id.toString();
-          }
-        })();
+        const rvCategory = await tryFromSnowflake(parent_id.toString());
 
         const rvServer = await res.rvAPI.get(`/servers/${rvId as ""}`);
         const categoryToPatch = rvServer.categories?.find((x) => x.id === rvCategory);

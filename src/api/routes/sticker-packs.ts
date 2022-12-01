@@ -1,6 +1,6 @@
 import { Resource } from "express-automatic-routes";
 
-// FIXME
+// STUB
 export default () => <Resource> {
   get: (req, res) => {
     res.json({
