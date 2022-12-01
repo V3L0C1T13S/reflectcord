@@ -5,7 +5,7 @@ import { DbManager } from "../../db";
 
 export type snowflakeConversionData = {
   snowflake: string;
-  ulid: string;
+  _id: string;
 }
 
 export const snowflakes = DbManager.client.db("reflectcord")
@@ -16,23 +16,20 @@ export const snowflakes = DbManager.client.db("reflectcord")
  * for later recovery.
 */
 export async function toSnowflake(id: string) {
-  const existing = await snowflakes.findOne({
-    ulid: id,
-  });
-  if (existing) return existing.snowflake;
+  const sfData = await snowflakes.findOneAndUpdate({
+    _id: id,
+  }, {
+    $setOnInsert: {
+      _id: id,
+      snowflake: new Snowflake({
+        custom_epoch: parseInt(discordEpoch, 10),
+      }).idFromTimestamp(decodeTime(id)).toString(),
+    },
+  }, { upsert: true, returnDocument: "after" });
 
-  const time = decodeTime(id);
-  const uid = new Snowflake({
-    custom_epoch: parseInt(discordEpoch, 10),
-  });
-  const convertedId = uid.idFromTimestamp(time);
+  if (!sfData.value) throw new Error("SF Conversion failed");
 
-  await snowflakes.insertOne({
-    ulid: id,
-    snowflake: convertedId.toString(),
-  });
-
-  return convertedId.toString();
+  return sfData.value?.snowflake;
 }
 
 /**
@@ -45,7 +42,7 @@ export async function fromSnowflake(id: string) {
 
   if (!existing) throw new Error("Non-existent ID");
 
-  return existing.ulid;
+  return existing._id;
 }
 
 /**
