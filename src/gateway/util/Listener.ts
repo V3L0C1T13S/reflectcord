@@ -176,8 +176,11 @@ export async function startListener(
           const relationships = await Promise.all(data.users
             .filter((u) => u.relationship !== "None" && u.relationship !== "User")
             .map(async (u) => ({
-              type: await Relationship.from_quark(u.relationship ?? "Friend"),
-              user: await User.from_quark(u),
+              discord: {
+                type: await Relationship.from_quark(u.relationship ?? "Friend"),
+                user: await User.from_quark(u),
+              },
+              revolt: u,
             })));
 
           const readyData = {
@@ -195,10 +198,10 @@ export async function startListener(
             guild_experiments: [],
             geo_ordered_rtc_regions: [],
             relationships: relationships.map((x) => ({
-              id: x.user.id,
-              type: x.type,
-              nickname: x.user.username,
-              user: x.user,
+              id: x.discord.user.id,
+              type: x.discord.type,
+              nickname: x.discord.user.username,
+              user: x.discord.user,
             })),
             read_state: {
               entries: [],
@@ -236,11 +239,7 @@ export async function startListener(
 
           // Sends all of the presences for our friends/blocked users
           relationships.forEach(async (relationship) => {
-            // DB abuse momento
-            const rvId = await fromSnowflake(relationship.user.id);
-
-            const rvUser = data.users.find((x) => x._id === rvId);
-            if (!rvUser) return;
+            const rvUser = relationship.revolt;
 
             const status = await Status.from_quark(rvUser.status, {
               online: rvUser.online,
@@ -251,7 +250,7 @@ export async function startListener(
               t: GatewayDispatchEvents.PresenceUpdate,
               s: this.sequence++,
               d: {
-                user: relationship.user,
+                user: relationship.discord.user,
                 activities: status.activities,
                 // client_status: null // FIXME: Do we need to have this?
                 status: status.status === "invisible" ? "offline" : status.status ?? "offline",
