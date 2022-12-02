@@ -44,18 +44,23 @@ async function HandleRequest(
       user_ids: Array.isArray(user_ids) ? user_ids : [user_ids],
       guild_id: [guildId],
       presences: !!presences,
+      query: "",
     });
 
     body.not_found = nativeResults.results.not_found;
     body.members = nativeResults.results.members;
   } else if (query) {
-    // TODO: Move to native code
     // Empty string means get all members
     if (query !== "") {
-      const membersQuery = discordMembers
-        .filter((x) => x.user && (compareTwoStrings(x.user.username, query) >= 0.8));
+      const nativeResults = rfcNative.processOP8({
+        discord_members: discordMembers,
+        user_ids: [],
+        guild_id: [guildId],
+        presences: !!presences,
+        query,
+      });
 
-      body.members = membersQuery;
+      body.members = nativeResults.results.members;
     }
   }
 
