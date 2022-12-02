@@ -10,11 +10,12 @@ import {
   fromSnowflake, Member, Status, User,
 } from "@reflectcord/common/models";
 import { ReqGuildMembersSchema, GuildMembersChunk } from "@reflectcord/common/sparkle";
+import rfcNative from "rfcNative";
 import { Payload, Send } from "../util";
 import { WebSocket } from "../Socket";
 import { check } from "./instanceOf";
 
-const memberExists = (uid: string, member_ids: string[]) => member_ids.includes(uid);
+// const memberExists = (uid: string, member_ids: string[]) => member_ids.includes(uid);
 
 async function HandleRequest(
   this: WebSocket,
@@ -38,21 +39,17 @@ async function HandleRequest(
     .map((x) => Member.from_quark(x, members.users.find((u) => u._id === x._id.user)))));
 
   if (user_ids) {
-    const notFound: string[] = [];
+    const nativeResults = rfcNative.processOP8({
+      discord_members: discordMembers,
+      user_ids: Array.isArray(user_ids) ? user_ids : [user_ids],
+      guild_id: [guildId],
+      presences: !!presences,
+    });
 
-    const foundUsers = discordMembers.map((m) => m.user?.id ?? "0");
-
-    if (Array.isArray(user_ids)) {
-      notFound.push(...(user_ids
-        .filter((x) => !memberExists(x, discordMembers.map((m) => m.user?.id ?? "0")))));
-      body.members = discordMembers.filter((x) => (x.user ? user_ids.includes(x.user.id) : false));
-    } else {
-      if (!memberExists(user_ids, foundUsers)) notFound.push(user_ids);
-      body.members = discordMembers.filter((x) => (x.user ? x.user.id === user_ids : false));
-    }
-
-    body.not_found = notFound;
+    body.not_found = nativeResults.results.not_found;
+    body.members = nativeResults.results.members;
   } else if (query) {
+    // TODO: Move to native code
     // Empty string means get all members
     if (query !== "") {
       const membersQuery = discordMembers
@@ -62,6 +59,7 @@ async function HandleRequest(
     }
   }
 
+  // TODO: Move to native code
   if (presences) {
     const discordPresences = await Promise.all(members.users.map(async (x) => {
       const status = await Status.from_quark(x.status);
