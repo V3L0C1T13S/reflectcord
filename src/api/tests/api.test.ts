@@ -121,11 +121,12 @@ describe("api get requests", () => {
     });
 
     test("threads", async () => {
-      const searchThreads = await getFromAPI(`guilds/${TestServerId}/channels/${TestChannelId}/threads/search`);
-      const activeThreads = await getFromAPI(`guilds/${TestServerId}/channels/${TestChannelId}/active`);
+      // const searchThreads = await getFromAPI(`channels/${TestChannelId}/threads/search`);
+      const activeThreads = await getFromAPI(`guilds/${TestServerId}/threads/active`);
 
-      expect(searchThreads.data).toBeInstanceOf(Array);
-      expect(activeThreads.data).toBeInstanceOf(Array);
+      // expect(searchThreads.data).toBeInstanceOf(Array);
+      expect(activeThreads.data.members).toBeInstanceOf(Array);
+      expect(activeThreads.data.threads).toBeInstanceOf(Array);
     });
   });
 
