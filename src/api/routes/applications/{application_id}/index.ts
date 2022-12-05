@@ -13,9 +13,8 @@ export default (express: Application) => <Resource> {
 
     const appid = await fromSnowflake(application_id);
 
-    const bot = await res.rvAPI.get(`/bots/${appid}`) as API.BotResponse;
-    const profileInfo = await res.rvAPI.get(`/users/${bot.user._id}/profile`) as API.UserProfile;
-    if (!bot || !profileInfo) throw new HTTPError("Revolt failed to get bot", 500);
+    const bot = await res.rvAPI.get(`/bots/${appid as ""}`);
+    const profileInfo = await res.rvAPI.get(`/users/${bot.user._id as ""}/profile`);
 
     return res.json(await OwnedApplication.from_quark({
       bot: bot.bot,

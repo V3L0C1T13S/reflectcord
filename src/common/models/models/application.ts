@@ -1,4 +1,4 @@
-import { APIApplication } from "discord.js";
+import { APIApplication, APIUser } from "discord.js";
 import { Bot, BotResponse } from "revolt-api";
 import { QuarkConversion } from "../QuarkConversion";
 import { toSnowflake } from "../util";
@@ -41,11 +41,18 @@ export const Application: QuarkConversion<Bot, APIApplication> = {
         discriminator: "1",
         avatar: null,
       },
+      rpc_application_state: 0,
+      redirect_uris: [],
+      hook: true,
     };
   },
 };
 
-export const OwnedApplication: QuarkConversion<BotResponse, APIApplication> = {
+interface OwnedAPIApplication extends APIApplication {
+  bot?: APIUser;
+}
+
+export const OwnedApplication: QuarkConversion<BotResponse, OwnedAPIApplication> = {
   async to_quark(data) {
     const { id, name } = data;
 
@@ -65,12 +72,13 @@ export const OwnedApplication: QuarkConversion<BotResponse, APIApplication> = {
 
     const { username } = discordUser;
 
-    const app: APIApplication = {
+    const app: OwnedAPIApplication = {
       ...await Application.from_quark(bot),
       name: username,
       description: user.profile?.content ?? "",
       icon: user.avatar?._id ?? null,
       summary: user.profile?.content ?? "",
+      bot: await User.from_quark(user),
     };
 
     return app;

@@ -5,12 +5,13 @@ import { API } from "revolt.js";
 import { decodeTime } from "ulid";
 import { HTTPError } from "@reflectcord/common/utils";
 import {
-  UserProfile, fromSnowflake, Guild, toSnowflake,
+  UserProfile, fromSnowflake, toSnowflake,
 } from "@reflectcord/common/models";
 import { uploadBase64File } from "@reflectcord/cdn/util";
-import { PatchCurrentUserBody } from "@reflectcord/common/sparkle";
-import { APIGuild } from "discord.js";
+import { PatchCurrentUserBody, ProfileThemesExperimentBucket } from "@reflectcord/common/sparkle";
+import { UserPremiumType } from "discord.js";
 import { fetchUser } from ".";
+import { enableProfileThemes } from "../../../../common/constants/features";
 
 export async function getProfile(api: API.API, id: string) {
   // why cant it just be /users/@me/profile ???
@@ -59,7 +60,11 @@ export default (express: Application) => <Resource> {
       user,
       user_profile: await UserProfile.from_quark(rvProfile),
       premium_since: new Date(decodeTime(rvId)).toISOString(),
+      premium_type: UserPremiumType.Nitro,
       mutual_guilds,
+      profile_themes_experiment_bucket: enableProfileThemes
+        ? ProfileThemesExperimentBucket.ViewAndEditWithTryItOut
+        : ProfileThemesExperimentBucket.Disabled,
     });
   },
   patch: async (

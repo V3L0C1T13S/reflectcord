@@ -16,6 +16,7 @@ import { UserRelationshipType } from "../../sparkle";
 import { QuarkConversion } from "../QuarkConversion";
 import { fromSnowflake, toSnowflake } from "../util";
 import { priviligedUsers } from "../../constants/admin";
+import { genSessionId } from "../../utils/discord";
 
 export type APIUserProfile = {
   bio: string | null,
@@ -102,8 +103,10 @@ export const User: QuarkConversion<RevoltUser, APIUser, UserATQ, UserAFQ> = {
       id: await toSnowflake(_id),
       accent_color: null,
       avatar: user.avatar?._id ?? null,
+      avatar_decoration: null,
       bot: !!user.bot,
       banner: user.profile?.background?._id ?? null,
+      banner_color: null,
       discriminator: "1",
       flags,
       locale: "en-US",
@@ -145,10 +148,16 @@ export const UserProfile: QuarkConversion<RevoltUserProfile, APIUserProfile> = {
   },
 };
 
+export type selfUserATQ = {};
+
+export type selfUserAFQ = Partial<{
+  genAnalyticsToken: boolean,
+}>;
+
 /**
  * Same as normal user, but includes additional info such as email.
  */
-export const selfUser: QuarkConversion<revoltUserInfo, APIUser> = {
+export const selfUser: QuarkConversion<revoltUserInfo, APIUser, selfUserATQ, selfUserAFQ> = {
   async to_quark(user) {
     const mfa_enabled = user.mfa_enabled ?? false;
     return {
@@ -168,7 +177,7 @@ export const selfUser: QuarkConversion<revoltUserInfo, APIUser> = {
     };
   },
 
-  async from_quark(user) {
+  async from_quark(user, extra) {
     const mfa_enabled = Object.values(user.mfaInfo ?? []).some((v) => v === true);
 
     return {
@@ -179,6 +188,7 @@ export const selfUser: QuarkConversion<revoltUserInfo, APIUser> = {
       nsfw_allowed: true,
       // This doesn't seem to be required but it exists in actual discord so
       premium: true,
+      analytics_token: extra?.genAnalyticsToken ? genSessionId() : null,
     };
   },
 };
