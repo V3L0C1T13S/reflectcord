@@ -30,10 +30,10 @@ export default (express: Application) => <Resource> {
 
     const appid = await fromSnowflake(application_id);
 
-    const revoltRes = await res.rvAPI.patch(`/bots/${appid}`, {
-      description: req.body.description,
-    }) as API.Bot;
-    if (!revoltRes) return;
+    const revoltRes = await res.rvAPI.patch(`/bots/${appid as ""}`, {
+      name: req.body.username ?? null,
+      // bio: req.body.description,
+    });
 
     return res.json(await botApplication.from_quark(revoltRes));
   },
