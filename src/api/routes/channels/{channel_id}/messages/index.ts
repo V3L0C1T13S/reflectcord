@@ -3,12 +3,13 @@ import { APIMessage, RESTPostAPIChannelMessageJSONBody } from "discord.js";
 import { Application, Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
-import { checkRoute, HTTPError, instanceOf } from "@reflectcord/common/utils";
+import {
+  validate,
+} from "@reflectcord/common/utils";
 import {
   fromSnowflake,
   Message, MessageSendData,
 } from "@reflectcord/common/models";
-import { MessageCreateSchema } from "@reflectcord/common/sparkle";
 
 export type sendReq = Request<any, any, RESTPostAPIChannelMessageJSONBody & { payload_json: any }>;
 
@@ -55,7 +56,7 @@ export default (express: Application) => <Resource> {
     return res.json(convMessages);
   },
   post: {
-    // middleware: checkRoute(MessageCreateSchema),
+    // middleware: validate({ body: "MessageCreateSchema" }),
     handler: async (req: sendReq, res: Response<APIMessage>) => {
       const { channel_id } = req.params;
 

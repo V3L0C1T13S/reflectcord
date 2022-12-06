@@ -1,1 +1,2 @@
-export * from "./RelationshipSchema";
+export * from "./GuildCreateSchema";
+export * from "./MessageCreateSchema";

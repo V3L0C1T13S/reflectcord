@@ -12,3 +12,4 @@ export * from "./check";
 export * from "./RabbitMQ";
 export * from "./ip";
 export * from "./checkRoute";
+export * from "./handlers";
