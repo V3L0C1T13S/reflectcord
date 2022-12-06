@@ -2,6 +2,7 @@
 /* eslint-disable camelcase */
 import {
   APIMessage,
+  APIMessageReference,
   APIUser,
   MessageReference as DiscordMessageReference,
   MessageType,
@@ -61,20 +62,20 @@ export type MessageAFQ = Partial<{
 
 export const MessageReference: QuarkConversion<
   messageReferenceRevolt,
-  DiscordMessageReference
+  APIMessageReference
 > = {
   async to_quark(reference) {
     return {
-      id: reference.messageId ? await fromSnowflake(reference.messageId) : "0",
-      channel_id: await fromSnowflake(reference.channelId),
+      id: reference.message_id ? await fromSnowflake(reference.message_id) : "0",
+      channel_id: await fromSnowflake(reference.channel_id),
     };
   },
 
   async from_quark(reference) {
     return {
-      messageId: await toSnowflake(reference.id),
-      channelId: await toSnowflake(reference.channel_id),
-      guildId: reference.server ? await toSnowflake(reference.server) : undefined,
+      message_id: await toSnowflake(reference.id),
+      channel_id: await toSnowflake(reference.channel_id),
+      // guild_id: reference.server ? await toSnowflake(reference.server) : null,
     };
   },
 };
@@ -211,10 +212,10 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
 
     if (reply) {
       // FIXME: Missing guild id
-      discordMessage.message_reference = {
-        message_id: await toSnowflake(reply),
-        channel_id,
-      };
+      discordMessage.message_reference = await MessageReference.from_quark({
+        id: reply,
+        channel_id: message.channel,
+      });
     }
 
     if (message.nonce) discordMessage.nonce = message.nonce;

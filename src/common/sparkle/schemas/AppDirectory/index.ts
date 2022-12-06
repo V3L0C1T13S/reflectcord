@@ -39,5 +39,11 @@ export type AppCategory = {
   application_directory_collection_items: DirectoryItem[],
 }
 
+export enum CollectionType {
+  Category = 1,
+  Promoted = 2,
+  Featured = 3,
+}
+
 export * from "./FullApp";
 export * from "./bots";

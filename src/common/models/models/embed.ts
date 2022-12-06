@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import { AddUndefinedToPossiblyUndefinedPropertiesOfInterface } from "discord-api-types/utils/internals";
 import { APIEmbed } from "discord.js";
 import { API } from "revolt.js";
@@ -134,12 +135,13 @@ export const SendableEmbed: QuarkConversion<
       })(),
       url: url ?? null,
       colour: color ? rgbToHex(color) : null,
+      icon_url: embed.footer?.icon_url ?? null,
     };
   },
 
   async from_quark(embed) {
     const {
-      title, description, url, colour,
+      title, description, url, colour, icon_url,
     } = embed;
 
     const convEmbed: APIEmbed = {
@@ -149,6 +151,12 @@ export const SendableEmbed: QuarkConversion<
     };
 
     if (colour) convEmbed.color = hexToRgbCode(colour)!;
+    if (icon_url) {
+      convEmbed.footer = {
+        text: "Footer",
+        icon_url,
+      };
+    }
 
     return convEmbed;
   },

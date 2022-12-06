@@ -26,7 +26,7 @@ export default () => <Resource> {
       content: ":wave:",
       replies: [{
         id: await fromSnowflake(req.body.message_reference.message_id),
-        mention: false,
+        mention: true,
       }],
     });
 

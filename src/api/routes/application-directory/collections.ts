@@ -2,16 +2,10 @@ import { Response } from "express";
 import { Resource } from "express-automatic-routes";
 import axios from "axios";
 import { DiscoverableBot } from "@reflectcord/common/models";
-import { AppCategory } from "@reflectcord/common/sparkle";
+import { AppCategory, CollectionType } from "@reflectcord/common/sparkle";
 import { getRevoltDiscoveryDataURL } from "@reflectcord/common/constants";
 import { BotDiscoveryResponse } from "@reflectcord/common/rvapi";
 import { startCase } from "lodash";
-
-enum CollectionType {
-  Category = 1,
-  Promoted = 2,
-  Featured = 3,
-}
 
 export default () => <Resource> {
   get: async (req, res: Response<AppCategory[]>) => {
@@ -19,23 +13,29 @@ export default () => <Resource> {
     const botResponse = await axios.get<BotDiscoveryResponse>(`${discoveryURL}/discover/bots.json`);
     const revoltBots = botResponse.data;
 
-    const mostPopularBot = revoltBots.pageProps.bots[0]!;
+    const mostPopularBot = revoltBots.pageProps.bots[0];
 
-    const categories = [{
-      id: "0",
-      active: true,
-      type: CollectionType.Featured,
-      position: 0,
-      title: mostPopularBot.username,
-      description: mostPopularBot.profile?.content ?? "fixme",
-      application_directory_collection_items: [{
+    const categories = [];
+
+    if (mostPopularBot) {
+      categories.push({
         id: "0",
-        type: 1,
-        image_hash: mostPopularBot.profile?.background?._id ?? "",
-        position: 1,
-        application: await DiscoverableBot.from_quark(mostPopularBot),
-      }],
-    }, {
+        active: true,
+        type: CollectionType.Featured,
+        position: 0,
+        title: mostPopularBot.username,
+        description: mostPopularBot.profile?.content ?? "fixme",
+        application_directory_collection_items: [{
+          id: "0",
+          type: 1,
+          image_hash: mostPopularBot.profile?.background?._id ?? "",
+          position: 1,
+          application: await DiscoverableBot.from_quark(mostPopularBot),
+        }],
+      });
+    }
+
+    categories.push({
       id: "0",
       active: true,
       type: CollectionType.Promoted,
@@ -69,7 +69,7 @@ export default () => <Resource> {
             position: pos,
             application: await DiscoverableBot.from_quark(app),
           }))),
-      })))];
+      }))));
 
     res.json(categories);
   },
