@@ -314,9 +314,11 @@ export const Status: QuarkConversion<RevoltUser["status"], internalStatus, Statu
 
     if (status?.text) {
       discordStatus.activities?.push({
-        name: status.text,
+        id: "custom",
+        name: "Custom Status",
+        state: status.text,
         type: ActivityType.Custom as any,
-      });
+      } as any);
     }
 
     return discordStatus;

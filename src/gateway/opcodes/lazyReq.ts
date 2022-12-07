@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable no-plusplus */
 /* eslint-disable camelcase */
-import { APIGuildMember, GatewayOpcodes } from "discord.js";
+import { APIGuildMember, GatewayOpcodes, GatewayDispatchEvents } from "discord.js";
 import { API } from "revolt.js";
 import {
   internalStatus, Member, Status, fromSnowflake, toSnowflake,
@@ -120,6 +120,8 @@ async function getMembers(
       };
     }));
 
+  const extendedMembers = [...discordMembers];
+
   const memberRoles = discordMembers
     .map((x) => x.discord.roles)
     .flat()
@@ -156,9 +158,7 @@ async function getMembers(
         offline: 4,
       };
 
-      const session = {
-        status: member.status?.status,
-      };
+      const status = member.status?.status ?? "offline";
 
       const item = {
         member: {
@@ -166,8 +166,11 @@ async function getMembers(
           roles: userRoles,
           user: member.discord.user,
           presence: {
-            ...session,
-            activities: member.status?.activities ?? [],
+            activities: member.status?.activities,
+            client_status: {
+              web: status,
+            },
+            status,
             user: { id: member.discord.user?.id },
           },
         },
@@ -192,10 +195,13 @@ async function getMembers(
   }
 
   return {
-    items,
-    groups,
-    range,
-    members: items.map((x) => ("member" in x ? x.member : undefined)).filter((x) => !!x),
+    results: {
+      items,
+      groups,
+      range,
+      members: items.map((x) => ("member" in x ? x.member : undefined)).filter((x) => !!x),
+    },
+    extendedMembers,
   };
 }
 
@@ -204,7 +210,7 @@ export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
   check.call(this, LazyRequest, data.d);
 
   const {
-    guild_id, typing, channels, activities,
+    guild_id, typing, channels, activities, threads,
   } = data.d!;
 
   const channel_id = Object.keys(channels || {}).first();
@@ -216,12 +222,27 @@ export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
   const ranges = channels![channel_id];
   if (!Array.isArray(ranges)) throw new Error("Not a valid Array");
 
-  const ops = await getMembers.call(this, rvServerId, [0, 99]);
+  const results = await getMembers.call(this, rvServerId, [0, 99]);
+  const ops = results.results;
   const member_count = ops.members.length;
 
   const { groups } = ops;
 
-  return Send(this, {
+  if (threads) {
+    // STUB
+    Send(this, {
+      op: GatewayOpcodes.Dispatch,
+      s: this.sequence++,
+      t: "THREAD_LIST_SYNC",
+      d: {
+        guild_id,
+        most_recent_messages: [],
+        threads: [],
+      },
+    });
+  }
+
+  Send(this, {
     op: GatewayOpcodes.Dispatch,
     s: this.sequence++,
     t: "GUILD_MEMBER_LIST_UPDATE",
