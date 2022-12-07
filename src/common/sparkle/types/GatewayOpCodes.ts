@@ -39,9 +39,13 @@ export enum GatewayOpcodes {
    * {
    *  channel_id: Snowflake
    * }
+   *
+   * This is called "CALL_CONNECT" by the official client
    */
   CallSync = 13,
   /**
+   * Name called by the discord client: "Guild subscriptions"
+   *
    * OP 14 is used by the client when wanting to load the member list of a guild.
    * When the client wants to load the member list, it describes its request in detail.
    * That is what the channels field is for. It explicitly says which parts of the
@@ -52,7 +56,6 @@ export enum GatewayOpcodes {
    * and will receive respective GUILD_MEMBER_LIST_UPDATE events related to those ranges.
    */
   LazyRequest = 14,
-  // #begionregion unimplemented
   LobbyConnect = 15,
   LobbyDisconnect = 16,
   LobbyVoiceStatesUpdate = 17,
@@ -62,5 +65,16 @@ export enum GatewayOpcodes {
   StreamPing = 21,
   StreamSetPaused = 22,
   QueryApplicationCommands = 24,
-  // #endregion unimplemented
+  // EMBEDDED_ACTIVITY_LAUNCH
+  EmbeddedActivityLaunch=25,
+  // EMBEDDED_ACTIVITY_CLOSE
+  EmbeddedActivityClose=26,
+  // EMBEDDED_ACTIVITY_UPDATE
+  EmbeddedActivityUpdate=27,
+  // REQUEST_FORUM_UNREADS
+  RequestForumUnreads=28,
+  // REMOTE_COMMAND
+  RemoteCommand=29,
+  // GET_DELETED_ENTITY_IDS_NOT_MATCHING_HASH
+  GetDeletedEntityIdsNotMatchingHash=30,
 }

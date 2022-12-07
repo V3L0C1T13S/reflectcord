@@ -24,6 +24,7 @@ import {
 import { genSessionId, Logger, RabbitMQ } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
 import { IdentifySchema } from "@reflectcord/common/sparkle";
+import { reflectcordWsURL } from "@reflectcord/common/constants";
 import { WebSocket } from "../Socket";
 import { Send } from "./send";
 import experiments from "./experiments.json";
@@ -145,21 +146,27 @@ export async function startListener(
             discord: currentUserDiscord,
           });
 
+          const sessionStatus = await Status.from_quark(currentUser.status);
+          const currentSession = {
+            activities: sessionStatus.activities,
+            client_info: {
+              version: 0,
+              client: "desktop",
+              os: identifyPayload.properties?.os,
+            },
+            status: identifyPayload?.presence?.status ?? "offline",
+          };
+          const sessions = [currentSession];
+
           setImmediate(async () => {
-            const status = await Status.from_quark(currentUser.status);
             Send(this, {
               op: GatewayOpcodes.Dispatch,
               t: GatewayDispatchEvents.PresenceUpdate,
               s: this.sequence++,
               d: {
                 user: currentUserDiscord,
-                activities: status.activities,
-                client_status: {
-                  client: "desktop",
-                  os: identifyPayload.properties?.os,
-                  version: 0,
-                },
-                status: identifyPayload?.presence?.status ?? "offline",
+                ...currentSession,
+                client_status: currentSession.status,
               },
             });
           });
@@ -184,7 +191,7 @@ export async function startListener(
             })));
 
           const readyData = {
-            v: 8,
+            v: 9,
             application: currentUserDiscord.bot ? {
               id: currentUserDiscord.id,
               flags: 0,
@@ -216,11 +223,14 @@ export async function startListener(
             users,
             experiments, // ily fosscord
             private_channels,
+            resume_gateway_url: reflectcordWsURL,
             session_id: this.session_id,
+            sessions,
             friend_suggestion_count: 0,
             guild_join_requests: [],
             connected_accounts: [],
             analytics_token: "",
+            api_code_version: 1,
             consents: {
               personalization: {
                 consented: false, // never gonna fix this lol
@@ -245,15 +255,23 @@ export async function startListener(
               online: rvUser.online,
             });
 
+            if (status.status === "invisible") return;
+
+            const presence = status.status ?? "offline";
+
             await Send(this, {
               op: GatewayOpcodes.Dispatch,
               t: GatewayDispatchEvents.PresenceUpdate,
               s: this.sequence++,
               d: {
-                user: relationship.discord.user,
+                user: {
+                  id: relationship.discord.user.id,
+                },
                 activities: status.activities,
-                // client_status: null // FIXME: Do we need to have this?
-                status: status.status === "invisible" ? "offline" : status.status ?? "offline",
+                client_status: {
+                  desktop: presence,
+                },
+                status: presence,
               },
             });
           });

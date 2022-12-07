@@ -1,9 +1,12 @@
 import {
   ResponseLogin as RevoltLoginResponse,
   DataLogin as RevoltDataLogin,
+  SessionInfo,
 } from "revolt-api";
+import { decodeTime } from "ulid";
 import { QuarkConversion } from "../../QuarkConversion";
 import { LoginSchema } from "../../../sparkle";
+import { UserSession } from "../../../sparkle/schemas/auth/sessions";
 
 export type APILoginResponse = {
   token: string | null,
@@ -62,6 +65,29 @@ export const DataLogin: QuarkConversion<RevoltDataLogin, LoginSchema> = {
       login: isMFA ? "fixme" : data.email,
       password: isMFA ? "fixme" : data.password,
       // captcha_key: isMFA ? "fixme" : data.captcha ?? "fixme",
+    };
+  },
+};
+
+export const Session: QuarkConversion<SessionInfo, UserSession> = {
+  async to_quark(session) {
+    return {
+      _id: session.id_hash,
+      name: session.client_info.os,
+    };
+  },
+
+  async from_quark(session) {
+    const { _id } = session;
+
+    return {
+      id_hash: _id,
+      approx_last_used_time: new Date(decodeTime(_id)).toISOString(),
+      client_info: {
+        os: session.name,
+        platform: "web",
+        location: "",
+      },
     };
   },
 };

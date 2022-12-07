@@ -43,6 +43,7 @@ export const stubFeatures = [
   GuildFeature.Banner,
   GuildFeature.AnimatedBanner,
   GuildFeature.AnimatedIcon,
+  GuildFeature.Community, // Revolt has *most* equivalents to this feature
 ];
 
 export function getServerFeatures(server: revoltPartialServer) {
