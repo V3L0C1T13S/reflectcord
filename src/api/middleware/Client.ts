@@ -201,6 +201,34 @@ export function Client(app: Application) {
 
     if (req.url.startsWith("/api") || req.url.startsWith("/__development")) return;
 
+    if (
+      ["/download",
+        "/nitro",
+        "/blog",
+        "/company",
+        "/jobs",
+        "/branding",
+        "/build",
+        "/streamkit",
+        "/licenses",
+        "/moderation",
+        "/guidelines",
+        "/privacy",
+        "/safetycenter",
+        "/newsroom",
+        "/college",
+        "/terms",
+        "/acknowledgements",
+      ]
+        .some((x) => req.url.startsWith(x)) || req.url === "/") {
+      res.set("Cache-Control", `public, max-age=${60 * 60 * 24}`);
+      res.set("content-type", "text/html");
+
+      if (!useTestClient) return res.send("Test client is disabled on this instance. Use a stand-alone client to connect this instance.");
+
+      return res.send(fs.readFileSync(path.join(__dirname, "..", "..", "..", "assets", "landing_test.html"), { encoding: "utf8" }));
+    }
+
     if (!useTestClient) return res.send("Test client is disabled on this instance. Use a stand-alone client to connect this instance.");
     if (req.url.startsWith("/invite")) return res.send(html.replace("9b2b7f0632acd0c5e781", "9f24f709a3de09b67c49"));
 
