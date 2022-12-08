@@ -22,6 +22,8 @@ export async function onIdentify(this: WebSocket, data: Payload<IdentifySchema>)
     return this.close(GatewayCloseCodes.AuthenticationFailed);
   }
 
+  this.token = token;
+
   await startListener.call(this, token, identify);
 
   await this.rvClient.loginBot(token).catch(() => {

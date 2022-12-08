@@ -85,13 +85,13 @@
     "@types/gm": "^1.18.12",
     "@types/lodash": "^4.14.191",
     "@types/morgan": "^1.9.3",
-    "@types/node": "^18.11.10",
+    "@types/node": "^18.11.11",
     "@types/node-fetch": "^2.6.2",
     "@types/serve-favicon": "^2.5.3",
     "@types/socket.io": "^3.0.2",
     "@types/string-similarity": "^4.0.0",
-    "@typescript-eslint/eslint-plugin": "^5.45.0",
-    "@typescript-eslint/parser": "^5.45.0",
+    "@typescript-eslint/eslint-plugin": "^5.46.0",
+    "@typescript-eslint/parser": "^5.46.0",
     "eslint": "^8.29.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.26.0",
@@ -100,7 +100,7 @@
     "rimraf": "^3.0.2",
     "ts-jest": "^29.0.3",
     "tsx": "^3.12.1",
-    "typescript": "^4.8.4"
+    "typescript": "^4.9.4"
   },
   "workspaces": [
     "src/api",

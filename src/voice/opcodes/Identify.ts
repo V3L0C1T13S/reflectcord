@@ -34,7 +34,7 @@ export async function onIdentify(this: WebSocket, data: Payload) {
   this.rvAPIWrapper = new APIWrapper(this.rvAPI);
   this.sessionId = session_id;
   this.token = token;
-  this.user_id = user_id; // FIXME
+  this.user_id = voiceState.user_id;
 
   const sdp = SemanticSDP.SDPInfo.expand(defaultsdp);
   sdp.setDTLS(SemanticSDP.DTLSInfo.expand({ setup: "actpass", hash: "sha-256", fingerprint: endpoint.getDTLSFingerprint() }));

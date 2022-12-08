@@ -4,12 +4,10 @@ import { Application, Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
 import {
-  validate,
-} from "@reflectcord/common/utils";
-import {
   fromSnowflake,
   Message, MessageSendData,
 } from "@reflectcord/common/models";
+import { Logger } from "@reflectcord/common/utils";
 
 export type sendReq = Request<any, any, RESTPostAPIChannelMessageJSONBody & { payload_json: any }>;
 
@@ -39,7 +37,12 @@ export default (express: Application) => <Resource> {
       before: beforeId,
       after: afterId,
       nearby: aroundId,
-    }) as rvMsgWithUsers;
+    });
+
+    if (!("messages" in msgs)) {
+      Logger.warn("API gave an incorrect messages response! Is your Revolt instance up to date?");
+      return res.json(await Promise.all(msgs.map((x) => Message.from_quark(x))));
+    }
 
     const convMessages = await Promise.all(msgs.messages.map(async (x) => {
       const user = msgs.users.find((u) => x.author === u._id);

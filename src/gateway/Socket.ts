@@ -42,4 +42,5 @@ export interface WebSocket extends WS {
   }
   typingConsumer?: Replies.Consume | undefined,
   state: SocketState,
+  token: string,
 }

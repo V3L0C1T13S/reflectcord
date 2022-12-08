@@ -1,6 +1,6 @@
 import { Request } from "express";
 import { Resource } from "express-automatic-routes";
-import { instanceOf, HTTPError, checkRoute } from "@reflectcord/common/utils";
+import { HTTPError, checkRoute } from "@reflectcord/common/utils";
 import { DbManager } from "@reflectcord/common/db";
 import { enableMetrics } from "@reflectcord/common/constants";
 

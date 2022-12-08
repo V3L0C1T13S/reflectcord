@@ -11,6 +11,7 @@ import { GatewayOpcodes } from "../../common/sparkle";
 import { QueryApplicationCommands } from "./QueryApplicationCommands";
 import { HandleGuildSync } from "./GuildSync";
 import { VSPing } from "./VSPing";
+import { StreamCreate } from "./StreamCreate";
 
 export type OPCodeHandler = (this: WebSocket, data: Payload) => any;
 
@@ -24,5 +25,6 @@ export const OPCodeHandlers: { [key: number ]: OPCodeHandler } = {
   [GatewayOpcodes.RequestGuildMembers]: RequestGuildMembers,
   [GatewayOpcodes.GuildSync]: HandleGuildSync,
   [GatewayOpcodes.LazyRequest]: lazyReq,
+  [GatewayOpcodes.StreamCreate]: StreamCreate,
   [GatewayOpcodes.QueryApplicationCommands]: QueryApplicationCommands,
 };

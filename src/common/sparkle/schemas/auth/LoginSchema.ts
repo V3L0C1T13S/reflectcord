@@ -6,3 +6,8 @@ export interface LoginSchema {
   login_source?: string;
   gift_code_sku_id?: string;
 }
+
+export interface MFALoginSchema {
+  code: string,
+  ticket: string,
+}

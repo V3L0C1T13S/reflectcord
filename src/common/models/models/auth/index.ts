@@ -5,8 +5,7 @@ import {
 } from "revolt-api";
 import { decodeTime } from "ulid";
 import { QuarkConversion } from "../../QuarkConversion";
-import { LoginSchema } from "../../../sparkle";
-import { UserSession } from "../../../sparkle/schemas/auth/sessions";
+import { LoginSchema, MFALoginSchema, UserSession } from "../../../sparkle";
 
 export type APILoginResponse = {
   token: string | null,
@@ -49,12 +48,33 @@ export const ResponseLogin: QuarkConversion<RevoltLoginResponse, APILoginRespons
   },
 };
 
+export const DataMFALogin: QuarkConversion<RevoltDataLogin, MFALoginSchema> = {
+  async to_quark(data) {
+    return {
+      mfa_response: {
+        totp_code: data.code,
+      },
+      mfa_ticket: data.ticket,
+    };
+  },
+
+  async from_quark(data) {
+    if (!("mfa_response" in data && data.mfa_response && "totp_code" in data.mfa_response)) throw new Error("Invalid login type");
+
+    return {
+      code: data.mfa_response.totp_code,
+      ticket: data.mfa_ticket,
+    };
+  },
+};
+
 export const DataLogin: QuarkConversion<RevoltDataLogin, LoginSchema> = {
   async to_quark(data) {
     return {
       email: data.login,
       password: data.password,
       // captcha: data.captcha_key ?? null,
+      friendly_name: data.login_source ?? null,
     };
   },
 
