@@ -25,7 +25,7 @@ export interface RulesResponse {
 
 export type RulesPOST = RulesResponse;
 
-export interface RootObject {
+interface RootObject {
   name: string;
   guild_id: string;
   event_type: number;
