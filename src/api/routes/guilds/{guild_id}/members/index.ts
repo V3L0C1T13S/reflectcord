@@ -1,8 +1,7 @@
 /* eslint-disable camelcase */
 import { Resource } from "express-automatic-routes";
-import { Member } from "../../../../../common/models";
-import { fromSnowflake } from "../../../../../common/models/util";
-import { HTTPError } from "../../../../../common/utils";
+import { Member, fromSnowflake } from "@reflectcord/common/models";
+import { HTTPError } from "@reflectcord/common/utils";
 
 export default () => <Resource> {
   get: async (req, res) => {

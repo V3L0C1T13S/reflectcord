@@ -2,7 +2,6 @@
 import { RESTPatchAPIGuildMemberJSONBody } from "discord.js";
 import { Request } from "express";
 import { Resource } from "express-automatic-routes";
-import { API } from "revolt.js";
 import { Member, fromSnowflake } from "@reflectcord/common/models";
 import { HTTPError } from "@reflectcord/common/utils";
 

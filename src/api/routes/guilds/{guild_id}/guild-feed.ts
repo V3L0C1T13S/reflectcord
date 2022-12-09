@@ -2,7 +2,7 @@
 import { Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { fromSnowflake } from "@reflectcord/common/models";
-import { GuildFeedResponse } from "@reflectcord/common/sparkle/schemas";
+import { GuildFeedResponse } from "@reflectcord/common/sparkle";
 import { HTTPError } from "@reflectcord/common/utils";
 
 export default () => <Resource> {

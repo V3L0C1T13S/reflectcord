@@ -1,9 +1,7 @@
 /* eslint-disable camelcase */
 import { Resource } from "express-automatic-routes";
-import { API } from "revolt.js";
-import { Member } from "../../../../../../common/models";
-import { HTTPError } from "../../../../../../common/utils";
-import { fromSnowflake } from "../../../../../../common/models/util";
+import { Member, fromSnowflake } from "@reflectcord/common/models";
+import { HTTPError } from "@reflectcord/common/utils";
 import { handleMemberEdit } from "../@me/nick";
 
 export default () => <Resource> {

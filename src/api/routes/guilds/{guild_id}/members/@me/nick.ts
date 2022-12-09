@@ -2,9 +2,8 @@
 import { Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { RESTPatchAPIGuildMemberJSONBody } from "discord.js";
-import { Member, MemberEditBody } from "../../../../../../common/models";
-import { fromSnowflake } from "../../../../../../common/models/util";
-import { HTTPError } from "../../../../../../common/utils";
+import { Member, MemberEditBody, fromSnowflake } from "@reflectcord/common/models";
+import { HTTPError } from "@reflectcord/common/utils";
 
 export async function handleMemberEdit(req: Request, res: Response, fullMember: boolean) {
   const { guild_id, memberId } = req.params;

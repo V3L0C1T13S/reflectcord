@@ -1,5 +1,8 @@
 import { GuildFeature } from "discord.js";
 
+export * from "./requirements";
+export * from "./metadata";
+
 export type DiscoveryCategory = {
   id: number,
   is_primary: boolean,
