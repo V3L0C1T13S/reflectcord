@@ -624,20 +624,54 @@ export async function startListener(
           break;
         }
         case "UserUpdate": {
-          if (data.id !== this.rv_user_id) return;
+          // Just incase we don't have them cached yet
+          await this.rvAPIWrapper.users.fetch(data.id);
 
-          const currentUser = this.rvAPIWrapper.users.$get(this.rv_user_id, {
-            revolt: data.data,
+          const currentUser = this.rvAPIWrapper.users.$get(data.id, {
+            revolt: data.data ?? {},
             discord: {},
           });
 
-          const updatedUser = this.rvAPIWrapper.users.$get(this.rv_user_id, {
+          if (!currentUser?.revolt) return;
+
+          const updatedUser = this.rvAPIWrapper.users.$get(data.id, {
             revolt: {},
             discord: await User.from_quark({
               ...currentUser.revolt,
               ...data.data,
             }),
           });
+
+          if (data.id !== this.rv_user_id) {
+            if (data.data.status || data.data.online !== null || data.data.online !== undefined) {
+              const status = await Status.from_quark(
+                data.data.status ?? updatedUser.revolt.status,
+                {
+                  online: data.data.online,
+                },
+              );
+
+              const presence = status.status === "invisible" ? "offline" : status.status;
+
+              await Send(this, {
+                op: GatewayOpcodes.Dispatch,
+                t: GatewayDispatchEvents.PresenceUpdate,
+                s: this.sequence++,
+                d: {
+                  activities: status.activities ?? [],
+                  client_status: {
+                    desktop: presence,
+                  },
+                  status: presence,
+                  last_modified: Date.now(),
+                  // FIXME: Discord has inconsistent behaviour with the user object
+                  user: updatedUser.discord,
+                },
+              });
+            }
+
+            return;
+          }
 
           await Send(this, {
             op: GatewayOpcodes.Dispatch,

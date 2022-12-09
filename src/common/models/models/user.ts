@@ -285,7 +285,7 @@ export const Status: QuarkConversion<RevoltUser["status"], internalStatus, Statu
   async from_quark(status, extra) {
     const discordStatus: internalStatus = {
       status: (() => {
-        if (extra && !extra?.online) return "invisible";
+        if (extra?.online !== null && extra?.online !== undefined && !extra?.online) return "invisible";
 
         switch (status?.presence) {
           case "Online": {
