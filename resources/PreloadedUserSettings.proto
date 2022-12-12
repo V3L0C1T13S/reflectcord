@@ -1,0 +1,333 @@
+syntax = "proto3";
+package discord_protos.discord_users.v1;
+
+message Version {
+    uint32 client_version = 1;
+    uint32 server_version = 2;
+    uint32 data_version = 3;
+}
+
+enum InboxTab {
+    UNSPECIFIED = 0;
+    MENTIONS = 1;
+    UNREADS = 2;
+}
+
+message InboxSettings {
+    InboxTab current_tab = 1;
+    bool viewed_tutorial = 2;
+}
+
+message ChannelSettings {
+    bool collapsed_in_inbox = 1;
+}
+
+message GuildSettings {
+    map<fixed64, ChannelSettings> channels = 1;
+    uint32 hub_progress = 2;
+    uint32 guild_onboarding_progress = 3;
+}
+
+message LastDismissedOutboundPromotionStartDate {
+    string value = 1;
+}
+
+message PremiumTier0ModalDismissedAt {
+    uint32 timestamp = 1;
+}
+
+message UserContentSettings {
+    bytes dismissed_contents = 1;
+    LastDismissedOutboundPromotionStartDate last_dismissed_outbound_promotion_start_date = 2;
+    PremiumTier0ModalDismissedAt premium_tier_0_modal_dismissed_at = 3;
+}
+
+message VideoFilterBackgroundBlur {
+    bool use_blur = 1;
+}
+
+message VideoFilterAsset {
+    fixed64 id = 1;
+    string asset_hash = 2;
+}
+
+message AlwaysPreviewVideo {
+    bool value = 1;
+}
+
+message AfkTimeout {
+    uint32 value = 1;
+}
+
+message StreamNotificationsEnabled {
+    bool value = 1;
+}
+
+message NativePhoneIntegrationEnabled {
+    bool value = 1;
+}
+
+message VoiceAndVideoSettings {
+    VideoFilterBackgroundBlur blur = 1;
+    uint32 preset_option = 2;
+    VideoFilterAsset custom_asset = 3;
+    AlwaysPreviewVideo always_preview_video = 5;
+    AfkTimeout afk_timeout = 6;
+    StreamNotificationsEnabled stream_notifications_enabled = 7;
+    NativePhoneIntegrationEnabled native_phone_integration_enabled = 8;
+}
+
+message DiversitySurrogate {
+    string value = 1;
+}
+
+message UseRichChatInput {
+    bool value = 1;
+}
+
+message UseThreadSidebar {
+    bool value = 1;
+}
+
+message RenderSpoilers {
+    string value = 1;
+}
+
+message ViewImageDescriptions {
+    bool value = 1;
+}
+
+message ShowCommandSuggestions {
+    bool value = 1;
+}
+
+message InlineAttachmentMedia {
+    bool value = 1;
+}
+
+message InlineEmbedMedia {
+    bool value = 1;
+}
+
+message GifAutoPlay {
+    bool value = 1;
+}
+
+message RenderEmbeds {
+    bool value = 1;
+}
+
+message RenderReactions {
+    bool value = 1;
+}
+
+message AnimateEmoji {
+    bool value = 1;
+}
+
+message AnimateStickers {
+    uint32 value = 1;
+}
+
+message EnableTtsCommand {
+    bool value = 1;
+}
+
+message MessageDisplayCompact {
+    bool value = 1;
+}
+
+message ExplicitContentFilter {
+    uint32 value = 1;
+}
+
+message ViewNsfwGuilds {
+    bool value = 1;
+}
+
+message ConvertEmoticons {
+    bool value = 1;
+}
+
+message ExpressionSuggestionsEnabled {
+    bool value = 1;
+}
+
+message ViewNsfwCommands {
+    bool value = 1;
+}
+
+message TextAndImagesSettings {
+    DiversitySurrogate diversity_surrogate = 1;
+    UseRichChatInput use_rich_chat_input = 2;
+    UseThreadSidebar use_thread_sidebar = 3;
+    RenderSpoilers render_spoilers = 4;
+    repeated string emoji_picker_collapsed_sections = 5 [packed = false];
+    repeated string sticker_picker_collapsed_sections = 6 [packed = false];
+    ViewImageDescriptions view_image_descriptions = 7;
+    ShowCommandSuggestions show_command_suggestions = 8;
+    InlineAttachmentMedia inline_attachment_media = 9;
+    InlineEmbedMedia inline_embed_media = 10;
+    GifAutoPlay gif_auto_play = 11;
+    RenderEmbeds render_embeds = 12;
+    RenderReactions render_reactions = 13;
+    AnimateEmoji animate_emoji = 14;
+    AnimateStickers animate_stickers = 15;
+    EnableTtsCommand enable_tts_command = 16;
+    MessageDisplayCompact message_display_compact = 17;
+    ExplicitContentFilter explicit_content_filter = 19;
+    ViewNsfwGuilds view_nsfw_guilds = 20;
+    ConvertEmoticons convert_emoticons = 21;
+    ExpressionSuggestionsEnabled expression_suggestions_enabled = 22;
+    ViewNsfwCommands view_nsfw_commands = 23;
+}
+
+message ShowInAppNotifications {
+    bool value = 1;
+}
+
+message NotifyFriendsOnGoLive {
+    bool value = 1;
+}
+
+message NotificationSettings {
+    ShowInAppNotifications show_in_app_notifications = 1;
+    NotifyFriendsOnGoLive notify_friends_on_go_live = 2;
+    fixed64 notification_center_acked_before_id = 3;
+}
+
+enum GuildActivityStatusRestrictionDefault {
+    OFF = 0;
+    ON_FOR_LARGE_GUILDS = 1;
+}
+
+message AllowActivityPartyPrivacyFriends {
+    bool value = 1;
+}
+
+message AllowActivityPartyPrivacyVoiceChannel {
+    bool value = 1;
+}
+
+message DetectPlatformAccounts {
+    bool value = 1;
+}
+
+message Passwordless {
+    bool value = 1;
+}
+
+message ContactSyncEnabled {
+    bool value = 1;
+}
+
+message FriendSourceFlags {
+    uint32 value = 1;
+}
+
+message FriendDiscoveryFlags {
+    uint32 value = 1;
+}
+
+message PrivacySettings {
+    AllowActivityPartyPrivacyFriends allow_activity_party_privacy_friends = 1;
+    AllowActivityPartyPrivacyVoiceChannel allow_activity_party_privacy_voice_channel = 2;
+    repeated fixed64 restricted_guild_ids = 3 [packed = true];
+    bool default_guilds_restricted = 4;
+    bool allow_accessibility_detection = 7;
+    DetectPlatformAccounts detect_platform_accounts = 8;
+    Passwordless passwordless = 9;
+    ContactSyncEnabled contact_sync_enabled = 10;
+    FriendSourceFlags friend_source_flags = 11;
+    FriendDiscoveryFlags friend_discovery_flags = 12;
+    repeated fixed64 activity_restricted_guild_ids = 13 [packed = true];
+    GuildActivityStatusRestrictionDefault default_guilds_activity_restricted = 14;
+    repeated fixed64 activity_joining_restricted_guild_ids = 15 [packed = true];
+}
+
+message RtcPanelShowVoiceStates {
+    bool value = 1;
+}
+
+message DebugSettings {
+    RtcPanelShowVoiceStates rtc_panel_show_voice_states = 1;
+}
+
+message InstallShortcutDesktop {
+    bool value = 1;
+}
+
+message InstallShortcutStartMenu {
+    bool value = 1;
+}
+
+message DisableGamesTab {
+    bool value = 1;
+}
+
+message GameLibrarySettings {
+    InstallShortcutDesktop install_shortcut_desktop = 1;
+    InstallShortcutStartMenu install_shortcut_start_menu = 2;
+    DisableGamesTab disable_games_tab = 3;
+}
+
+message Status {
+    string status = 1;
+}
+
+message CustomStatus {
+    string text = 1;
+    fixed64 emoji_id = 2;
+    string emoji_name = 3;
+    fixed64 expires_at_ms = 4;
+}
+
+message ShowCurrentGame {
+    bool value = 1;
+}
+
+message StatusSettings {
+    Status status = 1;
+    CustomStatus custom_status = 2;
+    ShowCurrentGame show_current_game = 3;
+}
+
+message Locale {
+    string locale_code = 1;
+}
+
+message TimezoneOffset {
+    int32 offset = 1;
+}
+
+message LocalizationSettings {
+    Locale locale = 1;
+    TimezoneOffset timezone_offset = 2;
+}
+
+enum Theme {
+    UNSET = 0;
+    DARK = 1;
+    LIGHT = 2;
+}
+
+message AppearanceSettings {
+    Theme theme = 1;
+    bool developer_mode = 2;
+}
+
+message PreloadedUserSettings {
+    Version versions = 1;
+    InboxSettings inbox = 2;
+    GuildSettings guilds = 3;
+    UserContentSettings user_content = 4;
+    VoiceAndVideoSettings voice_and_video = 5;
+    TextAndImagesSettings text_and_images = 6;
+    NotificationSettings notifications = 7;
+    PrivacySettings privacy = 8;
+    DebugSettings debug = 9;
+    GameLibrarySettings game_library = 10;
+    StatusSettings status = 11;
+    LocalizationSettings localization = 12;
+    AppearanceSettings appearance = 13;
+}

@@ -23,6 +23,7 @@ import {
   SettingsKeys,
   RevoltSettings,
   UserSettings,
+  settingsToProtoBuf,
 } from "@reflectcord/common/models";
 import { genSessionId, Logger, RabbitMQ } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
@@ -198,6 +199,12 @@ export async function startListener(
           }) as unknown as RevoltSettings : null;
 
           const user_settings = rvSettings ? await UserSettings.from_quark(rvSettings) : {};
+          // @ts-ignore
+          user_settings.id = currentUserDiscord.id;
+
+          const user_settings_proto = rvSettings
+            ? await settingsToProtoBuf(user_settings as any)
+            : null;
 
           const readyData = {
             v: 9,
@@ -210,6 +217,7 @@ export async function startListener(
             },
             user: currentUserDiscord,
             user_settings,
+            user_settings_proto: user_settings_proto ? Buffer.from(user_settings_proto).toString("base64") : null,
             guilds,
             guild_experiments: [],
             geo_ordered_rtc_regions: [],
