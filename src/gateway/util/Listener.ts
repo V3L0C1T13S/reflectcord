@@ -20,6 +20,9 @@ import {
   toSnowflake,
   GuildCategory,
   fromSnowflake,
+  SettingsKeys,
+  RevoltSettings,
+  UserSettings,
 } from "@reflectcord/common/models";
 import { genSessionId, Logger, RabbitMQ } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
@@ -190,6 +193,12 @@ export async function startListener(
               revolt: u,
             })));
 
+          const rvSettings = !currentUser.bot ? await this.rvAPI.post("/sync/settings/fetch", {
+            keys: SettingsKeys,
+          }) as unknown as RevoltSettings : null;
+
+          const user_settings = rvSettings ? await UserSettings.from_quark(rvSettings) : {};
+
           const readyData = {
             v: 9,
             application: currentUserDiscord.bot ? {
@@ -200,7 +209,7 @@ export async function startListener(
               flags: 0,
             },
             user: currentUserDiscord,
-            user_settings: {},
+            user_settings,
             guilds,
             guild_experiments: [],
             geo_ordered_rtc_regions: [],

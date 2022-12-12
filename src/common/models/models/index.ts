@@ -11,3 +11,4 @@ export * from "./role";
 export * from "./emoji";
 export * from "./discovery";
 export * from "./invite";
+export * from "./settings";

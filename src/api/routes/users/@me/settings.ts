@@ -1,10 +1,11 @@
 /* eslint-disable camelcase */
-import { Application } from "express";
+import { UserSettings } from "@reflectcord/common/sparkle";
+import { Application, Response } from "express";
 import { Resource } from "express-automatic-routes";
 
 // FIXME
 export default (express: Application) => <Resource> {
-  patch: (req, res) => {
+  patch: (req, res: Response<UserSettings>) => {
     res.sendStatus(204);
   },
 };

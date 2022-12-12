@@ -91,7 +91,7 @@ export async function VSUpdate(this: WebSocket, data: Payload) {
     const selfUser = await this.rvAPIWrapper.users.fetch(this.rv_user_id);
 
     stateData.member = await Member.from_quark(member, selfUser.revolt);
-  }
+  } else delete stateData.member;
 
   await voiceStates.updateOne({ user_id: this.user_id }, {
     $set: stateData,
