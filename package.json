@@ -85,7 +85,7 @@
     "@types/gm": "^1.18.12",
     "@types/lodash": "^4.14.191",
     "@types/morgan": "^1.9.3",
-    "@types/node": "^18.11.12",
+    "@types/node": "^18.11.13",
     "@types/node-fetch": "^2.6.2",
     "@types/serve-favicon": "^2.5.3",
     "@types/socket.io": "^3.0.2",
