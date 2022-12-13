@@ -316,6 +316,15 @@ message AppearanceSettings {
     bool developer_mode = 2;
 }
 
+message GuildFolder {
+    repeated fixed64 guild_ids = 1 [packed=true];
+}
+
+message GuildFolderSettings {
+    repeated GuildFolder folders = 1;
+    repeated fixed64 guild_positions = 2 [packed=true];
+}
+
 message PreloadedUserSettings {
     Version versions = 1;
     InboxSettings inbox = 2;
@@ -330,4 +339,5 @@ message PreloadedUserSettings {
     StatusSettings status = 11;
     LocalizationSettings localization = 12;
     AppearanceSettings appearance = 13;
+    GuildFolderSettings guild_folders = 14;
 }

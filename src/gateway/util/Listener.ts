@@ -198,7 +198,9 @@ export async function startListener(
             keys: SettingsKeys,
           }) as unknown as RevoltSettings : null;
 
-          const user_settings = rvSettings ? await UserSettings.from_quark(rvSettings) : {};
+          const user_settings = rvSettings ? await UserSettings.from_quark(rvSettings, {
+            status: sessionStatus.status?.toString() || null,
+          }) : {};
           // @ts-ignore
           user_settings.id = currentUserDiscord.id;
 
