@@ -34,6 +34,10 @@ export const reflectcordWsURL = process.env["REFLECTCORD_WS_URL"] ?? "ws://local
 
 export const reflectcordVoiceURL = process.env["REFLECTCORD_VOICE_URL"] ?? "localhost:3015/voice";
 
+export const PublicIP = process.env["PUBLIC_IP"] ?? "127.0.0.1";
+
+export const webRTCPortRange = process.env["WEBRTC_PORT_RANGE"] ?? "4000";
+
 export const gifBoxURL = process.env["GIFBOX_URL"] ?? "https://gifbox.me";
 
 export const gifBoxAPIUrl = process.env["GIFBOX_API_URL"] ?? "https://api.gifbox.me";

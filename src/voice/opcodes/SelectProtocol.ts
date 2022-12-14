@@ -1,8 +1,9 @@
 import SemanticSDP from "semantic-sdp";
 import { VoiceOPCodes } from "@reflectcord/common/sparkle";
 import { Payload } from "@reflectcord/gateway/util";
+import { PublicIP } from "@reflectcord/common/constants";
 import {
-  endpoint, PublicIP, Send, WebSocket,
+  endpoint, Send, WebSocket,
 } from "../util";
 
 export async function selectProtocol(this: WebSocket, payload: Payload) {

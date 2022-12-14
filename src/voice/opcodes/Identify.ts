@@ -6,6 +6,7 @@ import { VoiceOPCodes } from "@reflectcord/common/sparkle";
 import { APIWrapper, createAPI } from "@reflectcord/common/rvapi";
 import { DbManager } from "@reflectcord/common/db";
 import { Payload } from "@reflectcord/gateway/util";
+import { PublicIP } from "@reflectcord/common/constants";
 import defaultsdp from "../util/sdp.json";
 import {
   endpoint, getClients, Send, WebSocket,
@@ -65,7 +66,7 @@ export async function onIdentify(this: WebSocket, data: Payload) {
     d: {
       streams: [],
       ssrc: -1,
-      ip: "127.0.0.1",
+      ip: PublicIP,
       port: endpoint.getLocalPort(),
       modes: [
         "aead_aes256_gcm_rtpsize",

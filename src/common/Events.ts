@@ -4,7 +4,7 @@ import { RabbitMQ } from "./utils";
 
 export const events = new EventEmitter();
 
-interface eventOpts {
+export interface eventOpts {
   user_id?: string,
   channel_id?: string,
   guild_id?: string,

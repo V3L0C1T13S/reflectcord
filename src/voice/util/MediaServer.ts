@@ -1,19 +1,18 @@
 import MediaServer, { IncomingStream, OutgoingStream, Transport } from "medooze-media-server";
 import SemanticSDP from "semantic-sdp";
 import { Logger } from "@reflectcord/common/utils";
+import { webRTCPortRange, PublicIP } from "@reflectcord/common/constants";
 import { WebSocket } from "./WebSocket";
 
-export const PublicIP = process.env.PUBLIC_IP || "127.0.0.1";
-
 try {
-  const range = process.env.WEBRTC_PORT_RANGE || "4000";
+  const range = webRTCPortRange;
   const ports = range.split("-");
   const min = Number(ports[0]);
   const max = Number(ports[1]);
 
   MediaServer.setPortRange(min, max);
 } catch (error) {
-  Logger.error("Invalid env var: WEBRTC_PORT_RANGE", process.env.WEBRTC_PORT_RANGE, error);
+  Logger.error("Invalid env var: WEBRTC_PORT_RANGE", webRTCPortRange, error);
   process.exit(1);
 }
 

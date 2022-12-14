@@ -316,8 +316,18 @@ message AppearanceSettings {
     bool developer_mode = 2;
 }
 
+message GuildFolderId {
+    string value = 1;
+}
+
+message GuildFolderName {
+    string value = 1;
+}
+
 message GuildFolder {
     repeated fixed64 guild_ids = 1 [packed=true];
+    GuildFolderId id = 2;
+    GuildFolderName name = 3;
 }
 
 message GuildFolderSettings {

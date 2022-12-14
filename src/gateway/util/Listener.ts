@@ -29,9 +29,67 @@ import { genSessionId, Logger, RabbitMQ } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
 import { IdentifySchema } from "@reflectcord/common/sparkle";
 import { reflectcordWsURL } from "@reflectcord/common/constants";
+import { listenEvent, eventOpts } from "@reflectcord/common/Events";
 import { WebSocket } from "../Socket";
 import { Send } from "./send";
 import experiments from "./experiments.json";
+
+async function internalConsumer(this: WebSocket, opts: eventOpts) {
+  const { data, event } = opts;
+  const id = data.id as string;
+
+  Logger.log(`got event ${event} with data ${JSON.stringify(data)}`);
+
+  const consumer = internalConsumer.bind(this);
+
+  switch (event) {
+    default: {
+      break;
+    }
+  }
+
+  Send(this, {
+    op: GatewayOpcodes.Dispatch,
+    t: event,
+    d: data,
+    s: this.sequence++,
+  });
+}
+
+export async function createInternalListener(this: WebSocket) {
+  const consumer = internalConsumer.bind(this);
+
+  const opts: { acknowledge: boolean; channel?: any } = {
+    acknowledge: true,
+  };
+  if (RabbitMQ.connection) {
+    opts.channel = await RabbitMQ.connection.createChannel();
+    // @ts-ignore
+    opts.channel.queues = {};
+  }
+
+  this.events[this.rv_user_id] = await listenEvent(this.rv_user_id, consumer, opts);
+  this.rvAPIWrapper.servers.forEach(async (server) => {
+    this.events[server.revolt._id] = await listenEvent(server.revolt._id, consumer, opts);
+
+    server.revolt.channels.forEach(async (channel) => {
+      this.events[channel] = await listenEvent(channel, consumer, opts);
+    });
+  });
+  this.rvAPIWrapper.channels.forEach(async (channel) => {
+    if (this.events[channel.revolt._id]) return;
+
+    this.events[channel.revolt._id] = await listenEvent(channel.revolt._id, consumer, opts);
+  });
+
+  this.once("close", () => {
+    if (opts.channel) opts.channel.close();
+    else {
+      Object.values(this.events).forEach((x) => x());
+      Object.values(this.member_events).forEach((x) => x());
+    }
+  });
+}
 
 export async function startListener(
   this: WebSocket,
@@ -265,6 +323,8 @@ export async function startListener(
             s: this.sequence++,
             d: readyData,
           });
+
+          createInternalListener.call(this);
 
           // Sends all of the presences for our friends/blocked users
           relationships.forEach(async (relationship) => {

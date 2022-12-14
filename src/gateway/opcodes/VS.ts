@@ -6,10 +6,12 @@ import {
   GatewayOpcodes,
 } from "discord.js";
 import { DbManager } from "@reflectcord/common/db";
-import { fromSnowflake, toSnowflake, Member } from "@reflectcord/common/models";
+import {
+  fromSnowflake, Member, tryFromSnowflake,
+} from "@reflectcord/common/models";
 import { VoiceStateSchema } from "@reflectcord/common/sparkle";
 import { reflectcordVoiceURL } from "@reflectcord/common/constants";
-import { genVoiceToken, Logger } from "@reflectcord/common/utils";
+import { emitEvent } from "@reflectcord/common/Events";
 import { WebSocket } from "../Socket";
 import { Payload, Send } from "../util";
 import { check } from "./instanceOf";
@@ -73,11 +75,10 @@ export async function VSUpdate(this: WebSocket, data: Payload) {
   } else if (stateData.channel_id === channel_id) onlySettingsChanged = true;
 
   if (stateData.guild_id !== guild_id && stateData.session_id === this.session_id) {
-    await Send(this, {
-      op: GatewayOpcodes.Dispatch,
-      t: GatewayDispatchEvents.VoiceStateUpdate,
-      s: this.sequence++,
-      d: { ...stateData, channel_id: null },
+    await emitEvent({
+      event: GatewayDispatchEvents.VoiceStateUpdate,
+      data: { ...stateData, channel_id: null },
+      guild_id: await tryFromSnowflake(stateData.guild_id),
     });
   }
 
@@ -90,30 +91,40 @@ export async function VSUpdate(this: WebSocket, data: Payload) {
     const member = await this.rvAPI.get(`/servers/${serverId as ""}/members/${this.rv_user_id as ""}`);
     const selfUser = await this.rvAPIWrapper.users.fetch(this.rv_user_id);
 
-    stateData.member = await Member.from_quark(member, selfUser.revolt);
+    const discordMember = await Member.from_quark(member, selfUser.revolt);
+
+    stateData.member = discordMember;
   } else delete stateData.member;
 
   await voiceStates.updateOne({ user_id: this.user_id }, {
     $set: stateData,
   });
 
-  await Send(this, {
-    op: GatewayOpcodes.Dispatch,
-    t: GatewayDispatchEvents.VoiceStateUpdate,
-    s: this.sequence++,
-    d: stateData,
-  });
-
-  if (stateData.channel_id !== null && !onlySettingsChanged) {
+  if (stateData.guild_id || stateData.channel_id) {
+    await emitEvent({
+      event: GatewayDispatchEvents.VoiceStateUpdate,
+      data: stateData,
+      guild_id: await tryFromSnowflake(stateData.guild_id),
+      channel_id: await tryFromSnowflake(stateData.channel_id),
+    });
+  } else {
     await Send(this, {
       op: GatewayOpcodes.Dispatch,
-      t: GatewayDispatchEvents.VoiceServerUpdate,
+      t: GatewayDispatchEvents.VoiceStateUpdate,
       s: this.sequence++,
-      d: {
+      d: stateData,
+    });
+  }
+
+  if (stateData.channel_id !== null && !onlySettingsChanged) {
+    await emitEvent({
+      event: GatewayDispatchEvents.VoiceServerUpdate,
+      data: {
         token: this.token,
         guild_id,
         endpoint: reflectcordVoiceURL,
       },
+      user_id: this.rv_user_id,
     });
   }
 }
