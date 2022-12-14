@@ -30,6 +30,7 @@ import { userStartTyping } from "@reflectcord/common/events";
 import { IdentifySchema } from "@reflectcord/common/sparkle";
 import { reflectcordWsURL } from "@reflectcord/common/constants";
 import { listenEvent, eventOpts } from "@reflectcord/common/Events";
+import { GatewayDispatchCodes } from "@reflectcord/common/sparkle/schemas/Gateway/Dispatch";
 import { WebSocket } from "../Socket";
 import { Send } from "./send";
 import experiments from "./experiments.json";
@@ -43,6 +44,17 @@ async function internalConsumer(this: WebSocket, opts: eventOpts) {
   const consumer = internalConsumer.bind(this);
 
   switch (event) {
+    case GatewayDispatchCodes.VoiceChannelEffectSend: {
+      // FIXME: Is this correct behavior?
+      if (!this.voiceInfo.channel_id === data.channel_id) return;
+
+      const channel = this.rvAPIWrapper.channels.get(await fromSnowflake(data.channel_id));
+      if (channel && ("server" in channel.revolt) && channel.revolt.server) {
+        data.guild_id = await toSnowflake(channel.revolt.server);
+      }
+
+      break;
+    }
     default: {
       break;
     }

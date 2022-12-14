@@ -60,5 +60,6 @@ export interface GuildIntegrationsUpdateResponse {
 export enum GatewayDispatchCodes {
   PassiveUpdateV1 = "PASSIVE_UPDATE_V1",
   GuildIntegrationsUpdate = "GUILD_INTEGRATIONS_UPDATE",
-  IntegrationUpdate = "INTEGRATION_UPDATE"
+  IntegrationUpdate = "INTEGRATION_UPDATE",
+  VoiceChannelEffectSend = "VOICE_CHANNEL_EFFECT_SEND"
 }

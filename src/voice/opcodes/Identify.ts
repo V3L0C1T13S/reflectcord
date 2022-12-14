@@ -23,7 +23,7 @@ export async function onIdentify(this: WebSocket, data: Payload) {
   const identify = data.d!;
 
   const {
-    token, user_id, session_id, server_id,
+    token, user_id, session_id, server_id, video, streams,
   } = identify;
 
   const voiceState = await voiceStates.findOne({ user_id, session_id });
