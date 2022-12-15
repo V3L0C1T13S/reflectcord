@@ -31,9 +31,13 @@ import { IdentifySchema } from "@reflectcord/common/sparkle";
 import { reflectcordWsURL } from "@reflectcord/common/constants";
 import { listenEvent, eventOpts } from "@reflectcord/common/Events";
 import { GatewayDispatchCodes } from "@reflectcord/common/sparkle/schemas/Gateway/Dispatch";
+import { DbManager } from "@reflectcord/common/db";
 import { WebSocket } from "../Socket";
 import { Send } from "./send";
 import experiments from "./experiments.json";
+
+const voiceStates = DbManager.client.db("reflectcord")
+  .collection("voiceStates");
 
 async function internalConsumer(this: WebSocket, opts: eventOpts) {
   const { data, event } = opts;
@@ -338,33 +342,47 @@ export async function startListener(
 
           createInternalListener.call(this);
 
-          // Sends all of the presences for our friends/blocked users
-          relationships.forEach(async (relationship) => {
+          const friendPresences = await Promise.all(relationships.map(async (relationship) => {
             const rvUser = relationship.revolt;
 
             const status = await Status.from_quark(rvUser.status, {
               online: rvUser.online,
             });
 
-            if (status.status === "invisible") return;
+            const presence = status.status === "invisible" ? "offline" : status.status ?? "offline";
 
-            const presence = status.status ?? "offline";
-
-            await Send(this, {
-              op: GatewayOpcodes.Dispatch,
-              t: GatewayDispatchEvents.PresenceUpdate,
-              s: this.sequence++,
-              d: {
-                user: {
-                  id: relationship.discord.user.id,
-                },
-                activities: status.activities,
-                client_status: {
-                  desktop: presence,
-                },
-                status: presence,
+            return {
+              user: {
+                id: relationship.discord.user.id,
               },
-            });
+              activities: status.activities,
+              client_status: {
+                desktop: presence,
+              },
+              status: presence,
+              last_modified: Date.now(),
+            };
+          }));
+
+          const supplementalData = {
+            guilds: await Promise.all(guilds.map(async (x) => ({
+              id: x.id,
+              embedded_activities: [],
+              voice_states: (await voiceStates.find({ guild_id: x.id }).toArray()),
+            }))),
+            lazy_private_channels: [],
+            merged_members: [],
+            merged_presences: {
+              friends: friendPresences,
+              guilds: [],
+            },
+          };
+
+          await Send(this, {
+            op: GatewayOpcodes.Dispatch,
+            t: "READY_SUPPLEMENTAL",
+            s: this.sequence++,
+            d: supplementalData,
           });
 
           break;

@@ -12,6 +12,7 @@ import { QueryApplicationCommands } from "./QueryApplicationCommands";
 import { HandleGuildSync } from "./GuildSync";
 import { VSPing } from "./VSPing";
 import { StreamCreate } from "./StreamCreate";
+import { CallSync } from "./CallSync";
 
 export type OPCodeHandler = (this: WebSocket, data: Payload) => any;
 
@@ -24,6 +25,7 @@ export const OPCodeHandlers: { [key: number ]: OPCodeHandler } = {
   [GatewayOpcodes.Resume]: onResume,
   [GatewayOpcodes.RequestGuildMembers]: RequestGuildMembers,
   [GatewayOpcodes.GuildSync]: HandleGuildSync,
+  [GatewayOpcodes.CallSync]: CallSync,
   [GatewayOpcodes.LazyRequest]: lazyReq,
   [GatewayOpcodes.StreamCreate]: StreamCreate,
   [GatewayOpcodes.QueryApplicationCommands]: QueryApplicationCommands,

@@ -34,7 +34,10 @@ export enum GatewayOpcodes {
    */
   GuildSync = 12,
   /**
-   * Client wants to sync dm/group call
+   * Client wants the voice state of users in a given DM/group channel.
+   * You should emit each voice state to the client under the VOICE_STATE_UPDATE
+   * event.
+   *
    * Structure:
    * {
    *  channel_id: Snowflake
