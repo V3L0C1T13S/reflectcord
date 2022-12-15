@@ -36,10 +36,10 @@ export const PermsMap: Record<number, ValueOf<typeof PermissionFlagsBits>> = {
   [Permission.ReadMessageHistory]: PermissionFlagsBits.ReadMessageHistory,
   [Permission.SendEmbeds]: PermissionFlagsBits.EmbedLinks,
   [Permission.SendMessage]: PermissionFlagsBits.SendMessages,
-  [Permission.Speak]: PermissionFlagsBits.Speak,
+  [Permission.Speak]: PermissionFlagsBits.Speak + PermissionFlagsBits.UseVAD,
   [Permission.TimeoutMembers]: PermissionFlagsBits.ModerateMembers,
   [Permission.UploadFiles]: PermissionFlagsBits.AttachFiles,
-  [Permission.Video]: PermissionFlagsBits.UseVAD,
+  [Permission.Video]: PermissionFlagsBits.Stream,
   [Permission.ViewChannel]: PermissionFlagsBits.ViewChannel,
 };
 

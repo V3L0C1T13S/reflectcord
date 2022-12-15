@@ -340,50 +340,52 @@ export async function startListener(
             d: readyData,
           });
 
-          createInternalListener.call(this);
+          await createInternalListener.call(this);
 
-          const friendPresences = await Promise.all(relationships.map(async (relationship) => {
-            const rvUser = relationship.revolt;
+          if (!currentUserDiscord.bot) {
+            const friendPresences = await Promise.all(relationships.map(async (relationship) => {
+              const rvUser = relationship.revolt;
 
-            const status = await Status.from_quark(rvUser.status, {
-              online: rvUser.online,
-            });
+              const status = await Status.from_quark(rvUser.status, {
+                online: rvUser.online,
+              });
 
-            const presence = status.status === "invisible" ? "offline" : status.status ?? "offline";
+              const presence = status.status === "invisible" ? "offline" : status.status ?? "offline";
 
-            return {
-              user: {
-                id: relationship.discord.user.id,
+              return {
+                user: {
+                  id: relationship.discord.user.id,
+                },
+                activities: status.activities,
+                client_status: {
+                  desktop: presence,
+                },
+                status: presence,
+                last_modified: Date.now(),
+              };
+            }));
+
+            const supplementalData = {
+              guilds: await Promise.all(guilds.map(async (x) => ({
+                id: x.id,
+                embedded_activities: [],
+                voice_states: (await voiceStates.find({ guild_id: x.id }).toArray()),
+              }))),
+              lazy_private_channels: [],
+              merged_members: [],
+              merged_presences: {
+                friends: friendPresences,
+                guilds: [],
               },
-              activities: status.activities,
-              client_status: {
-                desktop: presence,
-              },
-              status: presence,
-              last_modified: Date.now(),
             };
-          }));
 
-          const supplementalData = {
-            guilds: await Promise.all(guilds.map(async (x) => ({
-              id: x.id,
-              embedded_activities: [],
-              voice_states: (await voiceStates.find({ guild_id: x.id }).toArray()),
-            }))),
-            lazy_private_channels: [],
-            merged_members: [],
-            merged_presences: {
-              friends: friendPresences,
-              guilds: [],
-            },
-          };
-
-          await Send(this, {
-            op: GatewayOpcodes.Dispatch,
-            t: "READY_SUPPLEMENTAL",
-            s: this.sequence++,
-            d: supplementalData,
-          });
+            await Send(this, {
+              op: GatewayOpcodes.Dispatch,
+              t: "READY_SUPPLEMENTAL",
+              s: this.sequence++,
+              d: supplementalData,
+            });
+          }
 
           break;
         }
