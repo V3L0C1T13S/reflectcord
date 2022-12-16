@@ -6,6 +6,7 @@ import { Client } from "revolt.js";
 import WS from "ws";
 import { Deflate } from "zlib";
 import { APIWrapper } from "../common/rvapi";
+import { VoiceStateObject } from "./opcodes/VS";
 import { Payload } from "./util";
 
 export class SocketState {
@@ -37,9 +38,10 @@ export interface WebSocket extends WS {
     self_deaf: boolean,
     self_mute: boolean,
     self_video: boolean,
-    channel_id?: string,
+    self_stream?: boolean,
+    channel_id?: string | null | undefined,
     guild_id?: string,
-  }
+  },
   typingConsumer?: Replies.Consume | undefined,
   state: SocketState,
   token: string,

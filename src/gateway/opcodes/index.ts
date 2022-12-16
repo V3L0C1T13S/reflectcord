@@ -13,6 +13,9 @@ import { HandleGuildSync } from "./GuildSync";
 import { VSPing } from "./VSPing";
 import { StreamCreate } from "./StreamCreate";
 import { CallSync } from "./CallSync";
+import { StreamSetPaused } from "./StreamSetPaused";
+import { StreamDelete } from "./StreamDelete";
+import { StreamWatch } from "./StreamWatch";
 
 export type OPCodeHandler = (this: WebSocket, data: Payload) => any;
 
@@ -28,5 +31,8 @@ export const OPCodeHandlers: { [key: number ]: OPCodeHandler } = {
   [GatewayOpcodes.CallSync]: CallSync,
   [GatewayOpcodes.LazyRequest]: lazyReq,
   [GatewayOpcodes.StreamCreate]: StreamCreate,
+  [GatewayOpcodes.StreamDelete]: StreamDelete,
+  [GatewayOpcodes.StreamWatch]: StreamWatch,
+  [GatewayOpcodes.StreamSetPaused]: StreamSetPaused,
   [GatewayOpcodes.QueryApplicationCommands]: QueryApplicationCommands,
 };

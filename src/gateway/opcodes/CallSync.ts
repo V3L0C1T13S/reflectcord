@@ -3,7 +3,7 @@
 import { DbManager } from "@reflectcord/common/db";
 import { fromSnowflake } from "@reflectcord/common/models";
 import { Logger } from "@reflectcord/common/utils";
-import { ChannelType, GatewayDispatchEvents, GatewayOpcodes } from "discord.js";
+import { ChannelType, GatewayDispatchEvents } from "discord.js";
 import { Dispatch, Send } from "../util";
 import { WebSocket } from "../Socket";
 import { Payload } from "../util/Constants";

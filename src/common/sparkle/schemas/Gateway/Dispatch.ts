@@ -61,5 +61,10 @@ export enum GatewayDispatchCodes {
   PassiveUpdateV1 = "PASSIVE_UPDATE_V1",
   GuildIntegrationsUpdate = "GUILD_INTEGRATIONS_UPDATE",
   IntegrationUpdate = "INTEGRATION_UPDATE",
-  VoiceChannelEffectSend = "VOICE_CHANNEL_EFFECT_SEND"
+  VoiceChannelEffectSend = "VOICE_CHANNEL_EFFECT_SEND",
+  StreamCreate = "STREAM_CREATE",
+  StreamUpdate = "STREAM_UPDATE",
+  StreamServerUpdate = "STREAM_SERVER_UPDATE",
+  StreamDelete = "STREAM_DELETE",
+  StreamWatch = "STREAM_WATCH",
 }

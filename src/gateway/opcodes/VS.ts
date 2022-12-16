@@ -15,7 +15,7 @@ import { WebSocket } from "../Socket";
 import { Payload } from "../util";
 import { check } from "./instanceOf";
 
-interface VoiceStateObject {
+export interface VoiceStateObject {
   guild_id?: string,
   channel_id: string | null | undefined,
   user_id: string,
@@ -32,7 +32,7 @@ interface VoiceStateObject {
 }
 
 // FIXME: Implement with RPC instead
-const voiceStates = DbManager.client.db("reflectcord")
+export const voiceStates = DbManager.client.db("reflectcord")
   .collection("voiceStates");
 
 export async function VSUpdate(this: WebSocket, data: Payload) {
