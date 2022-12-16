@@ -4,7 +4,7 @@ import { DbManager } from "@reflectcord/common/db";
 import { fromSnowflake } from "@reflectcord/common/models";
 import { Logger } from "@reflectcord/common/utils";
 import { ChannelType, GatewayDispatchEvents, GatewayOpcodes } from "discord.js";
-import { Send } from "../util";
+import { Dispatch, Send } from "../util";
 import { WebSocket } from "../Socket";
 import { Payload } from "../util/Constants";
 import { check } from "./instanceOf";
@@ -30,11 +30,6 @@ export async function CallSync(this: WebSocket, data: Payload<{ channel_id: stri
   ) return;
 
   (await voiceStates.find({ channel_id }).toArray()).forEach(async (state) => {
-    await Send(this, {
-      op: GatewayOpcodes.Dispatch,
-      t: GatewayDispatchEvents.VoiceStateUpdate,
-      s: this.sequence++,
-      d: state,
-    });
+    await Dispatch(this, GatewayDispatchEvents.VoiceStateUpdate, state);
   });
 }

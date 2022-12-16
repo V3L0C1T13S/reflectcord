@@ -1,3 +1,4 @@
+/* eslint-disable no-plusplus */
 import { GatewayOpcodes } from "discord.js";
 import erlpack from "erlpack";
 import { WebSocket } from "../Socket";
@@ -37,6 +38,16 @@ export function sendOp(socket: WebSocket, op: GatewayOpcodes, data: Payload["d"]
     op,
     // t: null,
     // s: null,
+    d: data,
+  });
+}
+
+export function Dispatch(socket: WebSocket, event: string, data: Payload["d"]) {
+  return Send(socket, {
+    op: GatewayOpcodes.Dispatch,
+    t: event,
+    // eslint-disable-next-line no-param-reassign
+    s: socket.sequence++,
     d: data,
   });
 }

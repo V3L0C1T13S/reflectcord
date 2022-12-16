@@ -3,7 +3,6 @@
 import {
   APIGuildMember,
   GatewayDispatchEvents,
-  GatewayOpcodes,
 } from "discord.js";
 import { DbManager } from "@reflectcord/common/db";
 import {
@@ -13,7 +12,7 @@ import { VoiceStateSchema } from "@reflectcord/common/sparkle";
 import { reflectcordVoiceURL } from "@reflectcord/common/constants";
 import { emitEvent } from "@reflectcord/common/Events";
 import { WebSocket } from "../Socket";
-import { Payload, Send } from "../util";
+import { Payload } from "../util";
 import { check } from "./instanceOf";
 
 interface VoiceStateObject {
@@ -74,11 +73,19 @@ export async function VSUpdate(this: WebSocket, data: Payload) {
     // New connection
   } else if (stateData.channel_id === channel_id) onlySettingsChanged = true;
 
+  // Leave current guild channel before connecting to a new one
   if (stateData.guild_id !== guild_id && stateData.session_id === this.session_id) {
     await emitEvent({
       event: GatewayDispatchEvents.VoiceStateUpdate,
       data: { ...stateData, channel_id: null },
       guild_id: await tryFromSnowflake(stateData.guild_id),
+    });
+    // Tell DM/group chats we're leaving
+  } else if (stateData.channel_id && !channel_id && stateData.session_id === this.session_id) {
+    await emitEvent({
+      event: GatewayDispatchEvents.VoiceStateUpdate,
+      data: { ...stateData, channel_id: null },
+      channel_id: await fromSnowflake(stateData.channel_id),
     });
   }
 
@@ -108,11 +115,10 @@ export async function VSUpdate(this: WebSocket, data: Payload) {
       channel_id: await tryFromSnowflake(stateData.channel_id),
     });
   } else {
-    await Send(this, {
-      op: GatewayOpcodes.Dispatch,
-      t: GatewayDispatchEvents.VoiceStateUpdate,
-      s: this.sequence++,
-      d: stateData,
+    await emitEvent({
+      event: GatewayDispatchEvents.VoiceStateUpdate,
+      data: stateData,
+      user_id: this.rv_user_id,
     });
   }
 

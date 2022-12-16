@@ -580,7 +580,6 @@ export async function startListener(
           break;
         }
         case "ChannelDelete": {
-          // FIXME: Potentially undefined?
           const channel = this.rvAPIWrapper.channels.get(data.id);
 
           await Send(this, {
@@ -628,7 +627,7 @@ export async function startListener(
             discord: {},
           });
 
-          if (!server.revolt) return;
+          if (!server?.revolt) return;
 
           const guild = await Guild.from_quark(server.revolt);
           const updatedGuild = this.rvAPIWrapper.servers.$get(data.id, {
@@ -665,7 +664,7 @@ export async function startListener(
           break;
         }
         case "ServerMemberJoin": {
-          const member = await this.rvAPI.get(`/servers/${data.id}/members/${data.user}`) as API.Member;
+          const member = await this.rvAPI.get(`/servers/${data.id as ""}/members/${data.user as ""}`);
 
           await Send(this, {
             op: GatewayOpcodes.Dispatch,
