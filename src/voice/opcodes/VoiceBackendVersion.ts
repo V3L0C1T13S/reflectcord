@@ -6,8 +6,8 @@ export async function VoiceBackendVersion(this: WebSocket, data: Payload) {
   await Send(this, {
     op: VoiceOPCodes.VoiceBackendVersion,
     d: {
-      voice: "0.8.49",
-      rtc_worker: "0.3.30",
+      voice: "0.8.51",
+      rtc_worker: "0.3.33",
     },
   });
 }
