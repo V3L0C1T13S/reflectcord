@@ -6,7 +6,7 @@ import { check } from "./instanceOf";
 
 const StreamCreateSchema = {
   type: String,
-  guild_id: String,
+  $guild_id: String,
   channel_id: String,
   $preferred_region: String,
 };
@@ -14,7 +14,7 @@ const StreamCreateSchema = {
 // eslint-disable-next-line no-redeclare
 interface StreamCreateSchema {
   type: "guild" | "channel";
-  guild_id: string,
+  guild_id?: string,
   channel_id: string,
   preferred_region: string | null | undefined,
 }

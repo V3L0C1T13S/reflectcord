@@ -11,8 +11,13 @@ import {
   Authentication, BodyParser, Client, CORS, ErrorHandler,
 } from "./middleware";
 import "express-async-errors";
+import { reflectcordAPIPort } from "../common/constants/index";
 
 export class ReflectcordAPI extends Server {
+  constructor(...args: any) {
+    super(undefined, reflectcordAPIPort);
+  }
+
   async init() {
     await RabbitMQ.init();
     await this.start();

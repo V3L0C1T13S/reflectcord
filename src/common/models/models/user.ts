@@ -206,20 +206,18 @@ export interface activityMetadata {
   button_urls?: string[],
 }
 
-export type internalActivity = ActivitiesOptions & {
+export interface internalActivity extends Omit<ActivitiesOptions, "type"> {
   state?: string,
   details?: string,
   // FIXME: i want whatever typescript is taking for it to need me to do this garbage
-  type?: ActivityType & {
-    Custom: 4,
-  },
+  type?: ActivityType,
   timestamps?: activityTimestamp,
   assets?: activityAssets,
   buttons?: string[],
   metadata?: activityMetadata,
 }
 
-export type internalStatus = PresenceData & {
+export interface internalStatus extends Omit<PresenceData, "activities"> {
   activities?: internalActivity[],
 }
 
@@ -231,7 +229,7 @@ export type StatusAFQ = Partial<{
 
 export const Status: QuarkConversion<RevoltUser["status"], internalStatus, StatusATQ, StatusAFQ> = {
   async to_quark(status) {
-    const activity = status.activities?.[0] as internalActivity;
+    const activity = status.activities?.[0];
     const text = (() => {
       switch (activity?.type) {
         case ActivityType.Playing: {

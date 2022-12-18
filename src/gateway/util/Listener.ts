@@ -279,7 +279,9 @@ export async function startListener(
           user_settings.id = currentUserDiscord.id;
 
           const user_settings_proto = rvSettings
-            ? await settingsToProtoBuf(user_settings as any)
+            ? await settingsToProtoBuf(user_settings as any, {
+              customStatusText: currentUser.status?.text,
+            })
             : null;
 
           const readyData = {

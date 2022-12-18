@@ -42,6 +42,14 @@ export const gifBoxURL = process.env["GIFBOX_URL"] ?? "https://gifbox.me";
 
 export const gifBoxAPIUrl = process.env["GIFBOX_API_URL"] ?? "https://api.gifbox.me";
 
+export const reflectcordAPIPort = process.env["API_PORT"] ? Number(process.env["API_PORT"]) : 3000;
+
+export const reflectcordCDNPort = process.env["CDN_PORT"] ?? 3001;
+
+export const reflectcordWSPort = process.env["WS_PORT"] ?? 3002;
+
+export const reflectcordVoicePort = process.env["VOICE_PORT"] ?? 3015;
+
 export async function getRevoltDiscoveryDataURL() {
   const discoveryBuildId = await getNextData();
 

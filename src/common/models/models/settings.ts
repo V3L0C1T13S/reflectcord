@@ -5,6 +5,11 @@ import { join } from "path";
 import { Logger } from "@reflectcord/common/utils";
 import { QuarkConversion } from "../QuarkConversion";
 import { toSnowflake } from "../util";
+import { internalStatus } from "./user";
+
+const protoDir = join(__dirname, "../../../../resources");
+
+const settingsProtoFile = join(protoDir, "PreloadedUserSettings.proto");
 
 export type RevoltSetting = [number, string];
 
@@ -33,10 +38,36 @@ export interface RevoltSettings {
 export const SettingsKeys = ["appearance", "theme", "locale", "notifications", "ordering"];
 
 const LocaleMap: Record<string, string> = {
+  bg: "bg",
+  cs: "cs",
+  da: "da",
   de: "de",
+  el: "el",
   en_US: "en-US",
   en: "en-GB",
   es: "es-ES",
+  fi: "fi",
+  fr: "fr",
+  hi: "hi",
+  hr: "hr",
+  hu: "hu",
+  it: "it",
+  ja: "ja",
+  ko: "ko",
+  lt: "lt",
+  nb_NO: "no",
+  nl: "nl",
+  pl: "pl",
+  pt_BR: "pt-BR",
+  ro: "ro",
+  ru: "ru",
+  sv: "sv-SE",
+  th: "th",
+  tr: "tr",
+  uk: "uk",
+  vi: "vi",
+  zh_Hans: "zh-CN",
+  zh_Hant: "zh-TW",
 };
 
 export type UserSettingsATQ = {}
@@ -85,25 +116,29 @@ UserSettingsAFQ
   },
 };
 
-export async function settingsToProtoBuf(settings: DiscordUserSettings) {
-  const root = await protobuf.load(join(__dirname, "../../../../resources/PreloadedUserSettings.proto"));
+export type extraSettingsData = Partial<{
+  customStatusText: string | null | undefined,
+}>;
+
+export async function settingsToProtoBuf(settings: DiscordUserSettings, extra?: extraSettingsData) {
+  const root = await protobuf.load(settingsProtoFile);
 
   const PreloadedSettings = root.lookupType("PreloadedUserSettings");
 
-  const payload = {
+  const payload: any = {
     versions: {
       user_settings: 1 | 0,
       server_version: 1 | 0,
       data_version: 1 | 0,
     },
     inbox: {
-      current_tab: 1,
-      viewed_tutorial: true,
+      currentTab: 0,
+      viewedTutorial: true,
     },
     guilds: {
       channels: {},
-      hub_progess: 1,
-      guild_onboarding_progress: 1,
+      // hub_progess: 1,
+      guildOnboardingProgress: 1,
     },
     user_content: {
       // dismissed_contents: 0,
@@ -125,16 +160,16 @@ export async function settingsToProtoBuf(settings: DiscordUserSettings) {
         use_blur: false,
       },
     },
-    text_and_images: {
-      render_embeds: {
+    textAndImages: {
+      renderEmbeds: {
         value: settings.render_embeds,
       },
-      render_reactions: {
+      renderReactions: {
         value: settings.render_reactions,
       },
     },
     notifications: {
-      notify_friends_on_go_live: {
+      notifyFriendsOnGoLive: {
         value: settings.stream_notifications_enabled,
       },
     },
@@ -142,29 +177,51 @@ export async function settingsToProtoBuf(settings: DiscordUserSettings) {
       status: {
         status: settings.status,
       },
-      custom_status: {},
-      show_current_game: {
+      showCurrentGame: {
         value: true,
       },
     },
     localization: {
       locale: {
-        locale_code: settings.locale,
-        timezone_offset: {
+        localeCode: settings.locale,
+        timezoneOffset: {
           offset: settings.timezone_offset,
         },
       },
     },
     appearance: {
       theme: settings.theme === "light" ? 2 : 1,
-      developer_mode: settings.developer_mode ?? true,
+      developerMode: settings.developer_mode ?? true,
     },
-    guild_folders: {
-      guild_positions: settings.guild_positions,
+    guildFolders: {
+      guildPositions: settings.guild_positions,
     },
   };
+
+  if (extra?.customStatusText) {
+    payload.status.customStatus = {
+      text: extra.customStatusText,
+    };
+  }
 
   const res = PreloadedSettings.encode(payload).finish();
 
   return res;
+}
+
+export async function settingsProtoToJSON(settings: Uint8Array) {
+  const root = await protobuf.load(settingsProtoFile);
+
+  const PreloadedSettings = root.lookupType("PreloadedUserSettings");
+
+  PreloadedSettings.verify(settings);
+
+  return PreloadedSettings.decode(settings).toJSON();
+}
+
+export async function settingsProtoJSONToObject(settings: any) {
+  return {
+    ...DefaultUserSettings,
+    theme: settings.appearance.theme,
+  };
 }

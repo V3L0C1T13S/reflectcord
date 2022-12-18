@@ -2,7 +2,10 @@
 import { Application } from "express";
 import { Resource } from "express-automatic-routes";
 import protobuf from "protobufjs";
-import { SettingsKeys, settingsToProtoBuf, UserSettings } from "@reflectcord/common/models";
+import {
+  SettingsKeys, settingsProtoToJSON, settingsToProtoBuf, UserSettings,
+} from "@reflectcord/common/models";
+import { HTTPError } from "@reflectcord/common/utils";
 
 // FIXME
 export default (express: Application) => <Resource> {
@@ -28,6 +31,16 @@ export default (express: Application) => <Resource> {
     }
   },
   patch: async (req, res) => {
+    const { settings } = req.body;
+
+    if (!settings) throw new HTTPError("Invalid settings");
+
+    const settingsData = Buffer.from(settings, "base64");
+
+    const settingsJSON = await settingsProtoToJSON(settingsData);
+
+    console.log(settingsJSON);
+
     res.sendStatus(500);
   },
 };

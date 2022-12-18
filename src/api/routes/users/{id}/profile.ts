@@ -34,7 +34,8 @@ export default (express: Application) => <Resource> {
 
     if (!id) throw new HTTPError("Invalid params");
 
-    const rvId = id !== "@me" ? await fromSnowflake(id) : await res.rvAPIWrapper.users.getSelfId();
+    const currentId = await res.rvAPIWrapper.users.getSelfId();
+    const rvId = id !== "@me" ? await fromSnowflake(id) : currentId;
 
     const api = res.rvAPI;
 
@@ -44,7 +45,8 @@ export default (express: Application) => <Resource> {
     const rvProfile = await getProfile(api, rvId);
     if (!rvProfile || !user) throw new HTTPError("User not found", 422);
 
-    if (with_mutual_guilds === "true") {
+    // FIXME: Discord client sometimes does this garbage
+    if (with_mutual_guilds === "true" && rvId !== currentId) {
       const mutuals = await api.get(`/users/${rvId as ""}/mutual`);
 
       await Promise.all(mutuals.servers.map(async (x) => {

@@ -1,6 +1,9 @@
 import { internalStatus, Status } from "@reflectcord/common/models";
+import { ActivityType } from "discord.js";
 import { Payload } from "../util";
 import { WebSocket } from "../Socket";
+
+const richPresenceRegex = /__RPC(\d+)/g;
 
 export async function presenceUpdate(this: WebSocket, data: Payload<internalStatus>) {
   if (!data.d) return;
@@ -11,11 +14,11 @@ export async function presenceUpdate(this: WebSocket, data: Payload<internalStat
 
   await this.rvAPI.patch("/users/@me", {
     status: await Status.to_quark(presence) ?? null,
-    profile: activity ? await (async () => {
+    profile: activity && activity.type !== ActivityType.Custom ? await (async () => {
       const userId = await this.rvAPIWrapper.users.getSelfId();
       const currentProfile = await this.rvAPI.get(`/users/${userId as ""}/profile`);
 
-      const statePfx = "__";
+      const statePfx = "__RPC000";
 
       return {
         content: activity.state

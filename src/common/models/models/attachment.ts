@@ -1,3 +1,4 @@
+import { reflectcordCDNURL } from "@reflectcord/common/constants";
 import { APIAttachment } from "discord.js";
 import { API } from "revolt.js";
 import { QuarkConversion } from "../QuarkConversion";
@@ -19,7 +20,7 @@ export const Attachment: QuarkConversion<API.File, APIAttachment> = {
   async from_quark(attachment) {
     const { _id, size } = attachment;
 
-    const url = `http://localhost:3001/attachments/${_id}`;
+    const url = `http://${reflectcordCDNURL}/attachments/${_id}`;
 
     const { width, height } = (() => {
       if (attachment.metadata.type === "Image" || attachment.metadata.type === "Video") {

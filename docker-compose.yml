@@ -1,20 +1,27 @@
 version: '3.7'
 
 services:
-  ts-node-docker:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: base
-    volumes:
-      - ./src:/home/node/app/src
-    container_name: ts-node-docker
-    expose:
-      - '3000'
-      - '3001'
-      - '3002'
+  rabbitmq:
+    image: rabbitmq:3.11-management
     ports:
-      - '127.0.0.1:3000:3000'
-      - '127.0.0.1:3001:3001'
-      - '127.0.0.1:3002:3002'
-    command: npm run start:dev
+      - "5672:5672"
+      - "15672:15672"
+  #ts-node-docker:
+  #  build:
+  #    context: .
+  #    dockerfile: Dockerfile
+  #    target: base
+  #  volumes:
+  #    - ./src:/home/node/app/src
+  #  container_name: ts-node-docker
+  #  expose:
+  #    - '3000'
+  #    - '3001'
+  #    - '3002'
+  #    - '3015'
+  #  ports:
+  #    - '127.0.0.1:3000:3000'
+  #    - '127.0.0.1:3001:3001'
+  #    - '127.0.0.1:3002:3002'
+  #    - '127.0.0.1:3015:3015'
+  #  command: npm run start:dev
