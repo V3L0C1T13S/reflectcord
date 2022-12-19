@@ -300,7 +300,8 @@ export const MessageSendData: QuarkConversion<
       embeds: embeds ? await Promise.all(embeds.map((x) => SendableEmbed.to_quark(x))) : null,
       replies: message_reference ? [{
         id: await fromSnowflake(message_reference.message_id),
-        mention: data.allowed_mentions?.replied_user ?? false,
+        // Discord documentation is wrong. This defaults to true.
+        mention: data.allowed_mentions?.replied_user ?? true,
       }] : null,
       nonce: data.nonce?.toString() ?? null,
       attachments: extra?.files ? (await Promise.all(Object.values(extra.files)
