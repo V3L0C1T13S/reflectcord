@@ -59,6 +59,7 @@ function handleSSRC(this: WebSocket, type: "audio" | "video", ssrcs: SSRCs) {
 
 export async function onVideo(this: WebSocket, data: any) {
   if (!this.client) return;
+
   const { transport, channel_id } = this.client;
   if (!transport) return;
 

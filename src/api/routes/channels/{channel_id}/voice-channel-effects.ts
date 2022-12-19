@@ -5,9 +5,7 @@ import { HTTPError } from "@reflectcord/common/utils";
 import { emitEvent } from "@reflectcord/common/Events";
 import { fromSnowflake, toSnowflake } from "@reflectcord/common/models";
 import { GatewayDispatchCodes } from "@reflectcord/common/sparkle/schemas/Gateway/Dispatch";
-
-const voiceStates = DbManager.client.db("reflectcord")
-  .collection("voiceStates");
+import { voiceStates } from "@reflectcord/gateway/opcodes/VS";
 
 export default () => <Resource> {
   post: async (req, res) => {

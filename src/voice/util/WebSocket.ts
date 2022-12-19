@@ -16,4 +16,5 @@ export interface WebSocket extends ws {
   user_id: string,
   rvAPI: API,
   rvAPIWrapper: APIWrapper,
+  bot: boolean,
 }

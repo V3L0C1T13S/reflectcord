@@ -54,6 +54,9 @@ export async function onIdentify(this: WebSocket, data: Payload) {
     channel_id: voiceState.channel_id,
   };
 
+  const currentUser = await this.rvAPIWrapper.users.getSelf();
+  this.bot = !!currentUser.bot;
+
   const clients = getClients(voiceState.channel_id)!;
   clients.add(this.client);
 
@@ -61,23 +64,27 @@ export async function onIdentify(this: WebSocket, data: Payload) {
     clients.delete(this.client);
   });
 
+  const readyBody: any = {
+    streams: [],
+    ssrc: -1,
+    ip: PublicIP,
+    port: endpoint.getLocalPort(),
+    modes: [
+      "aead_aes256_gcm_rtpsize",
+      "aead_aes256_gcm",
+      "xsalsa20_poly1305_lite_rtpsize",
+      "xsalsa20_poly1305_lite",
+      "xsalsa20_poly1305_suffix",
+      "xsalsa20_poly1305",
+    ],
+    // heartbeat_interval: 1,
+    experiments: [],
+  };
+
+  if (this.bot) readyBody.heartbeat_interval = 1;
+
   await Send(this, {
     op: VoiceOPCodes.Ready,
-    d: {
-      streams: [],
-      ssrc: -1,
-      ip: PublicIP,
-      port: endpoint.getLocalPort(),
-      modes: [
-        "aead_aes256_gcm_rtpsize",
-        "aead_aes256_gcm",
-        "xsalsa20_poly1305_lite_rtpsize",
-        "xsalsa20_poly1305_lite",
-        "xsalsa20_poly1305_suffix",
-        "xsalsa20_poly1305",
-      ],
-      heartbeat_interval: 1,
-      experiments: [],
-    },
+    d: readyBody,
   });
 }
