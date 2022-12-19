@@ -37,7 +37,7 @@
     "body-parser": "^1.20.1",
     "chalk": "^5.2.0",
     "concurrently": "^7.5.0",
-    "discord-api-types": "^0.37.22",
+    "discord-api-types": "^0.37.23",
     "discord.js": "^14.7.1",
     "dotenv": "^16.0.3",
     "erlpack": "^0.1.4",
