@@ -26,6 +26,13 @@ export interface UserGuildSetting {
   version: number;
 }
 
+export interface GuildFolder {
+  color: number;
+  guild_ids: string[];
+  id: number;
+  name: string;
+}
+
 export interface UserSettings {
   id: string;
   afk_timeout?: number;
@@ -42,7 +49,7 @@ export interface UserSettings {
   explicit_content_filter?: number;
   gateway_connected?: boolean;
   gif_auto_play?: boolean;
-  guild_folders?: any[];
+  guild_folders?: GuildFolder[];
   guild_positions?: string[];
   inline_attachment_media?: boolean;
   inline_embed_media?: boolean;

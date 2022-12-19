@@ -30,15 +30,25 @@ export interface RevoltNotificationSetting {
   server: Record<string, string>;
 }
 
+// Custom - set by Reflectcord
+export interface RevoltFolderSetting {
+  folders: {
+    color: number;
+    servers: string[];
+    name: string;
+  }[];
+}
+
 export interface RevoltSettings {
   appearance?: RevoltSetting,
   theme?: RevoltSetting,
   locale?: RevoltSetting,
   notifications?: RevoltSetting,
   ordering?: RevoltSetting,
+  folders?: RevoltSetting,
 }
 
-export const SettingsKeys = ["appearance", "theme", "locale", "notifications", "ordering"];
+export const SettingsKeys = ["appearance", "theme", "locale", "notifications", "ordering", "folders"];
 
 const LocaleMap: Record<string, string> = {
   bg: "bg",
@@ -106,6 +116,7 @@ UserSettingsAFQ
     const localeSettings: RevoltLocaleSetting = JSON.parse(settings.locale?.[1] ?? "{}");
     const orderingSettings: RevoltOrderingSetting = JSON.parse(settings.ordering?.[1] ?? "{}");
     const notificationSettings: Partial<RevoltNotificationSetting> = JSON.parse(settings.notifications?.[1] ?? "{}");
+    const folderSettings: Partial<RevoltFolderSetting> = JSON.parse(settings.folders?.[1] ?? "{}");
 
     return {
       ...DefaultUserSettings,
@@ -133,6 +144,13 @@ UserSettingsAFQ
             suppress_roles: false,
             version: 0,
           })))) : [],
+      guild_folders: folderSettings.folders
+        ? await Promise.all(folderSettings.folders.map(async (x, i) => ({
+          color: x.color,
+          guild_ids: await Promise.all(x.servers.map((id) => toSnowflake(id))),
+          id: i,
+          name: x.name,
+        }))) : [],
     };
   },
 };
@@ -215,6 +233,11 @@ export async function settingsToProtoBuf(settings: DiscordUserSettings, extra?: 
       developerMode: settings.developer_mode ?? true,
     },
     guildFolders: {
+      folders: settings.guild_folders?.map((x) => ({
+        guildIds: x.guild_ids,
+        id: x.id,
+        name: x.name,
+      })) ?? [],
       guildPositions: settings.guild_positions,
     },
   };
