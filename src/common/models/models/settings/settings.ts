@@ -3,11 +3,10 @@ import { DefaultUserSettings, UserSettings as DiscordUserSettings } from "@refle
 import protobuf from "protobufjs";
 import { join } from "path";
 import { Logger } from "@reflectcord/common/utils";
-import { QuarkConversion } from "../QuarkConversion";
-import { toSnowflake } from "../util";
-import { internalStatus } from "./user";
+import { QuarkConversion } from "../../QuarkConversion";
+import { toSnowflake } from "../../util";
 
-const protoDir = join(__dirname, "../../../../resources");
+const protoDir = join(__dirname, "../../../../../resources");
 
 const settingsProtoFile = join(protoDir, "PreloadedUserSettings.proto");
 
@@ -20,11 +19,15 @@ export interface RevoltThemeSetting {
 }
 
 export interface RevoltLocaleSetting {
-  lang: string,
+  lang: string;
 }
 
 export interface RevoltOrderingSetting {
-  servers?: string[],
+  servers?: string[];
+}
+
+export interface RevoltNotificationSetting {
+  server: Record<string, string>;
 }
 
 export interface RevoltSettings {
@@ -102,6 +105,7 @@ UserSettingsAFQ
     const themeSettings: RevoltThemeSetting = JSON.parse(settings.theme?.[1] ?? "{}");
     const localeSettings: RevoltLocaleSetting = JSON.parse(settings.locale?.[1] ?? "{}");
     const orderingSettings: RevoltOrderingSetting = JSON.parse(settings.ordering?.[1] ?? "{}");
+    const notificationSettings: Partial<RevoltNotificationSetting> = JSON.parse(settings.notifications?.[1] ?? "{}");
 
     return {
       ...DefaultUserSettings,
@@ -112,6 +116,23 @@ UserSettingsAFQ
         : [],
       developer_mode: true,
       status: extra?.status ?? null,
+      user_guild_settings: notificationSettings.server
+        ? await Promise.all((Object.entries(notificationSettings.server)
+          .map(async ([server, value]) => ({
+            channel_overrides: [],
+            flags: 0,
+            muted: value === "muted",
+            guild_id: await toSnowflake(server),
+            hide_muted_channels: false,
+            message_notifications: 0,
+            mobile_push: false,
+            mute_config: null,
+            mute_scheduled_events: true,
+            notify_highlights: 0,
+            suppress_everyone: false,
+            suppress_roles: false,
+            version: 0,
+          })))) : [],
     };
   },
 };
@@ -149,15 +170,15 @@ export async function settingsToProtoBuf(settings: DiscordUserSettings, extra?: 
         timestamp: Date.now(),
       },
     },
-    voice_and_video: {
-      always_preview_video: {
+    voiceAndVideo: {
+      alwaysPreviewVideo: {
         value: true,
       },
-      afk_timeout: {
+      afkTimeout: {
         value: settings.afk_timeout,
       },
       blur: {
-        use_blur: false,
+        useBlur: false,
       },
     },
     textAndImages: {

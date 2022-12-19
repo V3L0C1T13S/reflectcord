@@ -24,6 +24,7 @@ import {
   RevoltSettings,
   UserSettings,
   settingsToProtoBuf,
+  ReadState,
 } from "@reflectcord/common/models";
 import { genSessionId, Logger, RabbitMQ } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
@@ -274,7 +275,7 @@ export async function startListener(
 
           const user_settings = rvSettings ? await UserSettings.from_quark(rvSettings, {
             status: sessionStatus.status?.toString() || null,
-          }) : {};
+          }) : null;
           // @ts-ignore
           user_settings.id = currentUserDiscord.id;
 
@@ -283,6 +284,9 @@ export async function startListener(
               customStatusText: currentUser.status?.text,
             })
             : null;
+
+          const unreads = await this.rvAPI.get("/sync/unreads");
+          const readStateEntries = await Promise.all(unreads.map((x) => ReadState.from_quark(x)));
 
           const readyData = {
             v: 9,
@@ -294,7 +298,7 @@ export async function startListener(
               flags: 0,
             },
             user: currentUserDiscord,
-            user_settings,
+            user_settings: user_settings ?? {},
             user_settings_proto: user_settings_proto ? Buffer.from(user_settings_proto).toString("base64") : null,
             guilds,
             guild_experiments: [],
@@ -306,12 +310,12 @@ export async function startListener(
               user: x.discord.user,
             })),
             read_state: {
-              entries: [],
+              entries: readStateEntries,
               partial: false,
               version: 304128,
             },
             user_guild_settings: {
-              entries: [],
+              entries: user_settings?.user_guild_settings,
               partial: false,
               version: 642,
             },

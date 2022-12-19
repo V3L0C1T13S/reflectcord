@@ -1,3 +1,31 @@
+export interface UserGuildChannelOverride {
+  channel_id: string;
+  collapsed: boolean;
+  message_notifications: number;
+  mute_config: {
+    // ISO 8086 timestamp at which the channel will unmute on its own
+    end_time: string;
+    selected_time_window: null;
+  };
+  muted: boolean;
+}
+
+export interface UserGuildSetting {
+  channel_overrides: UserGuildChannelOverride[];
+  flags: number;
+  muted: boolean;
+  guild_id: string | null;
+  hide_muted_channels: boolean;
+  message_notifications: number;
+  mobile_push: boolean;
+  mute_config: any | null;
+  mute_scheduled_events: boolean;
+  notify_highlights: number;
+  suppress_everyone: boolean;
+  suppress_roles: boolean;
+  version: number;
+}
+
 export interface UserSettings {
   id: string;
   afk_timeout?: number;
@@ -29,7 +57,8 @@ export interface UserSettings {
   stream_notifications_enabled?: boolean;
   theme?: "dark" | "light";
   timezone_offset?: number;
-  view_nsfw_guilds?: boolean,
+  view_nsfw_guilds?: boolean;
+  user_guild_settings: UserGuildSetting[];
 }
 
 export const DefaultUserSettings: UserSettings = {
@@ -64,4 +93,5 @@ export const DefaultUserSettings: UserSettings = {
   theme: "dark",
   timezone_offset: 0,
   view_nsfw_guilds: true,
+  user_guild_settings: [],
 };
