@@ -34,7 +34,7 @@ import { listenEvent, eventOpts } from "@reflectcord/common/Events";
 import { GatewayDispatchCodes } from "@reflectcord/common/sparkle/schemas/Gateway/Dispatch";
 import { DbManager } from "@reflectcord/common/db";
 import { WebSocket } from "../Socket";
-import { Send } from "./send";
+import { Dispatch, Send } from "./send";
 import experiments from "./experiments.json";
 
 const voiceStates = DbManager.client.db("reflectcord")
@@ -210,6 +210,15 @@ export async function startListener(
               return guild;
             }));
 
+          if (data.emojis) {
+            await Promise.all(data.emojis
+              .filter((x) => x.parent.type === "Server")
+              .map(async (x) => this.rvAPIWrapper.emojis.createObj({
+                revolt: x,
+                discord: await Emoji.from_quark(x),
+              })));
+          }
+
           const mfaInfo = !currentUser.bot ? await this.rvAPI.get("/auth/mfa/") : null;
           const authInfo = !currentUser.bot ? await this.rvAPI.get("/auth/account/") : null;
           const currentUserDiscord = await selfUser.from_quark({
@@ -276,8 +285,7 @@ export async function startListener(
           const user_settings = rvSettings ? await UserSettings.from_quark(rvSettings, {
             status: sessionStatus.status?.toString() || null,
           }) : null;
-          // @ts-ignore
-          user_settings.id = currentUserDiscord.id;
+          if (user_settings) user_settings.id = currentUserDiscord.id;
 
           const user_settings_proto = rvSettings
             ? await settingsToProtoBuf(user_settings as any, {
@@ -302,7 +310,7 @@ export async function startListener(
             user_settings_proto: user_settings_proto ? Buffer.from(user_settings_proto).toString("base64") : null,
             guilds,
             guild_experiments: [],
-            geo_ordered_rtc_regions: [],
+            geo_ordered_rtc_regions: ["newark", "us-east"],
             relationships: relationships.map((x) => ({
               id: x.discord.user.id,
               type: x.discord.type,
@@ -449,8 +457,7 @@ export async function startListener(
           break;
         }
         case "MessageReact": {
-          const emoji = await this.rvAPI.get(`/custom/emoji/${encodeURI(data.emoji_id)}`) as API.Emoji;
-          if (!emoji) return;
+          const emoji = await this.rvAPIWrapper.emojis.fetch(data.emoji_id);
 
           await Send(this, {
             op: GatewayOpcodes.Dispatch,
@@ -460,14 +467,13 @@ export async function startListener(
               user_id: await toSnowflake(data.user_id),
               channel_id: await toSnowflake(data.channel_id),
               message_id: await toSnowflake(data.id),
-              emoji: await PartialEmoji.from_quark(emoji),
+              emoji: await PartialEmoji.from_quark(emoji.revolt),
             },
           });
           break;
         }
         case "MessageUnreact": {
-          const emoji = await this.rvAPI.get(`/custom/emoji/${encodeURI(data.emoji_id) as ""}`);
-          if (!emoji) return;
+          const emoji = await this.rvAPIWrapper.emojis.fetch(data.emoji_id);
 
           await Send(this, {
             op: GatewayOpcodes.Dispatch,
@@ -477,14 +483,13 @@ export async function startListener(
               user_id: await toSnowflake(data.user_id),
               channel_id: await toSnowflake(data.channel_id),
               message_id: await toSnowflake(data.id),
-              emoji: await PartialEmoji.from_quark(emoji),
+              emoji: await PartialEmoji.from_quark(emoji.revolt),
             },
           });
           break;
         }
         case "MessageRemoveReaction": {
-          const emoji = await this.rvAPI.get(`/custom/emoji/${encodeURI(data.emoji_id) as ""}`);
-          if (!emoji) return;
+          const emoji = await this.rvAPIWrapper.emojis.fetch(data.emoji_id);
 
           await Send(this, {
             op: GatewayOpcodes.Dispatch,
@@ -493,7 +498,7 @@ export async function startListener(
             d: {
               channel_id: await toSnowflake(data.channel_id),
               message_id: await toSnowflake(data.id),
-              emoji: await PartialEmoji.from_quark(emoji),
+              emoji: await PartialEmoji.from_quark(emoji.revolt),
             },
           });
           break;
@@ -514,30 +519,33 @@ export async function startListener(
           break;
         }
         case "BulkMessageDelete": {
+          const channel = this.rvAPIWrapper.channels.$get(data.channel);
+
+          const body: any = {
+            ids: await Promise.all(data.ids.map((x) => toSnowflake(x))),
+            channel_id: await toSnowflake(data.channel),
+          };
+
+          if ("guild_id" in channel.discord && channel.discord.guild_id) {
+            body.guild_id = channel.discord.guild_id;
+          }
+
           await Send(this, {
             op: GatewayOpcodes.Dispatch,
             t: GatewayDispatchEvents.MessageDeleteBulk,
             s: this.sequence++,
-            d: {
-              ids: await Promise.all(data.ids.map((x) => toSnowflake(x))),
-              channel_id: await toSnowflake(data.channel),
-              // guild_id: null, //FIXME
-            },
+            d: body,
           });
 
           break;
         }
         case "ChannelStartTyping": {
-          await Send(this, {
-            op: GatewayOpcodes.Dispatch,
-            t: GatewayDispatchEvents.TypingStart,
-            s: this.sequence++,
-            d: {
-              channel_id: await toSnowflake(data.id),
-              user_id: await toSnowflake(data.user),
-              timestamp: Date.now().toString(),
-            },
+          await Dispatch(this, GatewayDispatchEvents.TypingStart, {
+            channel_id: await toSnowflake(data.id),
+            user_id: await toSnowflake(data.user),
+            timestamp: Date.now().toString(),
           });
+
           break;
         }
         case "ChannelCreate": {
@@ -652,12 +660,7 @@ export async function startListener(
                 server: data.id,
               });
 
-              await Send(this, {
-                op: GatewayOpcodes.Dispatch,
-                t: eventType,
-                s: this.sequence++,
-                d: discordCategory,
-              });
+              await Dispatch(this, eventType, discordCategory);
             }));
           }
 
@@ -814,13 +817,18 @@ export async function startListener(
         case "EmojiCreate": {
           if (data.parent.type !== "Server") return;
 
+          const emoji = this.rvAPIWrapper.emojis.createObj({
+            revolt: data,
+            discord: await Emoji.from_quark(data),
+          });
+
           await Send(this, {
             op: GatewayOpcodes.Dispatch,
             t: GatewayDispatchEvents.GuildEmojisUpdate,
             s: this.sequence++,
             d: {
               guild_id: await toSnowflake(data.parent.id),
-              emojis: [await Emoji.from_quark(data)],
+              emojis: [emoji.discord],
             },
           });
 
@@ -881,7 +889,7 @@ export async function startListener(
         }
       }
     } catch (e) {
-      Logger.error(`Error during ws handle: ${e}`);
+      console.error("Error during ws handle:", e);
     }
   });
 }

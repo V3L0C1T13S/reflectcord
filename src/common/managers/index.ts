@@ -4,3 +4,4 @@ export * from "./Users";
 export * from "./Channels";
 export * from "./ServerManager";
 export * from "./MemberManager";
+export * from "./EmojiManager";
