@@ -12,7 +12,7 @@ export async function onSpeaking(this: WebSocket, data: Payload) {
     Send(client.websocket, {
       op: VoiceOPCodes.Speaking,
       d: {
-        user_id: client.websocket.user_id,
+        user_id: this.user_id,
         speaking: data.d.speaking,
         ssrc: ssrc?.audio_ssrc || 0,
       },
