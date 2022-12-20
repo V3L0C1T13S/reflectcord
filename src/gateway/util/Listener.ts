@@ -48,36 +48,47 @@ const voiceStates = DbManager.client.db("reflectcord")
   .collection("voiceStates");
 
 async function internalConsumer(this: WebSocket, opts: eventOpts) {
-  const { data, event } = opts;
-  const id = data.id as string;
+  try {
+    const { data, event } = opts;
+    const id = data.id as string;
 
-  Logger.log(`got event ${event} with data ${JSON.stringify(data)}`);
+    Logger.log(`got event ${event} with data ${JSON.stringify(data)}`);
 
-  const consumer = internalConsumer.bind(this);
+    const consumer = internalConsumer.bind(this);
 
-  switch (event) {
-    case GatewayDispatchCodes.VoiceChannelEffectSend: {
-      // FIXME: Is this correct behavior?
-      if (!this.voiceInfo.channel_id === data.channel_id) return;
+    switch (event) {
+      case GatewayDispatchCodes.VoiceChannelEffectSend: {
+        // TODO: Compare against real Discord to see if this is correct
+        if (!this.voiceInfo.channel_id === data.channel_id) return;
 
-      const channel = this.rvAPIWrapper.channels.get(await fromSnowflake(data.channel_id));
-      if (channel && ("server" in channel.revolt) && channel.revolt.server) {
-        data.guild_id = await toSnowflake(channel.revolt.server);
+        const channel = this.rvAPIWrapper.channels.get(await fromSnowflake(data.channel_id));
+        if (channel && ("server" in channel.revolt) && channel.revolt.server) {
+          data.guild_id = await toSnowflake(channel.revolt.server);
+        }
+
+        break;
       }
+      case GatewayDispatchEvents.InviteCreate: {
+        const user = await this.rvAPIWrapper.users.fetch(await fromSnowflake(data.inviter.id));
 
-      break;
+        data.inviter = user.discord;
+
+        break;
+      }
+      default: {
+        break;
+      }
     }
-    default: {
-      break;
-    }
+
+    await Send(this, {
+      op: GatewayOpcodes.Dispatch,
+      t: event,
+      d: data,
+      s: this.sequence++,
+    });
+  } catch (e) {
+    console.error("Error in consumer:", e);
   }
-
-  Send(this, {
-    op: GatewayOpcodes.Dispatch,
-    t: event,
-    d: data,
-    s: this.sequence++,
-  });
 }
 
 export async function createInternalListener(this: WebSocket) {

@@ -3,6 +3,8 @@ import { Application } from "express";
 import { Resource } from "express-automatic-routes";
 import { HTTPError } from "@reflectcord/common/utils";
 import { fromSnowflake, InviteCreate } from "@reflectcord/common/models";
+import { emitEvent } from "@reflectcord/common/Events";
+import { GatewayDispatchEvents } from "discord.js";
 
 export default (express: Application) => <Resource> {
   post: async (req, res) => {
@@ -15,7 +17,20 @@ export default (express: Application) => <Resource> {
     const rvInvite = await res.rvAPI.post(`/channels/${rvChannel as ""}/invites`);
     if (rvInvite.type !== "Server") throw new HTTPError("Revolt returned invalid invite type");
 
-    res.json(await InviteCreate.from_quark(rvInvite));
+    const invite = await InviteCreate.from_quark(rvInvite);
+
+    await emitEvent({
+      event: GatewayDispatchEvents.InviteCreate,
+      data: {
+        ...invite,
+        inviter: invite.inviter,
+        guild_id: invite.guild?.id,
+        channel: channel_id,
+      },
+      guild_id: rvInvite.server,
+    });
+
+    res.status(201).json(invite);
   },
   get: async (req, res) => {
     const { channel_id } = req.params;
