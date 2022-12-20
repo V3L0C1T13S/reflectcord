@@ -2,7 +2,7 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-plusplus */
 import {
-  GatewayCloseCodes, GatewayDispatchEvents, GatewayOpcodes,
+  GatewayCloseCodes, GatewayDispatchEvents, GatewayMessageDeleteDispatchData, GatewayOpcodes,
 } from "discord.js";
 import { API } from "revolt.js";
 import { APIWrapper, createAPI } from "@reflectcord/common/rvapi";
@@ -444,16 +444,17 @@ export async function startListener(
           break;
         }
         case "MessageDelete": {
-          await Send(this, {
-            op: GatewayOpcodes.Dispatch,
-            t: GatewayDispatchEvents.MessageDelete,
-            s: this.sequence++,
-            d: {
-              id: await toSnowflake(data.id),
-              channel_id: await toSnowflake(data.channel),
-            // guild_id: null, // FIXME
-            },
-          });
+          const channel = await this.rvAPIWrapper.channels.fetch(data.channel);
+
+          const body: GatewayMessageDeleteDispatchData = {
+            id: await toSnowflake(data.id),
+            channel_id: channel.discord.id,
+          };
+
+          if ("guild_id" in channel.discord && channel.discord.guild_id) body.guild_id = channel.discord.guild_id;
+
+          await Dispatch(this, GatewayDispatchEvents.MessageDelete, body);
+
           break;
         }
         case "MessageReact": {

@@ -6,6 +6,7 @@ import { ulid } from "ulid";
 import { HTTPError } from "@reflectcord/common/utils";
 import {
   fromSnowflake, Channel, ChannelCreateBody, GuildCategory, tryFromSnowflake,
+  HandleChannelsAndCategories,
 } from "@reflectcord/common/models";
 
 const validTypes = [
@@ -15,6 +16,21 @@ const validTypes = [
 ];
 
 export default () => <Resource> {
+  get: async (req, res: Response<APIChannel[]>) => {
+    const { guild_id } = req.params;
+
+    if (!guild_id) return res.sendStatus(504);
+
+    const rvId = await fromSnowflake(guild_id);
+
+    const api = res.rvAPI;
+
+    const rvGuild = await api.get(`/servers/${rvId as ""}`);
+    const channels = await Promise.all(rvGuild.channels
+      .map((channel) => api.get(`/channels/${channel as ""}`)));
+
+    return res.json(await HandleChannelsAndCategories(channels, rvGuild.categories, rvId));
+  },
   post: async (
     req: Request<any, any, RESTPostAPIGuildChannelJSONBody>,
     res: Response<APIChannel>,
