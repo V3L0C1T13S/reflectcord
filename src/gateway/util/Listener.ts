@@ -4,9 +4,13 @@
 import {
   GatewayCloseCodes,
   GatewayDispatchEvents,
+  GatewayGuildRoleDeleteDispatchData,
   GatewayMessageCreateDispatchData,
   GatewayMessageDeleteBulkDispatchData,
   GatewayMessageDeleteDispatchData,
+  GatewayMessageReactionAddDispatchData,
+  GatewayMessageReactionRemoveDispatchData,
+  GatewayMessageReactionRemoveEmojiDispatchData,
   GatewayMessageUpdateDispatchData,
   GatewayOpcodes,
   GatewayTypingStartDispatchData,
@@ -194,32 +198,58 @@ export async function startListener(
               const rvChannels: API.Channel[] = server.channels
                 .map((x) => this.rvAPIWrapper.channels.$get(x)?.revolt).filter((x) => x);
 
-              const discordGuild = this.rvAPIWrapper.servers.createObj({
+              const rvServer = this.rvAPIWrapper.servers.createObj({
                 revolt: server,
                 discord: await Guild.from_quark(server, {
                   emojis: data.emojis
                     ?.filter((x) => x.parent.type === "Server" && x.parent.id === server._id),
                 }),
-              }).discord;
+              });
 
-              const guild = {
-                ...discordGuild,
+              const discordGuild = rvServer.discord;
+
+              const commonGuild = {
                 channels: await HandleChannelsAndCategories(
                   rvChannels,
                   server.categories,
                   server._id,
                 ),
-                properties: discordGuild,
               };
 
-              // Bots don't get sent full guilds in actual discord.
+              const member = await rvServer.extra?.members
+                .fetch(rvServer.revolt._id, this.rv_user_id);
+
+              const guild = {
+                ...commonGuild,
+                data_mode: "full",
+                guild_scheduled_events: [],
+                id: discordGuild.id,
+                joined_at: member?.discord.joined_at ?? new Date().toISOString(),
+                large: false,
+                lazy: true,
+                member_count: discordGuild.approximate_member_count ?? 0,
+                members: [member],
+                premium_subscription_count: discordGuild.premium_subscription_count ?? 0,
+                properties: discordGuild,
+                roles: discordGuild.roles,
+                stage_instances: [],
+                stickers: [],
+                threads: [],
+                version: 0,
+              };
+
+              const botGuild = {
+                ...discordGuild,
+                ...commonGuild,
+              };
+
               if (currentUser.bot) {
                 setTimeout(() => {
                   Send(this, {
                     op: GatewayOpcodes.Dispatch,
                     t: GatewayDispatchEvents.GuildCreate,
                     s: this.sequence++,
-                    d: guild,
+                    d: botGuild,
                   });
                 }, 500);
                 return { id: guild.id, unavailable: true };
@@ -277,14 +307,22 @@ export async function startListener(
             });
           });
 
+          await Promise.all(data.members.map(async (x) => {
+            const server = this.rvAPIWrapper.servers.$get(x._id.server);
+            server.extra?.members.createObj({
+              revolt: x,
+              discord: await Member.from_quark(x),
+            });
+          }));
+
           const members = await Promise.all(data.members.map((x) => Member.from_quark(x)));
 
-          const mergedMembers = members.map((member) => [{
+          const mergedMembers = members.map((member) => ([{
             ...member,
             roles: member.roles,
             settings: undefined,
             guild: undefined,
-          }]);
+          }]));
 
           const relationships = await Promise.all(data.users
             .filter((u) => u.relationship !== "None" && u.relationship !== "User")
@@ -436,7 +474,16 @@ export async function startListener(
 
           const body: GatewayMessageCreateDispatchData = msgObj.discord;
 
-          if ("guild_id" in channel.discord && channel.discord.guild_id) body.guild_id = channel.discord.guild_id;
+          if ("guild_id" in channel.discord && channel.discord.guild_id && "server" in channel.revolt) {
+            const server = await this.rvAPIWrapper.servers.fetch(channel.revolt.server);
+
+            const memberWrapped = await server.extra?.members
+              .fetch(channel.revolt.server, data.author);
+
+            body.guild_id = channel.discord.guild_id;
+
+            if (memberWrapped) body.member = memberWrapped.discord;
+          }
 
           await Dispatch(this, GatewayDispatchEvents.MessageCreate, body);
 
@@ -471,48 +518,54 @@ export async function startListener(
         case "MessageReact": {
           const emoji = await this.rvAPIWrapper.emojis.fetch(data.emoji_id);
 
-          await Send(this, {
-            op: GatewayOpcodes.Dispatch,
-            t: GatewayDispatchEvents.MessageReactionAdd,
-            s: this.sequence++,
-            d: {
-              user_id: await toSnowflake(data.user_id),
-              channel_id: await toSnowflake(data.channel_id),
-              message_id: await toSnowflake(data.id),
-              emoji: await PartialEmoji.from_quark(emoji.revolt),
-            },
-          });
+          const body: GatewayMessageReactionAddDispatchData = {
+            user_id: await toSnowflake(data.user_id),
+            channel_id: await toSnowflake(data.channel_id),
+            message_id: await toSnowflake(data.id),
+            emoji: await PartialEmoji.from_quark(emoji.revolt),
+          };
+
+          if (emoji.revolt.parent.type === "Server") {
+            body.guild_id = await toSnowflake(emoji.revolt.parent.id);
+          }
+
+          await Dispatch(this, GatewayDispatchEvents.MessageReactionAdd, body);
+
           break;
         }
         case "MessageUnreact": {
           const emoji = await this.rvAPIWrapper.emojis.fetch(data.emoji_id);
 
-          await Send(this, {
-            op: GatewayOpcodes.Dispatch,
-            t: GatewayDispatchEvents.MessageReactionRemove,
-            s: this.sequence++,
-            d: {
-              user_id: await toSnowflake(data.user_id),
-              channel_id: await toSnowflake(data.channel_id),
-              message_id: await toSnowflake(data.id),
-              emoji: await PartialEmoji.from_quark(emoji.revolt),
-            },
-          });
+          const body: GatewayMessageReactionRemoveDispatchData = {
+            user_id: await toSnowflake(data.user_id),
+            channel_id: await toSnowflake(data.channel_id),
+            message_id: await toSnowflake(data.id),
+            emoji: await PartialEmoji.from_quark(emoji.revolt),
+          };
+
+          if (emoji.revolt.parent.type === "Server") {
+            body.guild_id = await toSnowflake(emoji.revolt.parent.id);
+          }
+
+          await Dispatch(this, GatewayDispatchEvents.MessageReactionRemove, body);
+
           break;
         }
         case "MessageRemoveReaction": {
           const emoji = await this.rvAPIWrapper.emojis.fetch(data.emoji_id);
 
-          await Send(this, {
-            op: GatewayOpcodes.Dispatch,
-            t: GatewayDispatchEvents.MessageReactionRemoveEmoji,
-            s: this.sequence++,
-            d: {
-              channel_id: await toSnowflake(data.channel_id),
-              message_id: await toSnowflake(data.id),
-              emoji: await PartialEmoji.from_quark(emoji.revolt),
-            },
-          });
+          const body: GatewayMessageReactionRemoveEmojiDispatchData = {
+            channel_id: await toSnowflake(data.channel_id),
+            message_id: await toSnowflake(data.id),
+            emoji: await PartialEmoji.from_quark(emoji.revolt),
+          };
+
+          if (emoji.revolt.parent.type === "Server") {
+            body.guild_id = await toSnowflake(emoji.revolt.parent.id);
+          }
+
+          await Dispatch(this, GatewayDispatchEvents.MessageReactionRemoveEmoji, body);
+
           break;
         }
         case "MessageAppend": {
@@ -853,15 +906,12 @@ export async function startListener(
           break;
         }
         case "ServerRoleDelete": {
-          await Send(this, {
-            op: GatewayOpcodes.Dispatch,
-            t: GatewayDispatchEvents.GuildRoleDelete,
-            s: this.sequence++,
-            d: {
-              guild_id: await toSnowflake(data.id),
-              role_id: await toSnowflake(data.role_id),
-            },
-          });
+          const body: GatewayGuildRoleDeleteDispatchData = {
+            guild_id: await toSnowflake(data.id),
+            role_id: await toSnowflake(data.role_id),
+          };
+
+          await Dispatch(this, GatewayDispatchEvents.GuildRoleDelete, body);
 
           break;
         }
