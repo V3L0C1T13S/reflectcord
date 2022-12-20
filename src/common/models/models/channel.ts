@@ -261,14 +261,16 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
       }
     })();
 
+    // Workaround for weird typechecking bug
+    const commonProperties: { guild_id?: string } = {};
+
+    if ("server" in channel && typeof channel.server === "string") {
+      commonProperties.guild_id = await toSnowflake(channel.server);
+    }
+
     return {
+      ...commonProperties,
       bitrate: undefined,
-      guild_id: await (() => {
-        if ("server" in channel && typeof channel.server === "string") {
-          return toSnowflake(channel.server);
-        }
-        return undefined as any;
-      })(),
       id,
       invitable: undefined,
       type: await ChannelType.from_quark(channel.channel_type) as any,

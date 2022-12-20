@@ -2,7 +2,14 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-plusplus */
 import {
-  GatewayCloseCodes, GatewayDispatchEvents, GatewayMessageDeleteDispatchData, GatewayOpcodes,
+  GatewayCloseCodes,
+  GatewayDispatchEvents,
+  GatewayMessageCreateDispatchData,
+  GatewayMessageDeleteBulkDispatchData,
+  GatewayMessageDeleteDispatchData,
+  GatewayMessageUpdateDispatchData,
+  GatewayOpcodes,
+  GatewayTypingStartDispatchData,
 } from "discord.js";
 import { API } from "revolt.js";
 import { APIWrapper, createAPI } from "@reflectcord/common/rvapi";
@@ -416,21 +423,21 @@ export async function startListener(
             },
           });
 
-          await Send(this, {
-            op: GatewayOpcodes.Dispatch,
-            t: GatewayDispatchEvents.MessageCreate,
-            s: this.sequence++,
-            d: {
-              ...msgObj.discord,
-              guild_id: channel?.discord && ("guild_id" in channel.discord) ? channel?.discord.guild_id : null,
-            },
-          });
+          const body: GatewayMessageCreateDispatchData = msgObj.discord;
+
+          if ("guild_id" in channel.discord && channel.discord.guild_id) body.guild_id = channel.discord.guild_id;
+
+          await Dispatch(this, GatewayDispatchEvents.MessageCreate, body);
 
           break;
         }
         case "MessageUpdate": {
           const msgObj = await this.rvAPIWrapper.messages.getMessage(data.channel, data.id);
           const channel = await this.rvAPIWrapper.channels.fetch(data.channel);
+
+          const body: GatewayMessageUpdateDispatchData = msgObj.discord;
+
+          if ("guild_id" in channel.discord && channel.discord.guild_id) body.guild_id = channel.discord.guild_id;
 
           await Send(this, {
             op: GatewayOpcodes.Dispatch,
@@ -522,7 +529,7 @@ export async function startListener(
         case "BulkMessageDelete": {
           const channel = this.rvAPIWrapper.channels.$get(data.channel);
 
-          const body: any = {
+          const body: GatewayMessageDeleteBulkDispatchData = {
             ids: await Promise.all(data.ids.map((x) => toSnowflake(x))),
             channel_id: await toSnowflake(data.channel),
           };
@@ -541,11 +548,17 @@ export async function startListener(
           break;
         }
         case "ChannelStartTyping": {
-          await Dispatch(this, GatewayDispatchEvents.TypingStart, {
-            channel_id: await toSnowflake(data.id),
+          const channel = await this.rvAPIWrapper.channels.fetch(data.id);
+
+          const body: GatewayTypingStartDispatchData = {
+            channel_id: channel.discord.id,
             user_id: await toSnowflake(data.user),
-            timestamp: Date.now().toString(),
-          });
+            timestamp: Date.now(),
+          };
+
+          if ("guild_id" in channel.discord && channel.discord.guild_id) body.guild_id = channel.discord.guild_id;
+
+          await Dispatch(this, GatewayDispatchEvents.TypingStart, body);
 
           break;
         }
