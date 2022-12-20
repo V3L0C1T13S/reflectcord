@@ -450,15 +450,8 @@ export async function startListener(
 
           if ("guild_id" in channel.discord && channel.discord.guild_id) body.guild_id = channel.discord.guild_id;
 
-          await Send(this, {
-            op: GatewayOpcodes.Dispatch,
-            t: GatewayDispatchEvents.MessageUpdate,
-            s: this.sequence++,
-            d: {
-              ...msgObj.discord,
-              guild_id: ("guild_id" in channel.discord) ? channel.discord.guild_id : null,
-            },
-          });
+          await Dispatch(this, GatewayDispatchEvents.MessageUpdate, body);
+
           break;
         }
         case "MessageDelete": {
