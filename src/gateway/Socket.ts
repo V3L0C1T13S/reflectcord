@@ -13,7 +13,24 @@ export class SocketState {
   store: Payload[] = [];
 }
 
+interface subscribedServer {
+  /**
+   * Will we receive TYPING_START for this guild?
+  */
+  typing?: boolean;
+  /**
+   * Update subscribed user status?
+  */
+  activities?: boolean;
+  /**
+   * Subscribed to new thread creations
+  */
+  threads?: boolean;
+}
+
 export interface WebSocket extends WS {
+  bot: boolean;
+  subscribed_servers: Record<string, subscribedServer>;
   version: number;
   user_id: string;
   rv_user_id: string;
@@ -35,14 +52,14 @@ export interface WebSocket extends WS {
   rvAPI: API;
   rvAPIWrapper: APIWrapper;
   voiceInfo: {
-    self_deaf: boolean,
-    self_mute: boolean,
-    self_video: boolean,
-    self_stream?: boolean,
-    channel_id?: string | null | undefined,
-    guild_id?: string,
-  },
-  typingConsumer?: Replies.Consume | undefined,
-  state: SocketState,
-  token: string,
+    self_deaf: boolean;
+    self_mute: boolean;
+    self_video: boolean;
+    self_stream?: boolean;
+    channel_id?: string | null | undefined;
+    guild_id?: string;
+  };
+  typingConsumer?: Replies.Consume | undefined;
+  state: SocketState;
+  token: string;
 }

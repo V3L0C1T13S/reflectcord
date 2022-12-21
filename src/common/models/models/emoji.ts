@@ -35,9 +35,10 @@ export const PartialEmoji: QuarkConversion<API.Emoji, APIPartialEmoji> = {
     const emojiName = unicodeEmoji ? _id : name;
 
     return {
-      name: `:${emojiName}:`,
+      name: emojiName,
       id,
       animated: animated ?? false,
+      require_colons: !unicodeEmoji,
     };
   },
 };
@@ -48,14 +49,17 @@ export const Emoji: QuarkConversion<API.Emoji, APIEmoji, EmojiATQ, EmojiAFQ> = {
   },
 
   async from_quark(emoji, extra) {
+    const partial = await PartialEmoji.from_quark(emoji);
+
     return {
-      ...await PartialEmoji.from_quark(emoji),
+      ...partial,
       available: true,
       roles: [],
       user: await User.from_quark(extra?.user ?? {
         _id: emoji.creator_id,
         username: "fixme",
       }),
+      allNamesString: `:${partial.name}:`,
     };
   },
 };

@@ -16,7 +16,7 @@ import {
   GatewayTypingStartDispatchData,
 } from "discord.js";
 import { API } from "revolt.js";
-import { APIWrapper, createAPI } from "@reflectcord/common/rvapi";
+import { APIWrapper, createAPI, systemUserID } from "@reflectcord/common/rvapi";
 import {
   Channel,
   Emoji,
@@ -141,6 +141,8 @@ export async function startListener(
         case "Ready": {
           const currentUser = data.users.find((x) => x.relationship === "User");
           if (!currentUser) return this.close(GatewayCloseCodes.AuthenticationFailed);
+
+          this.bot = !!currentUser.bot;
 
           if (currentUser.bot) {
             this.rvAPI = createAPI(token);
@@ -477,12 +479,14 @@ export async function startListener(
           if ("guild_id" in channel.discord && channel.discord.guild_id && "server" in channel.revolt) {
             const server = await this.rvAPIWrapper.servers.fetch(channel.revolt.server);
 
-            const memberWrapped = await server.extra?.members
-              .fetch(channel.revolt.server, data.author);
-
             body.guild_id = channel.discord.guild_id;
 
-            if (memberWrapped) body.member = memberWrapped.discord;
+            if (data.author !== systemUserID) {
+              const member = await server.extra?.members
+                .fetch(channel.revolt.server, data.author);
+
+              if (member) body.member = member.discord;
+            }
           }
 
           await Dispatch(this, GatewayDispatchEvents.MessageCreate, body);
@@ -613,7 +617,12 @@ export async function startListener(
             timestamp: Date.now(),
           };
 
-          if ("guild_id" in channel.discord && channel.discord.guild_id) body.guild_id = channel.discord.guild_id;
+          if ("guild_id" in channel.discord && channel.discord.guild_id && "server" in channel.revolt) {
+            if (!this.bot && !this.subscribed_servers[channel.revolt.server]?.typing) {
+              return;
+            }
+            body.guild_id = channel.discord.guild_id;
+          }
 
           await Dispatch(this, GatewayDispatchEvents.TypingStart, body);
 

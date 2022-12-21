@@ -223,13 +223,21 @@ export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
   const ranges = channels![channel_id];
   if (!Array.isArray(ranges)) throw new Error("Not a valid Array");
 
-  const results = await getMembers.call(this, rvServerId, [0, 99], activities);
+  // eslint-disable-next-line no-multi-assign
+  const subscribedServer = this.subscribed_servers[rvServerId] ??= {};
+
+  if (activities !== undefined) subscribedServer.activities = activities;
+  if (typing !== undefined) subscribedServer.typing = typing;
+  if (threads !== undefined) subscribedServer.threads = threads;
+
+  const results = await getMembers
+    .call(this, rvServerId, [0, 99], this.subscribed_servers[rvServerId]?.activities);
   const ops = results.results;
   const member_count = ops.members.length;
 
   const { groups } = ops;
 
-  if (threads) {
+  if (subscribedServer.threads) {
     // STUB
     Send(this, {
       op: GatewayOpcodes.Dispatch,

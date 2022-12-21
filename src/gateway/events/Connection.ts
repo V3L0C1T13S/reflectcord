@@ -43,6 +43,7 @@ export async function Connection(this: ws.Server, socket: WebSocket, request: In
     socket.member_events = {};
     socket.permissions = {};
     socket.sequence = 0;
+    socket.subscribed_servers = {};
 
     socket.rvClient = new Client();
     socket.rvAPI = new API();
