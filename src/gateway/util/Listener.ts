@@ -36,6 +36,7 @@ import {
   UserSettings,
   settingsToProtoBuf,
   ReadState,
+  GatewayGuildEmoji,
 } from "@reflectcord/common/models";
 import { genSessionId, Logger, RabbitMQ } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
@@ -200,11 +201,13 @@ export async function startListener(
               const rvChannels: API.Channel[] = server.channels
                 .map((x) => this.rvAPIWrapper.channels.$get(x)?.revolt).filter((x) => x);
 
+              const emojis = data.emojis
+                ?.filter((x) => x.parent.type === "Server" && x.parent.id === server._id);
+
               const rvServer = this.rvAPIWrapper.servers.createObj({
                 revolt: server,
                 discord: await Guild.from_quark(server, {
-                  emojis: data.emojis
-                    ?.filter((x) => x.parent.type === "Server" && x.parent.id === server._id),
+                  emojis,
                 }),
               });
 
@@ -224,6 +227,8 @@ export async function startListener(
               const guild = {
                 ...commonGuild,
                 data_mode: "full",
+                emojis: emojis ? await Promise.all(emojis
+                  ?.map((x) => GatewayGuildEmoji.from_quark(x))) : [],
                 guild_scheduled_events: [],
                 id: discordGuild.id,
                 joined_at: member?.discord.joined_at ?? new Date().toISOString(),

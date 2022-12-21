@@ -1,5 +1,6 @@
 import { APIEmoji, APIPartialEmoji, APIReaction } from "discord.js";
 import { API } from "revolt.js";
+import { toSnowflake } from "@reflectcord/common/models";
 import { emojis } from "../../emojilib";
 import { QuarkConversion } from "../QuarkConversion";
 import { tryFromSnowflake, tryToSnowflake } from "../util";
@@ -59,7 +60,31 @@ export const Emoji: QuarkConversion<API.Emoji, APIEmoji, EmojiATQ, EmojiAFQ> = {
         _id: emoji.creator_id,
         username: "fixme",
       }),
-      allNamesString: `:${partial.name}:`,
+    };
+  },
+};
+
+export interface discordGatewayGuildEmoji extends APIEmoji {
+  guildId: string | null;
+}
+
+// Sent in the gateway READY event underneath the "emojis" object in a guild
+export const GatewayGuildEmoji: QuarkConversion<
+API.Emoji, discordGatewayGuildEmoji, EmojiATQ, EmojiAFQ
+> = {
+  async to_quark(emoji, extra) {
+    return Emoji.to_quark(emoji, extra);
+  },
+
+  async from_quark(emoji, extra) {
+    const discordEmoji = await Emoji.from_quark(emoji, extra);
+
+    discordEmoji.managed = false;
+
+    return {
+      ...discordEmoji,
+      allNamesString: `:${discordEmoji.name}:`,
+      guildId: emoji.parent.type === "Server" ? await toSnowflake(emoji.parent.id) : null,
     };
   },
 };
