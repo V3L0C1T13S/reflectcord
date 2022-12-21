@@ -140,7 +140,9 @@ export const Guild: QuarkConversion<Server, APIGuild, GuildATQ, GuildAFQ> = {
       features,
       mfa_level: GuildMFALevel.None,
       application_id: null,
-      system_channel_id: null,
+      system_channel_id: server.system_messages?.user_joined
+        ? await toSnowflake(server.system_messages?.user_joined)
+        : null,
       system_channel_flags: GuildSystemChannelFlags.SuppressGuildReminderNotifications,
       rules_channel_id: null,
       max_presences: null,
@@ -185,7 +187,7 @@ export const PartialGuild: QuarkConversion<revoltPartialServer, DiscordPartialGu
     } = data;
 
     return {
-      _id: id,
+      _id: await fromSnowflake(id),
       name,
       owner: "0",
     };
@@ -237,11 +239,14 @@ export const GuildEditBody: QuarkConversion<DataEditServer, RESTPatchAPIGuildJSO
   },
 
   async from_quark(data) {
-    const { name, description } = data;
+    const { name, description, system_messages } = data;
 
     return {
       name: name ?? undefined,
       description,
+      system_channel_id: system_messages?.user_joined
+        ? await toSnowflake(system_messages.user_joined)
+        : null,
     };
   },
 };

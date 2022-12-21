@@ -2,6 +2,10 @@
 import { AddUndefinedToPossiblyUndefinedPropertiesOfInterface } from "discord-api-types/utils/internals";
 import { APIEmbed } from "discord.js";
 import { API } from "revolt.js";
+import { Logger } from "@reflectcord/common/utils";
+import axios from "axios";
+import { uploadFile } from "@reflectcord/cdn/util";
+import fileType from "file-type";
 import { proxyFile } from "../../rvapi";
 import { hexToRgbCode, rgbToHex } from "../../utils";
 import { QuarkConversion } from "../QuarkConversion";
@@ -31,6 +35,13 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
       if (embed.title) discordEmbed.title = embed.title;
       if (embed.description) discordEmbed.description = embed.description;
       if (embed.colour) discordEmbed.color = hexToRgbCode(embed.colour) ?? 0;
+      if (embed.icon_url) {
+        const imgUrl = proxyFile(embed.icon_url);
+        discordEmbed.thumbnail = {
+          url: imgUrl,
+          proxy_url: imgUrl,
+        };
+      }
       if (embed.type === "Text") {
         if (embed.media) {
           const imgUrl = `http://${reflectcordCDNURL}/attachments/${embed.media._id}`;
@@ -117,10 +128,10 @@ export const SendableEmbed: QuarkConversion<
 > = {
   async to_quark(embed) {
     const {
-      title, description, url, fields, footer, color,
+      title, description, url, fields, footer, color, image,
     } = embed;
 
-    return {
+    const rvEmbed: API.SendableEmbed = {
       title: title ?? null,
       description: (() => {
         let realDescription = description ?? "";
@@ -137,6 +148,25 @@ export const SendableEmbed: QuarkConversion<
       colour: color ? rgbToHex(color) : null,
       icon_url: embed.footer?.icon_url ?? null,
     };
+
+    if (image?.url) {
+      try {
+        const imageData = Buffer.from(
+          (await axios.get(image.url, { responseType: "arraybuffer" })).data,
+        );
+
+        const rvId = await uploadFile("attachments", {
+          name: "embed.png",
+          file: imageData,
+        }, (await fileType.fromBuffer(imageData))?.mime ?? "image/png").catch(() => null);
+
+        rvEmbed.media = rvId;
+      } catch (e) {
+        Logger.error(e);
+      }
+    }
+
+    return rvEmbed;
   },
 
   async from_quark(embed) {
@@ -144,11 +174,11 @@ export const SendableEmbed: QuarkConversion<
       title, description, url, colour, icon_url,
     } = embed;
 
-    const convEmbed: APIEmbed = {
-      title: title ?? " ",
-      description: description ?? "fixme",
-      url: url ?? "http://fixme",
-    };
+    const convEmbed: APIEmbed = {};
+
+    if (title) convEmbed.title = title;
+    if (description) convEmbed.description = description;
+    if (url) convEmbed.url = url;
 
     if (colour) convEmbed.color = hexToRgbCode(colour)!;
     if (icon_url) {

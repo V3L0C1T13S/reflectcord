@@ -175,7 +175,7 @@ export async function settingsToProtoBuf(settings: DiscordUserSettings, extra?: 
       viewedTutorial: true,
     },
     guilds: {
-      channels: {},
+      channels: [],
       // hub_progess: 1,
       guildOnboardingProgress: 1,
     },
@@ -200,11 +200,47 @@ export async function settingsToProtoBuf(settings: DiscordUserSettings, extra?: 
       },
     },
     textAndImages: {
+      inlineAttachmentMedia: {
+        value: settings.inline_attachment_media,
+      },
+      inlineEmbedMedia: {
+        value: settings.inline_embed_media,
+      },
+      gifAutoPlay: {
+        value: settings.gif_auto_play,
+      },
       renderEmbeds: {
         value: settings.render_embeds,
       },
       renderReactions: {
         value: settings.render_reactions,
+      },
+      animateEmoji: {
+        value: settings.animate_emoji,
+      },
+      animateStickers: {
+        value: settings.animate_stickers,
+      },
+      enableTtsCommand: {
+        value: settings.enable_tts_command,
+      },
+      messageDisplayCompact: {
+        value: settings.message_display_compact,
+      },
+      explicit_content_filter: {
+        value: settings.explicit_content_filter,
+      },
+      viewNsfwGuilds: {
+        value: settings.view_nsfw_guilds,
+      },
+      convertEmoticons: {
+        value: settings.convert_emoticons,
+      },
+      expressionSuggestionsEnabled: {
+        value: true,
+      },
+      viewNsfwCommands: {
+        value: true,
       },
     },
     notifications: {

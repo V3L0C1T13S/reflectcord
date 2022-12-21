@@ -229,6 +229,10 @@ message FriendDiscoveryFlags {
     uint32 value = 1;
 }
 
+message DefaultMessageRequestRestricted {
+    bool value = 1;
+}
+
 message PrivacySettings {
     AllowActivityPartyPrivacyFriends allow_activity_party_privacy_friends = 1;
     AllowActivityPartyPrivacyVoiceChannel allow_activity_party_privacy_voice_channel = 2;
@@ -243,6 +247,8 @@ message PrivacySettings {
     repeated fixed64 activity_restricted_guild_ids = 13 [packed = true];
     GuildActivityStatusRestrictionDefault default_guilds_activity_restricted = 14;
     repeated fixed64 activity_joining_restricted_guild_ids = 15 [packed = true];
+    repeated fixed64 message_request_restricted_guild_ids = 16 [packed = true];
+    DefaultMessageRequestRestricted default_message_request_restricted = 17;
 }
 
 message RtcPanelShowVoiceStates {
