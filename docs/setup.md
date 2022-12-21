@@ -14,9 +14,9 @@ While WSL2 is an officially supported platform, WSL1 is **not** officially suppo
 
 Docker
 
-NodeJS (v18 & up) & NPM
+NodeJS (v16 & up) & NPM
 
-Mongodb
+MongoDB
 
 RabbitMQ
 
@@ -53,4 +53,4 @@ On the other hand, production mode takes longer to build and make changes to, bu
 
 ## Configuring
 
-See configuring.md
+See [configuring.md](configuring.md)
