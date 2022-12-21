@@ -62,7 +62,7 @@ export default (express: Application) => <Resource> {
     const rvChannel = await fromSnowflake(channel_id);
     const rvMsgId = await fromSnowflake(message_id);
 
-    await res.rvAPI.delete(`/channels/${rvChannel}/messages/${rvMsgId}`);
+    await res.rvAPIWrapper.messages.deleteMessage(rvChannel, rvMsgId);
 
     res.sendStatus(204);
   },

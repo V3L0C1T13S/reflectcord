@@ -80,7 +80,7 @@ export class MessageManager extends BaseManager<string, MessageContainer> {
   }
 
   async ack(channel:string, id: string) {
-    const res = await this.rvAPI.put(`/channels/${channel}/ack/${id}`);
+    const res = await this.rvAPI.put(`/channels/${channel as ""}/ack/${id as ""}`);
 
     return res;
   }
@@ -89,5 +89,9 @@ export class MessageManager extends BaseManager<string, MessageContainer> {
     await this.rvAPI.delete(`/channels/${channel}/messages/bulk`, {
       ids,
     });
+  }
+
+  deleteMessage(channel: string, id: string) {
+    return this.rvAPI.delete(`/channels/${channel as ""}/messages/${id as ""}`);
   }
 }
