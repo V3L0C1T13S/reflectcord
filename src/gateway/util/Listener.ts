@@ -40,7 +40,7 @@ import {
 import { genSessionId, Logger, RabbitMQ } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
 import { IdentifySchema } from "@reflectcord/common/sparkle";
-import { reflectcordWsURL } from "@reflectcord/common/constants";
+import { messageEmitMember, reflectcordWsURL } from "@reflectcord/common/constants";
 import { listenEvent, eventOpts } from "@reflectcord/common/Events";
 import { GatewayDispatchCodes } from "@reflectcord/common/sparkle/schemas/Gateway/Dispatch";
 import { DbManager } from "@reflectcord/common/db";
@@ -481,7 +481,7 @@ export async function startListener(
 
             body.guild_id = channel.discord.guild_id;
 
-            if (data.author !== systemUserID) {
+            if (data.author !== systemUserID && messageEmitMember) {
               const member = await server.extra?.members
                 .fetch(channel.revolt.server, data.author);
 
