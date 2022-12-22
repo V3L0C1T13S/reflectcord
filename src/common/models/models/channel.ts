@@ -4,6 +4,7 @@ import {
   APIGuildCategoryChannel,
   APIOverwrite,
   APIPartialChannel,
+  APIUser,
   ChannelType as discordChannelType,
   OverwriteType,
   RESTPostAPIGuildChannelJSONBody,
@@ -261,11 +262,27 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
       }
     })();
 
+    const channelType = await ChannelType.from_quark(channel.channel_type) as any;
+
     // Workaround for weird typechecking bug
-    const commonProperties: { guild_id?: string } = {};
+    const commonProperties: { guild_id?: string, owner_id?: string, recipients?: APIUser[] } = {};
 
     if ("server" in channel && typeof channel.server === "string") {
       commonProperties.guild_id = await toSnowflake(channel.server);
+    }
+
+    if (channel.channel_type === "DirectMessage" || channel.channel_type === "Group") {
+      if (channel.channel_type === "Group") {
+        commonProperties.owner_id = await toSnowflake(channel.owner);
+      }
+
+      const excludedRecipients = channel.recipients.filter((x) => x !== extra?.excludedUser);
+
+      commonProperties.recipients = await Promise.all(excludedRecipients
+        .map((x) => User.from_quark({
+          _id: x,
+          username: "fixme",
+        })));
     }
 
     return {
@@ -273,7 +290,7 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
       bitrate: undefined,
       id,
       invitable: undefined,
-      type: await ChannelType.from_quark(channel.channel_type) as any,
+      type: channelType,
       last_message_id: await (() => {
         switch (channel.channel_type) {
           case "VoiceChannel": {
@@ -298,28 +315,10 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
 
         return channel.name;
       })(),
-      recipients: await (() => {
-        if (channel.channel_type === "DirectMessage" || channel.channel_type === "Group") {
-          const excludedRecipients = channel.recipients.filter((x) => x !== extra?.excludedUser);
-
-          return Promise.all(excludedRecipients.map((x) => User.from_quark({
-            _id: x,
-            username: "fixme",
-          })));
-        }
-
-        return;
-      })(),
-      owner_id: await (() => {
-        if (channel.channel_type === "Group") {
-          return toSnowflake(channel.owner);
-        }
-
-        return;
-      })(),
       origin_channel_id: id,
       nsfw: (() => {
-        if (channel.channel_type !== "TextChannel") return false;
+        if (channel.channel_type !== "TextChannel"
+        && channel.channel_type !== "VoiceChannel") return false;
 
         return !!channel.nsfw;
       })(),

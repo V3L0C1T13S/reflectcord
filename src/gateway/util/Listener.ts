@@ -40,7 +40,7 @@ import {
 } from "@reflectcord/common/models";
 import { genSessionId, Logger, RabbitMQ } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
-import { IdentifySchema } from "@reflectcord/common/sparkle";
+import { GatewayUserChannelUpdateDispatchData, GatewayUserChannelUpdateOptional, IdentifySchema } from "@reflectcord/common/sparkle";
 import { messageEmitMember, reflectcordWsURL } from "@reflectcord/common/constants";
 import { listenEvent, eventOpts } from "@reflectcord/common/Events";
 import { GatewayDispatchCodes } from "@reflectcord/common/sparkle/schemas/Gateway/Dispatch";
@@ -666,15 +666,32 @@ export async function startListener(
            * but having a key, so we just delete it. It ONLY affects this property for
            * some reason even though we literally always give [] if you look in quarkconversion.
           */
-          // @ts-expect-error
-          delete updatedChannel.discord.permission_overwrites;
+          if (
+            "permission_overwrites" in updatedChannel.discord
+            && updatedChannel.discord.permission_overwrites?.length > 1) {
+            delete updatedChannel.discord.permission_overwrites;
+          }
 
-          await Send(this, {
-            op: GatewayOpcodes.Dispatch,
-            t: GatewayDispatchEvents.ChannelUpdate,
-            s: this.sequence++,
-            d: updatedChannel.discord,
-          });
+          // TODO: Document in Sparkle
+          const body: GatewayUserChannelUpdateOptional = {
+            ...updatedChannel.discord,
+          };
+
+          if (!this.bot) {
+            const stubGatewayHash = {
+              hash: "NpY9iQ",
+            };
+            const stubHash = {
+              channels: stubGatewayHash,
+              metadata: stubGatewayHash,
+              roles: stubGatewayHash,
+              version: 1,
+            };
+            body.guild_hashes = stubHash;
+            body.version = 1671679879788;
+          }
+
+          await Dispatch(this, GatewayDispatchEvents.ChannelUpdate, body);
 
           break;
         }

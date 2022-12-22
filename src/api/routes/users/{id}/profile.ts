@@ -16,10 +16,15 @@ import { enableProfileThemes } from "../../../../common/constants/features";
 export async function getProfile(api: API.API, id: string) {
   // why cant it just be /users/@me/profile ???
   if (id === "@me") {
-    const accountInfo = await api.get("/auth/account/");
-    const rvProfile = await api.get(`/users/${accountInfo._id as ""}/profile`);
+    try {
+      // Requires backend patches (https://github.com/V3L0C1T13S/revolt-backend)
+      return api.get("/users/@me/profile");
+    } catch {
+      const accountInfo = await api.get("/auth/account/");
+      const rvProfile = await api.get(`/users/${accountInfo._id as ""}/profile`);
 
-    return rvProfile;
+      return rvProfile;
+    }
   }
 
   const rvProfile = await api.get(`/users/${id as ""}/profile`);

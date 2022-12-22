@@ -7,6 +7,7 @@ import { Client } from "revolt.js";
 import { API } from "revolt-api";
 import { APIWrapper } from "@reflectcord/common/rvapi";
 import { Logger } from "@reflectcord/common/utils";
+import { revoltApiURL } from "@reflectcord/common/constants";
 import { sendOp, setHeartbeat } from "../util";
 import { SocketState, WebSocket } from "../Socket";
 import { Message } from "./Message";
@@ -45,8 +46,12 @@ export async function Connection(this: ws.Server, socket: WebSocket, request: In
     socket.sequence = 0;
     socket.subscribed_servers = {};
 
-    socket.rvClient = new Client();
-    socket.rvAPI = new API();
+    socket.rvClient = new Client({
+      apiURL: revoltApiURL,
+    });
+    socket.rvAPI = new API({
+      baseURL: revoltApiURL,
+    });
     socket.rvAPIWrapper = new APIWrapper(socket.rvAPI);
     socket.state = new SocketState();
 

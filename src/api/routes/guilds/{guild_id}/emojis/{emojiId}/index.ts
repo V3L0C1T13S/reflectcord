@@ -22,8 +22,18 @@ export default () => <Resource> {
 
     res.sendStatus(204);
   },
-  // FIXME
-  patch: (req, res) => {
-    res.sendStatus(500);
+  patch: async (req, res) => {
+    const { emojiId, guild_id } = req.params;
+
+    if (!emojiId || !guild_id) throw new HTTPError("Invalid params");
+
+    // Requires patch from https://github.com/V3L0C1T13S/revolt-backend
+    // Will be merged with official instance once it's stable
+    // @ts-ignore
+    const emoji = await res.rvAPI.patch(`/custom/emoji/${await tryFromSnowflake(emojiId)}`, {
+      name: req.body.name,
+    });
+
+    res.sendStatus(204);
   },
 };
