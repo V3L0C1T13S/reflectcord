@@ -12,3 +12,4 @@ export * from "./emoji";
 export * from "./discovery";
 export * from "./invite";
 export * from "./settings";
+export * from "./permissions";

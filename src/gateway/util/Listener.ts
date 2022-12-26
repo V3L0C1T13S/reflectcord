@@ -790,8 +790,26 @@ export async function startListener(
           break;
         }
         case "ServerMemberUpdate": {
-          const { nickname, joined_at, timeout } = data.data;
+          await this.rvAPIWrapper.members.fetch(data.id.server, data.id.user);
 
+          const updatedMember = this.rvAPIWrapper.members.$get(data.id.user, {
+            revolt: data.data,
+            discord: {},
+          });
+
+          const updatedMemberDiscord = this.rvAPIWrapper.members.$get(data.id.user, {
+            revolt: {},
+            discord: await Member.from_quark(updatedMember.revolt),
+          });
+
+          // TODO: Update the member list if subscribed
+          await Dispatch(
+            this,
+            GatewayDispatchEvents.GuildMemberUpdate,
+            updatedMemberDiscord.discord,
+          );
+
+          /*
           await Send(this, {
             op: GatewayOpcodes.Dispatch,
             t: GatewayDispatchEvents.GuildMemberUpdate,
@@ -810,6 +828,7 @@ export async function startListener(
               communication_disabled_until: timeout ? new Date(timeout).toISOString() : undefined,
             },
           });
+          */
 
           break;
         }

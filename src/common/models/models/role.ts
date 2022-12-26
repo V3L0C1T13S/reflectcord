@@ -7,15 +7,12 @@ import { Permissions } from "./permissions";
 
 export const Role: QuarkConversion<API.Role, APIRole> = {
   async to_quark(role) {
-    const { name, id } = role;
+    const { name, id, permissions } = role;
 
     return {
       name,
       _id: await fromSnowflake(id),
-      permissions: {
-        a: 0,
-        d: 0,
-      },
+      permissions: await Permissions.to_quark(BigInt(permissions)),
     };
   },
 

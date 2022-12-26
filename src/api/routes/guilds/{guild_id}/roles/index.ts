@@ -17,6 +17,9 @@ export default (express: Application) => <Resource> {
 
     res.json((await Guild.from_quark(server)).roles);
   },
+  patch: async (req, res) => {
+    res.sendStatus(500);
+  },
   post: async (req: Request<any, any, APIGuildCreateRole>, res) => {
     const {
       name, permissions, color, hoist, icon, unicode_emoji, mentionable,

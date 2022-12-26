@@ -43,7 +43,35 @@ export const PermsMap: Record<number, ValueOf<typeof PermissionFlagsBits>> = {
   [Permission.ViewChannel]: PermissionFlagsBits.ViewChannel,
 };
 
-export const DiscordPermsMap = allBigintToString(PermsMap);
+export const DiscordPerms: Record<string, ValueOf<typeof Permission>> = {
+  [PermissionFlagsBits.AddReactions.toString()]: Permission.React,
+  [PermissionFlagsBits.Administrator.toString()]: Permission.GrantAllSafe,
+  [PermissionFlagsBits.AttachFiles.toString()]: Permission.UploadFiles,
+  [PermissionFlagsBits.BanMembers.toString()]: Permission.BanMembers,
+  [PermissionFlagsBits.ChangeNickname.toString()]: Permission.ChangeNickname,
+  [PermissionFlagsBits.Connect.toString()]: Permission.Connect,
+  [PermissionFlagsBits.CreateInstantInvite.toString()]: Permission.InviteOthers,
+  [PermissionFlagsBits.DeafenMembers.toString()]: Permission.DeafenMembers,
+  [PermissionFlagsBits.EmbedLinks.toString()]: Permission.SendEmbeds,
+  [PermissionFlagsBits.KickMembers.toString()]: Permission.KickMembers,
+  [PermissionFlagsBits.ManageChannels.toString()]: Permission.ManageChannel,
+  [PermissionFlagsBits.ManageEmojisAndStickers.toString()]: Permission.ManageCustomisation,
+  [PermissionFlagsBits.ManageWebhooks.toString()]: Permission.ManageWebhooks,
+  [PermissionFlagsBits.ManageGuild.toString()]: Permission.ManageServer,
+  [PermissionFlagsBits.ManageMessages.toString()]: Permission.ManageMessages,
+  [PermissionFlagsBits.ManageNicknames.toString()]: Permission.ManageNicknames,
+  [PermissionFlagsBits.ManageRoles.toString()]: Permission.ManageRole,
+  [PermissionFlagsBits.ModerateMembers.toString()]: Permission.TimeoutMembers,
+  [PermissionFlagsBits.MoveMembers.toString()]: Permission.MoveMembers,
+  [PermissionFlagsBits.MuteMembers.toString()]: Permission.MuteMembers,
+  [PermissionFlagsBits.ReadMessageHistory.toString()]: Permission.ReadMessageHistory,
+  [PermissionFlagsBits.SendMessages.toString()]: Permission.SendMessage,
+  [PermissionFlagsBits.Speak.toString()]: Permission.Speak,
+  [PermissionFlagsBits.Stream.toString()]: Permission.Video,
+  [PermissionFlagsBits.ViewChannel.toString()]: Permission.ViewChannel,
+};
+
+// export const DiscordPermsMap = allBigintToString(PermsMap);
 
 export type rvPermission = {
   /** Allow */
@@ -88,25 +116,24 @@ export function calculateRolePermission(role: API.Role) {
 }
 
 export const Permissions: QuarkConversion<rvPermission, bigint> = {
-  async to_quark(permission) {
-    switch (permission) {
-      case PermissionFlagsBits.AddReactions: {
-        return {
-          a: 1,
-          d: 29,
-        };
+  async to_quark(permissions) {
+    const perms = new PermissionsBitField(permissions);
+    let calculated = Long.fromNumber(0);
+
+    Object.entries(DiscordPerms).forEach(([discordPerm, rvPerm]) => {
+      if (perms.has(BigInt(discordPerm))) {
+        calculated = calculated.or(rvPerm);
       }
-      default: {
-        return {
-          a: 0,
-          d: 0,
-        };
-      }
-    }
+    });
+
+    return {
+      a: calculated.toNumber(),
+      d: 0,
+    };
   },
 
-  async from_quark(permission) {
-    const rvPerm = calculatePermissions(permission);
+  async from_quark(permissions) {
+    const rvPerm = calculatePermissions(permissions);
 
     return convertPermNumber(rvPerm);
   },

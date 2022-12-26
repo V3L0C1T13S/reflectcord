@@ -8,16 +8,19 @@ import { User } from "./user";
 
 export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, API.User> = {
   async to_quark(member) {
-    const { user } = member;
+    const {
+      user, joined_at, nick, communication_disabled_until, roles,
+    } = member;
 
     return {
       _id: {
         server: "0",
         user: user?.id ? await fromSnowflake(user?.id) : "0",
       },
-      joined_at: member.joined_at,
-      nickname: member.nick ?? null,
-      timeout: member.communication_disabled_until ?? null,
+      joined_at,
+      nickname: nick ?? null,
+      timeout: communication_disabled_until ?? null,
+      roles: await Promise.all(roles.map((x) => fromSnowflake(x))),
     };
   },
 

@@ -3,16 +3,19 @@ import { runInAction } from "mobx";
 import { API } from "revolt.js";
 import { Member } from "@reflectcord/common/models";
 import { Logger } from "@reflectcord/common/utils";
+import _, { isEqual } from "lodash";
 import { BaseManager } from "./BaseManager";
 import { QuarkContainer } from "./types";
 
 export type MemberContainer = QuarkContainer<API.Member, APIGuildMember>;
+export type MemberI = QuarkContainer<Partial<API.Member>, Partial<APIGuildMember>>;
 
 export class MemberManager extends BaseManager<string, MemberContainer> {
-  $get(id: string) {
-    const data = this.get(id)!;
+  $get(id: string, data?: MemberI) {
+    if (data) this.update(id, data);
+    const member = this.get(id)!;
 
-    return data;
+    return member;
   }
 
   createObj(data: MemberContainer) {
@@ -25,6 +28,38 @@ export class MemberManager extends BaseManager<string, MemberContainer> {
     });
 
     return data;
+  }
+
+  update(id: string, data: MemberI) {
+    const member = this.get(id)!;
+    const apply = (ctx: string, key: string, target?: string) => {
+      if (
+        // @ts-expect-error TODO: clean up types here
+        typeof data[ctx][key] !== "undefined"
+            // @ts-expect-error TODO: clean up types here
+            && !isEqual(member[ctx][target ?? key], data[ctx][key])
+      ) {
+        // @ts-expect-error TODO: clean up types here
+        member[ctx][target ?? key] = data[ctx][key];
+      }
+    };
+    const applyRevolt = (key: string, target?: string) => apply("revolt", key, target);
+    const applyDiscord = (key: string, target?: string) => apply("discord", key, target);
+
+    applyRevolt("joined_at");
+    applyRevolt("nickname");
+    applyRevolt("timeout");
+    applyRevolt("roles");
+
+    applyDiscord("joined_at");
+    applyDiscord("communication_disabled_until");
+    applyDiscord("roles");
+    applyDiscord("deaf");
+    applyDiscord("mute");
+    applyDiscord("nick");
+    applyDiscord("avatar");
+    // TODO (tests)
+    // applyDiscord("user");
   }
 
   async fetch(serverId: string, memberId: string) {
