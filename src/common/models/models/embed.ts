@@ -87,34 +87,94 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
       }
     }
 
-    if (embed.type === "Website" && embed.special?.type === "YouTube" && embedEnableSpecials) {
-      discordEmbed.provider = {
-        name: "YouTube",
-        url: "https://www.youtube.com",
-      };
-
-      delete discordEmbed.image;
-
-      if (embed.video && embed.url) {
-        discordEmbed.video = {
-          url: embed.video.url,
-          width: embed.video.width,
-          height: embed.video.height,
-        };
-
-        if (embed.image) {
-          discordEmbed.thumbnail = {
-            url: embed.image.url,
-            width: embed.image.width,
-            height: embed.image.height,
-            proxy_url: proxyFile(embed.image.url),
+    if (embed.type === "Website" && embedEnableSpecials && embed.special?.type) {
+      switch (embed.special.type) {
+        case "YouTube": {
+          discordEmbed.provider = {
+            name: "YouTube",
+            url: "https://www.youtube.com",
           };
+
+          delete discordEmbed.image;
+
+          if (embed.video && embed.url) {
+            discordEmbed.video = {
+              url: embed.video.url,
+              width: embed.video.width,
+              height: embed.video.height,
+            };
+
+            if (embed.image) {
+              discordEmbed.thumbnail = {
+                url: embed.image.url,
+                width: embed.image.width,
+                height: embed.image.height,
+                proxy_url: proxyFile(embed.image.url),
+              };
+            }
+
+            discordEmbed.url = embed.url;
+
+            // @ts-ignore
+            discordEmbed.type = "video";
+          }
+
+          break;
         }
+        case "Spotify": {
+          discordEmbed.provider = {
+            name: "Spotify",
+            url: "https://spotify.com/",
+          };
 
-        discordEmbed.url = embed.url;
+          delete discordEmbed.image;
 
-        // @ts-ignore
-        discordEmbed.type = "video";
+          if (embed.url) {
+            discordEmbed.url = embed.url;
+          }
+
+          // @ts-ignore
+          discordEmbed.type = "link";
+
+          break;
+        }
+        case "Soundcloud": {
+          discordEmbed.provider = {
+            name: "SoundCloud",
+            url: "https://soundcloud.com/",
+          };
+
+          discordEmbed.author = {
+            name: "Unknown",
+            url: "https://soundcloud.com",
+          };
+
+          if (embed.url) {
+            discordEmbed.video = {
+              url: `https://w.soundcloud.com/player/?url=${encodeURI(embed.url)}&auto_play=false&show_artwork=true&visual=true&origin="twitter"`,
+              width: 435,
+              height: 400,
+            };
+          }
+
+          if (embed.image) {
+            discordEmbed.thumbnail = {
+              url: embed.image.url,
+              proxy_url: proxyFile(embed.image.url),
+              width: 500,
+              height: 500,
+            };
+          }
+
+          delete discordEmbed.image;
+
+          // @ts-ignore
+          discordEmbed.type = "video";
+
+          break;
+        }
+        case "None":
+        default:
       }
     }
 
