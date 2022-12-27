@@ -1,7 +1,7 @@
 import { APIApplication, APIUser } from "discord.js";
 import { Bot, BotResponse } from "revolt-api";
 import { QuarkConversion } from "../QuarkConversion";
-import { toSnowflake } from "../util";
+import { fromSnowflake, toSnowflake } from "../util";
 import { User } from "./user";
 
 export const Application: QuarkConversion<Bot, APIApplication> = {
@@ -11,8 +11,8 @@ export const Application: QuarkConversion<Bot, APIApplication> = {
     } = bot;
 
     return {
-      _id: id,
-      owner: owner?.id ?? "0",
+      _id: await fromSnowflake(id),
+      owner: owner ? await fromSnowflake(owner.id) : "0",
       token: "",
       public: bot.bot_public,
       analytics: false,

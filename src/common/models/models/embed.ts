@@ -2,14 +2,14 @@
 import { AddUndefinedToPossiblyUndefinedPropertiesOfInterface } from "discord-api-types/utils/internals";
 import { APIEmbed } from "discord.js";
 import { API } from "revolt.js";
-import { Logger } from "@reflectcord/common/utils";
 import axios from "axios";
 import { uploadFile } from "@reflectcord/cdn/util";
 import fileType from "file-type";
+import { TwitterApi } from "twitter-api-v2";
+import { Logger, hexToRgbCode, rgbToHex } from "../../utils";
 import { proxyFile } from "../../rvapi";
-import { hexToRgbCode, rgbToHex } from "../../utils";
 import { QuarkConversion } from "../QuarkConversion";
-import { embedEnableSpecials, reflectcordCDNURL } from "../../constants";
+import { embedEnableSpecials, reflectcordCDNURL, TwitterAPIBearer } from "../../constants";
 
 export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
   async to_quark(embed) {
@@ -36,10 +36,9 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
       if (embed.description) discordEmbed.description = embed.description;
       if (embed.colour) discordEmbed.color = hexToRgbCode(embed.colour) ?? 0;
       if (embed.icon_url) {
-        const imgUrl = proxyFile(embed.icon_url);
         discordEmbed.thumbnail = {
-          url: imgUrl,
-          proxy_url: imgUrl,
+          url: embed.icon_url,
+          proxy_url: proxyFile(embed.icon_url),
         };
       }
       if (embed.type === "Text") {
@@ -55,28 +54,33 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
       } else if (embed.image || embed.video) {
         const mediaInfo = {
           url: "",
+          proxy_url: "",
           width: 0,
           height: 0,
         };
         if (embed.image) {
           mediaInfo.width = embed.image.width;
           mediaInfo.height = embed.image.height;
-          mediaInfo.url = proxyFile(embed.image.url);
+          mediaInfo.url = embed.image.url;
+          mediaInfo.proxy_url = proxyFile(embed.image.url);
 
           discordEmbed.image = mediaInfo;
         } else if (embed.video) {
           mediaInfo.width = embed.video.width;
           mediaInfo.height = embed.video.height;
-          mediaInfo.url = proxyFile(embed.video.url);
+          mediaInfo.url = embed.video.url;
+          mediaInfo.proxy_url = proxyFile(embed.video.url);
 
           discordEmbed.video = mediaInfo;
         }
 
-        mediaInfo.url = proxyFile(mediaInfo.url);
+        mediaInfo.url = mediaInfo.url ?? "";
+        mediaInfo.proxy_url = proxyFile(mediaInfo.url);
       }
     } else {
       const mediaInfo = {
-        url: proxyFile(embed.url),
+        url: embed.url,
+        proxy_url: proxyFile(embed.url),
         width: embed.width,
         height: embed.height,
       };
@@ -161,8 +165,8 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
             discordEmbed.thumbnail = {
               url: embed.image.url,
               proxy_url: proxyFile(embed.image.url),
-              width: 500,
-              height: 500,
+              width: embed.image.width,
+              height: embed.image.height,
             };
           }
 
@@ -173,8 +177,132 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
 
           break;
         }
+        case "Twitch": {
+          discordEmbed.provider = {
+            name: "Twitch",
+          };
+
+          if (embed.image) {
+            discordEmbed.thumbnail = {
+              url: embed.image.url,
+              proxy_url: proxyFile(embed.image.url),
+              width: embed.image.width,
+              height: embed.image.height,
+            };
+          }
+
+          if (embed.video) {
+            discordEmbed.video = {
+              url: embed.video.url,
+              width: embed.video.width,
+              height: embed.video.height,
+            };
+          }
+
+          delete discordEmbed.image;
+
+          // @ts-ignore
+          discordEmbed.type = "video";
+
+          break;
+        }
+        case "Bandcamp": {
+          // @ts-ignore
+          discordEmbed.type = "link";
+
+          discordEmbed.provider = {
+            name: embed.site_name ?? "Bandcamp",
+          };
+
+          if (embed.image) {
+            discordEmbed.thumbnail = {
+              url: embed.image.url,
+              proxy_url: proxyFile(embed.image.url),
+              width: embed.image.width,
+              height: embed.image.height,
+            };
+          }
+
+          if (embed.video) {
+            discordEmbed.video = {
+              url: embed.video.url,
+              width: embed.video.width,
+              height: embed.video.height,
+            };
+          }
+
+          delete discordEmbed.image;
+
+          break;
+        }
         case "None":
         default:
+      }
+
+      try {
+        // TODO
+        if (embed.url?.startsWith("https://nitter.net/") && TwitterAPIBearer) {
+          const twitterClient = new TwitterApi(TwitterAPIBearer);
+          const readOnlyClient = twitterClient.readOnly;
+
+          const tweetRegexp = /\/status\/(\d+)/gs;
+
+          // @ts-ignore
+          discordEmbed.type = "rich";
+
+          const extractedAuthor = embed.title?.split("(").pop();
+          const extractedAuthorName = extractedAuthor?.substring(0, extractedAuthor.length - 1)!;
+
+          const tweetId = embed.url.match(tweetRegexp)?.[0]?.split("/").at(-1);
+
+          console.log(tweetId);
+
+          if (!tweetId) throw new Error("Couldn't extract tweet ID from message");
+
+          const user = await readOnlyClient.v2
+            .userByUsername(extractedAuthorName.substring(1, extractedAuthorName.length), {
+              "user.fields": ["profile_image_url"],
+            });
+
+          const tweet = await readOnlyClient.v2.singleTweet(tweetId, {
+            "tweet.fields": ["public_metrics", "created_at"],
+          });
+
+          const twitterIcon = "https://abs.twimg.com/icons/apple-touch-icon-192x192.png";
+
+          discordEmbed.author = {
+            name: embed.title ?? extractedAuthorName,
+            url: `https://twitter.com/${extractedAuthorName}`,
+            icon_url: user.data.profile_image_url ?? twitterIcon,
+            proxy_icon_url: proxyFile(user.data.profile_image_url ?? twitterIcon),
+          };
+
+          discordEmbed.fields = [{
+            name: "Likes",
+            value: tweet.data.public_metrics?.like_count.toString() ?? "0",
+            inline: true,
+          }, {
+            name: "Retweets",
+            value: tweet.data.public_metrics?.retweet_count.toString() ?? "0",
+            inline: true,
+          }];
+
+          discordEmbed.footer = {
+            text: "Twitter",
+            icon_url: twitterIcon,
+            proxy_icon_url: proxyFile(twitterIcon),
+          };
+
+          discordEmbed.timestamp = tweet.data.created_at ?? new Date().toISOString();
+
+          discordEmbed.color = 1942002;
+
+          // Clearing fields that aren't accurate to real Discord
+          delete discordEmbed.url;
+          delete discordEmbed.title;
+        }
+      } catch (e) {
+        Logger.warn(`Couldn't properly convert nitter embed ${e}`);
       }
     }
 

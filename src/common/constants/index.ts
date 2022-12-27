@@ -50,6 +50,10 @@ export const reflectcordWSPort = process.env["WS_PORT"] ?? 3002;
 
 export const reflectcordVoicePort = process.env["VOICE_PORT"] ?? 3015;
 
+export const twitterAPIKey = process.env["TWITTER_API_KEY"] ?? null;
+export const twitterAPIKeySecret = process.env["TWITTER_API_KEY_SECRET"] ?? null;
+export const TwitterAPIBearer = process.env["TWITTER_API_BEARER"] ?? null;
+
 export async function getRevoltDiscoveryDataURL() {
   const discoveryBuildId = await getNextData();
 
