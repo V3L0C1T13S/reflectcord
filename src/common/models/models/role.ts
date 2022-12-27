@@ -1,6 +1,6 @@
-import { APIRole } from "discord.js";
+import { APIRole, RESTPatchAPIGuildRoleJSONBody } from "discord.js";
 import { API } from "revolt.js";
-import { hexToRgbCode } from "../../utils";
+import { hexToRgbCode, rgbToHex } from "../../utils";
 import { QuarkConversion } from "../QuarkConversion";
 import { fromSnowflake, toSnowflake } from "../util";
 import { Permissions } from "./permissions";
@@ -29,6 +29,24 @@ export const Role: QuarkConversion<API.Role, APIRole> = {
       position: role.rank ?? 0,
       managed: false,
       mentionable: false,
+    };
+  },
+};
+
+export const RoleEdit: QuarkConversion<API.DataEditRole, RESTPatchAPIGuildRoleJSONBody> = {
+  async to_quark(role) {
+    return {
+      name: role.name ?? null,
+      colour: role.color ? rgbToHex(role.color) : null,
+      hoist: role.hoist ?? null,
+    };
+  },
+
+  async from_quark(role) {
+    return {
+      name: role.name ?? null,
+      colour: role.colour ? hexToRgbCode(role.colour) : null,
+      hoist: role.hoist,
     };
   },
 };

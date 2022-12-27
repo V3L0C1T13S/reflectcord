@@ -5,6 +5,7 @@ import {
   GatewayCloseCodes,
   GatewayDispatchEvents,
   GatewayGuildRoleDeleteDispatchData,
+  GatewayGuildRoleUpdateDispatchData,
   GatewayMessageCreateDispatchData,
   GatewayMessageDeleteBulkDispatchData,
   GatewayMessageDeleteDispatchData,
@@ -37,6 +38,7 @@ import {
   settingsToProtoBuf,
   ReadState,
   GatewayGuildEmoji,
+  Role,
 } from "@reflectcord/common/models";
 import { genSessionId, Logger, RabbitMQ } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
@@ -952,6 +954,33 @@ export async function startListener(
               emojis: [emoji.discord],
             },
           });
+
+          break;
+        }
+        case "ServerRoleUpdate": {
+          const guild = this.rvAPIWrapper.servers.$get(data.id);
+          const discordRoleId = await toSnowflake(data.role_id);
+          const role = guild.discord.roles.find((x) => x.id === discordRoleId);
+
+          if (!role) {
+            const discordRole = await Role.from_quark(data.data as API.Role, data.role_id);
+
+            const body: GatewayGuildRoleUpdateDispatchData = {
+              guild_id: guild.discord.id,
+              role: discordRole,
+            };
+
+            await Dispatch(this, GatewayDispatchEvents.GuildRoleCreate, body);
+
+            return;
+          }
+
+          const body: GatewayGuildRoleUpdateDispatchData = {
+            guild_id: guild.discord.id,
+            role,
+          };
+
+          await Dispatch(this, GatewayDispatchEvents.GuildRoleUpdate, body);
 
           break;
         }

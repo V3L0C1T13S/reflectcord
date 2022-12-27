@@ -1,7 +1,10 @@
 /* eslint-disable camelcase */
 import { Resource } from "express-automatic-routes";
-import { fromSnowflake, Permissions, Role } from "@reflectcord/common/models";
+import {
+  fromSnowflake, Permissions, Role, RoleEdit,
+} from "@reflectcord/common/models";
 import { HTTPError } from "@reflectcord/common/utils";
+import { API } from "revolt.js";
 
 export default () => <Resource> {
   // FIXME
@@ -14,25 +17,30 @@ export default () => <Resource> {
     const serverId = await fromSnowflake(guild_id);
     const rvRoleId = await fromSnowflake(roleId);
 
-    const perms = await Permissions.to_quark(req.body.permissions);
+    const rvPatchbody = await RoleEdit.to_quark(req.body);
 
-    console.log(perms);
+    const rvRole = await res.rvAPI.patch(`/servers/${serverId as ""}/roles/${rvRoleId as ""}`, rvPatchbody);
 
-    const revoltResponse = await res.rvAPI.put(`/servers/${serverId as ""}/permissions/${rvRoleId as ""}`, {
-      permissions: {
-        allow: perms.a,
-        deny: perms.d,
-      },
-    });
+    if (req.body.permissions) {
+      const perms = await Permissions.to_quark(req.body.permissions);
 
-    // const role = Object.entries(revoltResponse.roles ?? {}).find(([id]) => id === roleId);
+      console.log(perms);
 
-    // if (!role) throw new HTTPError("Revolt returned invalid response", 500);
+      const revoltResponse = await res.rvAPI.put(`/servers/${serverId as ""}/permissions/${rvRoleId as ""}`, {
+        permissions: {
+          allow: perms.a,
+          deny: perms.d,
+        },
+      });
 
-    res.json({
-      ...req.body,
-      id: roleId,
-    });
+      const role = Object.entries(revoltResponse.roles ?? {}).find(([id]) => id === rvRoleId);
+
+      if (!role) throw new HTTPError("Revolt returned invalid response", 500);
+
+      rvRole.permissions = role[1].permissions;
+    }
+
+    res.json(await Role.from_quark(rvRole, rvRoleId));
   },
   delete: async (req, res) => {
     const { guild_id, roleId } = req.params;
