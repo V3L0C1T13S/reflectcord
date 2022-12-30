@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import { AddUndefinedToPossiblyUndefinedPropertiesOfInterface } from "discord-api-types/utils/internals";
-import { APIEmbed } from "discord.js";
+import { APIEmbed, APIEmbedImage, APIEmbedVideo } from "discord.js";
 import { API } from "revolt.js";
 import axios from "axios";
 import { uploadFile } from "@reflectcord/cdn/util";
@@ -9,7 +9,9 @@ import { TwitterApi } from "twitter-api-v2";
 import { Logger, hexToRgbCode, rgbToHex } from "../../utils";
 import { proxyFile } from "../../rvapi";
 import { QuarkConversion } from "../QuarkConversion";
-import { embedEnableSpecials, reflectcordCDNURL, TwitterAPIBearer } from "../../constants";
+import {
+  AutumnURL, embedEnableSpecials, reflectcordCDNURL, TwitterAPIBearer,
+} from "../../constants";
 
 export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
   async to_quark(embed) {
@@ -26,6 +28,7 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
     };
   },
 
+  // FIXME: Spaghetti momento
   async from_quark(embed) {
     if (embed.type === "None") return {};
 
@@ -78,16 +81,36 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
         mediaInfo.proxy_url = proxyFile(mediaInfo.url);
       }
     } else {
-      const mediaInfo = {
+      const mediaInfo: APIEmbedImage | APIEmbedVideo = {
         url: embed.url,
         proxy_url: proxyFile(embed.url),
         width: embed.width,
         height: embed.height,
       };
       if (embed.type === "Image") {
-        discordEmbed.image = mediaInfo;
+        discordEmbed.image = mediaInfo as APIEmbedImage;
+        // @ts-ignore
+        discordEmbed.type = "image";
       } else if (embed.type === "Video") {
+        const attachmentId = embed.url.split("/").at(-2);
+        const isAutumn = mediaInfo.url?.startsWith(AutumnURL);
+
+        if (isAutumn) {
+          mediaInfo.proxy_url = `http://${reflectcordCDNURL}/attachments/${attachmentId}`;
+        }
+
         discordEmbed.video = mediaInfo;
+
+        discordEmbed.thumbnail = {
+          url: isAutumn ? `${mediaInfo.proxy_url}?format=jpeg` : mediaInfo.url ?? "",
+          proxy_url: mediaInfo.proxy_url ?? "",
+          width: embed.width,
+          height: embed.height,
+        };
+        if (isAutumn) delete discordEmbed.thumbnail.proxy_url;
+
+        // @ts-ignore
+        discordEmbed.type = "video";
       }
     }
 
@@ -97,6 +120,10 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
           discordEmbed.provider = {
             name: "YouTube",
             url: "https://www.youtube.com",
+          };
+
+          discordEmbed.author = {
+            name: "Unknown",
           };
 
           delete discordEmbed.image;
@@ -255,8 +282,6 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
 
           const tweetId = embed.url.match(tweetRegexp)?.[0]?.split("/").at(-1);
 
-          console.log(tweetId);
-
           if (!tweetId) throw new Error("Couldn't extract tweet ID from message");
 
           const user = await readOnlyClient.v2
@@ -272,7 +297,7 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
 
           discordEmbed.author = {
             name: embed.title ?? extractedAuthorName,
-            url: `https://twitter.com/${extractedAuthorName}`,
+            url: `https://nitter.net/${extractedAuthorName}`,
             icon_url: user.data.profile_image_url ?? twitterIcon,
             proxy_icon_url: proxyFile(user.data.profile_image_url ?? twitterIcon),
           };
@@ -293,12 +318,31 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
             proxy_icon_url: proxyFile(twitterIcon),
           };
 
+          if (embed.video) {
+            delete discordEmbed.image;
+
+            if (embed.image) {
+              discordEmbed.thumbnail = {
+                url: embed.image.url,
+                proxy_url: proxyFile(embed.image.url),
+                width: embed.image.width,
+                height: embed.image.height,
+              };
+            }
+
+            discordEmbed.video = {
+              url: `https://twitter.com/i/videos/tweet/${tweetId}`,
+              width: embed.image?.width ?? embed.video.width,
+              height: embed.image?.height ?? embed.video.height,
+            };
+          }
+
           discordEmbed.timestamp = tweet.data.created_at ?? new Date().toISOString();
 
           discordEmbed.color = 1942002;
 
           // Clearing fields that aren't accurate to real Discord
-          delete discordEmbed.url;
+          // delete discordEmbed.url;
           delete discordEmbed.title;
         }
       } catch (e) {
