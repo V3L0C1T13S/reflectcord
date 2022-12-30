@@ -70,10 +70,10 @@ export class UserManager extends BaseManager<string, UserContainer> {
 
   async getSelfId() {
     if (this.selfId) return this.selfId;
-    const info = await this.rvAPI.get("/auth/account/");
-    this.selfId = info._id;
+    const user = await this.rvAPI.get("/users/@me");
+    this.selfId = user._id;
 
-    return info._id;
+    return user._id;
   }
 
   getUser(id: string) {
