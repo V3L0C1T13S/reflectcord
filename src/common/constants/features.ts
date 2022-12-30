@@ -17,5 +17,3 @@ export const messageFullMentions = process.env["MESSAGE_FULL_MENTIONS"] ?? false
 export const RPCUseStub = process.env["RPC_USE_STUB"] ?? false;
 
 export const enableProfileThemes = process.env["ENABLE_PROFILE_THEMES"] ?? false;
-
-export const messageEmitMember = process.env["MESSAGE_EMIT_MEMBER"] ?? false;
