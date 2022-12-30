@@ -1,9 +1,8 @@
 import { APIGuildMember } from "discord.js";
-import { runInAction } from "mobx";
 import { API } from "revolt.js";
 import { Member } from "@reflectcord/common/models";
 import { Logger } from "@reflectcord/common/utils";
-import _, { isEqual } from "lodash";
+import { isEqual } from "lodash";
 import { BaseManager } from "./BaseManager";
 import { QuarkContainer } from "./types";
 
@@ -21,11 +20,9 @@ export class MemberManager extends BaseManager<string, MemberContainer> {
   createObj(data: MemberContainer) {
     if (this.has(data.revolt._id.user)) return this.$get(data.revolt._id.user);
 
-    Logger.log(`Adding new member ${data.revolt._id.user} to cache`);
+    // Logger.log(`Adding new member ${data.revolt._id.user} to cache`);
 
-    runInAction(() => {
-      this.set(data.revolt._id.user, data);
-    });
+    this.set(data.revolt._id.user, data);
 
     return data;
   }

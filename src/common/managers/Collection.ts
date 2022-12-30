@@ -1,8 +1,7 @@
-import { ObservableMap } from "mobx";
 import { API } from "revolt.js";
 import { APIWrapper } from "../rvapi";
 
-export default class Collection<K, V> extends ObservableMap<K, V> {
+export default class Collection<K, V> extends Map<K, V> {
   rvAPI: API.API;
 
   apiWrapper: APIWrapper;

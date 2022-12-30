@@ -215,35 +215,35 @@ export async function startListener(
 
               const discordGuild = rvServer.discord;
 
+              const member = await rvServer.extra?.members
+                .fetch(rvServer.revolt._id, this.rv_user_id);
+
               const commonGuild = {
                 channels: await HandleChannelsAndCategories(
                   rvChannels,
                   server.categories,
                   server._id,
                 ),
+                joined_at: member?.discord.joined_at ?? new Date().toISOString(),
+                large: false,
+                member_count: discordGuild.approximate_member_count ?? 0,
+                members: [member?.discord],
+                threads: [],
+                stage_instances: [],
+                guild_scheduled_events: [],
               };
-
-              const member = await rvServer.extra?.members
-                .fetch(rvServer.revolt._id, this.rv_user_id);
 
               const guild = {
                 ...commonGuild,
                 data_mode: "full",
                 emojis: emojis ? await Promise.all(emojis
                   ?.map((x) => GatewayGuildEmoji.from_quark(x))) : [],
-                guild_scheduled_events: [],
                 id: discordGuild.id,
-                joined_at: member?.discord.joined_at ?? new Date().toISOString(),
-                large: false,
                 lazy: true,
-                member_count: discordGuild.approximate_member_count ?? 0,
-                members: [member],
                 premium_subscription_count: discordGuild.premium_subscription_count ?? 0,
                 properties: discordGuild,
                 roles: discordGuild.roles,
-                stage_instances: [],
                 stickers: [],
-                threads: [],
                 version: 0,
               };
 
@@ -650,50 +650,36 @@ export async function startListener(
           break;
         }
         case "ChannelUpdate": {
-          const channel = this.rvAPIWrapper.channels.$get(data.id, {
-            revolt: data.data ?? {},
-            discord: {},
-          });
+          const channelHandle = this.rvAPIWrapper.channels.get(data.id);
+          if (channelHandle) {
+            this.rvAPIWrapper.channels.update(data.id, {
+              revolt: data.data,
+              discord: await Channel.from_quark({
+                ...channelHandle.revolt,
+                ...data.data,
+              } as API.Channel),
+            });
 
-          if (!channel.revolt) return;
-
-          const channelDiscord = await Channel.from_quark(channel.revolt);
-          const updatedChannel = this.rvAPIWrapper.channels.$get(data.id, {
-            revolt: {},
-            discord: channelDiscord,
-          });
-
-          /**
-           * FIXME: wrappers using buggy encodings (ERLPACK) don't like properties being null
-           * but having a key, so we just delete it. It ONLY affects this property for
-           * some reason even though we literally always give [] if you look in quarkconversion.
-          */
-          if (
-            "permission_overwrites" in updatedChannel.discord
-            && updatedChannel.discord.permission_overwrites?.length > 1) {
-            delete updatedChannel.discord.permission_overwrites;
-          }
-
-          // TODO: Document in Sparkle
-          const body: GatewayUserChannelUpdateOptional = {
-            ...updatedChannel.discord,
-          };
-
-          if (!this.bot) {
-            const stubGatewayHash = {
-              hash: "NpY9iQ",
+            const body: GatewayUserChannelUpdateOptional = {
+              ...channelHandle.discord,
             };
-            const stubHash = {
-              channels: stubGatewayHash,
-              metadata: stubGatewayHash,
-              roles: stubGatewayHash,
-              version: 1,
-            };
-            body.guild_hashes = stubHash;
-            body.version = 1671679879788;
-          }
 
-          await Dispatch(this, GatewayDispatchEvents.ChannelUpdate, body);
+            if (!this.bot) {
+              const stubGatewayHash = {
+                hash: "NpY9iQ",
+              };
+              const stubHash = {
+                channels: stubGatewayHash,
+                metadata: stubGatewayHash,
+                roles: stubGatewayHash,
+                version: 1,
+              };
+              body.guild_hashes = stubHash;
+              body.version = 1671679879788;
+            }
+
+            await Dispatch(this, GatewayDispatchEvents.ChannelUpdate, body);
+          }
 
           break;
         }

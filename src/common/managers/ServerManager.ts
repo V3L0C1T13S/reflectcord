@@ -1,5 +1,4 @@
 import { APIGuild } from "discord.js";
-import { runInAction } from "mobx";
 import { API } from "revolt.js";
 import { isEqual } from "lodash";
 import { Guild } from "../models";
@@ -23,15 +22,13 @@ export class ServerManager extends BaseManager<string, ServerContainer> {
   createObj(data: ServerContainer) {
     if (this.has(data.revolt._id)) return this.$get(data.revolt._id);
 
-    runInAction(() => {
-      if (!data.extra?.members) {
-        // eslint-disable-next-line no-param-reassign
-        data.extra = {
-          members: new MemberManager(this.apiWrapper),
-        };
-      }
-      this.set(data.revolt._id, data);
-    });
+    if (!data.extra?.members) {
+      // eslint-disable-next-line no-param-reassign
+      data.extra = {
+        members: new MemberManager(this.apiWrapper),
+      };
+    }
+    this.set(data.revolt._id, data);
 
     return data;
   }

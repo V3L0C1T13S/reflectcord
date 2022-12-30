@@ -18,9 +18,7 @@ export class EmojiManager extends BaseManager<string, EmojiContainer> {
   createObj(data: EmojiContainer) {
     if (this.has(data.revolt._id)) return this.$get(data.revolt._id);
 
-    runInAction(() => {
-      this.set(data.revolt._id, data);
-    });
+    this.set(data.revolt._id, data);
 
     return data;
   }

@@ -1,5 +1,4 @@
 import { APIChannel } from "discord.js";
-import { runInAction } from "mobx";
 import { isEqual } from "lodash";
 import { API } from "revolt.js";
 import { Logger } from "../utils";
@@ -22,7 +21,7 @@ export class ChannelsManager extends BaseManager<string, ChannelContainer> {
 
     if (data) return this.createObj(data);
 
-    Logger.log(`getting new channel ${id}`);
+    // Logger.log(`getting new channel ${id}`);
 
     const res = await this.rvAPI.get(`/channels/${id as ""}`);
 
@@ -35,9 +34,7 @@ export class ChannelsManager extends BaseManager<string, ChannelContainer> {
   createObj(channel: ChannelContainer) {
     if (this.has(channel.revolt._id)) return this.$get(channel.revolt._id, channel);
 
-    runInAction(() => {
-      this.set(channel.revolt._id, channel);
-    });
+    this.set(channel.revolt._id, channel);
 
     return channel;
   }
@@ -50,7 +47,7 @@ export class ChannelsManager extends BaseManager<string, ChannelContainer> {
     await this.rvAPI.delete(`/channels/${id}/recipients/${user}`);
   }
 
-  update(id: string, data: channelI) {
+  update(id: string, data: channelI, clear?: string[]) {
     const channel = this.get(id)!;
 
     const apply = (ctx: string, key: string, target?: string) => {
@@ -64,6 +61,17 @@ export class ChannelsManager extends BaseManager<string, ChannelContainer> {
         channel[ctx][target ?? key] = data[ctx][key];
       }
     };
+
+    clear?.forEach((entry) => {
+      switch (entry) {
+        case "Description": {
+          // @ts-ignore
+          delete channel.revolt.description;
+          break;
+        }
+        default:
+      }
+    });
 
     apply("revolt", "active");
     apply("revolt", "owner", "owner_id");

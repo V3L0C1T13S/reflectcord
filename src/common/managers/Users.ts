@@ -1,5 +1,4 @@
 import { APIUser } from "discord.js";
-import { runInAction } from "mobx";
 import { API } from "revolt.js";
 import { isEqual } from "lodash";
 import { Logger } from "../utils";
@@ -40,7 +39,7 @@ export class UserManager extends BaseManager<string, UserContainer> {
   async fetch(id: string, data?: UserContainer) {
     if (this.has(id)) return this.$get(id, data);
 
-    Logger.log(`fetching new user ${id}`);
+    // Logger.log(`fetching new user ${id}`);
 
     if (data) return this.createObj(data);
 
@@ -55,9 +54,7 @@ export class UserManager extends BaseManager<string, UserContainer> {
   createObj(user: UserContainer) {
     if (this.has(user.revolt._id)) return this.$get(user.revolt._id, user);
 
-    runInAction(() => {
-      this.set(user.revolt._id, user);
-    });
+    this.set(user.revolt._id, user);
 
     return user;
   }
