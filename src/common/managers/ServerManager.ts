@@ -54,6 +54,14 @@ export class ServerManager extends BaseManager<string, ServerContainer> {
     return this.rvAPI.delete(`/servers/${id as ""}`);
   }
 
+  editRole(server: string, role: string, body: API.DataEditRole) {
+    return this.rvAPI.patch(`/servers/${server as ""}/roles/${role as ""}`, body);
+  }
+
+  editRolePerms(server: string, role: string, body: API.DataSetServerRolePermission) {
+    return this.rvAPI.put(`/servers/${server as ""}/permissions/${role as ""}`, body);
+  }
+
   /**
    * Alias for leave
   */

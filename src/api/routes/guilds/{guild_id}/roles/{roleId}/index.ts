@@ -24,9 +24,7 @@ export default () => <Resource> {
     if (req.body.permissions) {
       const perms = await Permissions.to_quark(req.body.permissions);
 
-      console.log(perms);
-
-      const revoltResponse = await res.rvAPI.put(`/servers/${serverId as ""}/permissions/${rvRoleId as ""}`, {
+      const revoltResponse = await res.rvAPIWrapper.servers.editRolePerms(serverId, rvRoleId, {
         permissions: {
           allow: perms.a,
           deny: perms.d,

@@ -3,7 +3,9 @@ import { APIGuildCreateRole, APIRole } from "discord.js";
 import { Application, Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { HTTPError } from "@reflectcord/common/utils";
-import { Guild, Role, fromSnowflake } from "@reflectcord/common/models";
+import {
+  Guild, Role, fromSnowflake, RoleEdit, Permissions,
+} from "@reflectcord/common/models";
 
 export default (express: Application) => <Resource> {
   get: async (req, res: Response<APIRole[]>) => {
@@ -22,7 +24,7 @@ export default (express: Application) => <Resource> {
   },
   post: async (req: Request<any, any, APIGuildCreateRole>, res) => {
     const {
-      name, permissions, color, hoist, icon, unicode_emoji, mentionable,
+      name, permissions,
     } = req.body;
 
     const { guild_id } = req.params;
@@ -32,6 +34,23 @@ export default (express: Application) => <Resource> {
     const role = await res.rvAPI.post(`/servers/${serverId as ""}/roles`, {
       name: name ?? "new role",
     });
+
+    if (Object.keys(req.body).length > 1) {
+      const editData = await RoleEdit.to_quark(req.body);
+
+      await res.rvAPIWrapper.servers.editRole(serverId, role.id, editData);
+
+      if (permissions) {
+        const rvPerms = await Permissions.to_quark(BigInt(permissions));
+
+        await res.rvAPIWrapper.servers.editRolePerms(serverId, role.id, {
+          permissions: {
+            allow: rvPerms.a,
+            deny: rvPerms.d,
+          },
+        });
+      }
+    }
 
     res.json(await Role.from_quark(role.role));
   },

@@ -958,40 +958,56 @@ export async function startListener(
           break;
         }
         case "ServerRoleUpdate": {
-          const guild = this.rvAPIWrapper.servers.$get(data.id);
-          const discordRoleId = await toSnowflake(data.role_id);
-          const role = guild.discord.roles.find((x) => x.id === discordRoleId);
+          const server = this.rvAPIWrapper.servers.get(data.id);
+          if (server) {
+            const rvRole = {
+              ...server.revolt.roles?.[data.role_id],
+              ...data.data,
+            } as API.Role;
+            const discordRole = await Role.from_quark(rvRole, data.role_id);
+            let existingDiscord = server.discord.roles.find((x) => x.id === discordRole.id);
+            const isUpdate = !!existingDiscord;
 
-          if (!role) {
-            const discordRole = await Role.from_quark(data.data as API.Role, data.role_id);
+            existingDiscord = {
+              ...existingDiscord,
+              ...discordRole,
+            };
+            if (!isUpdate) server.discord.roles.push(existingDiscord);
+
+            server.revolt.roles = {
+              ...server.revolt.roles,
+              [data.role_id]: rvRole,
+            };
 
             const body: GatewayGuildRoleUpdateDispatchData = {
-              guild_id: guild.discord.id,
+              guild_id: server.discord.id,
               role: discordRole,
             };
 
-            await Dispatch(this, GatewayDispatchEvents.GuildRoleCreate, body);
+            const dispatchType = isUpdate
+              ? GatewayDispatchEvents.GuildRoleUpdate
+              : GatewayDispatchEvents.GuildRoleCreate;
 
-            return;
+            await Dispatch(this, dispatchType, body);
           }
-
-          const body: GatewayGuildRoleUpdateDispatchData = {
-            guild_id: guild.discord.id,
-            role,
-          };
-
-          await Dispatch(this, GatewayDispatchEvents.GuildRoleUpdate, body);
 
           break;
         }
         case "ServerRoleDelete": {
-          const body: GatewayGuildRoleDeleteDispatchData = {
-            guild_id: await toSnowflake(data.id),
-            role_id: await toSnowflake(data.role_id),
-          };
+          const server = this.rvAPIWrapper.servers.get(data.id);
+          if (server) {
+            const { [data.role_id]: _, ...roles } = server.revolt.roles ?? {};
+            const discordRoleId = await toSnowflake(data.role_id);
+            server.revolt.roles = roles;
+            server.discord.roles = server.discord.roles.filter((x) => x.id !== discordRoleId);
 
-          await Dispatch(this, GatewayDispatchEvents.GuildRoleDelete, body);
+            const body: GatewayGuildRoleDeleteDispatchData = {
+              guild_id: server.discord.id,
+              role_id: discordRoleId,
+            };
 
+            await Dispatch(this, GatewayDispatchEvents.GuildRoleDelete, body);
+          }
           break;
         }
         case "UserRelationship": {
