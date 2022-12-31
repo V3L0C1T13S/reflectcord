@@ -4,7 +4,6 @@ import {
   APIMessage,
   APIMessageReference,
   APIUser,
-  MessageReference as DiscordMessageReference,
   MessageType,
   RESTPostAPIChannelMessageJSONBody,
 } from "discord.js";
@@ -50,7 +49,7 @@ export type APIMention = {
 type messageReferenceRevolt = {
   id: string,
   channel_id: string,
-  server?: string,
+  server?: string | null | undefined,
 }
 
 export type MessageATQ = {};
@@ -58,6 +57,7 @@ export type MessageATQ = {};
 export type MessageAFQ = Partial<{
   user: API.User | null | undefined,
   mentions: API.User[] | null | undefined,
+  server: string | null,
 }>
 
 export const MessageReference: QuarkConversion<
@@ -65,18 +65,24 @@ export const MessageReference: QuarkConversion<
   APIMessageReference
 > = {
   async to_quark(reference) {
-    return {
+    const revoltRef: messageReferenceRevolt = {
       id: reference.message_id ? await fromSnowflake(reference.message_id) : "0",
       channel_id: await fromSnowflake(reference.channel_id),
+      server: reference.guild_id ? await toSnowflake(reference.guild_id) : null,
     };
+
+    return revoltRef;
   },
 
   async from_quark(reference) {
-    return {
+    const discordRef: APIMessageReference = {
       message_id: await toSnowflake(reference.id),
       channel_id: await toSnowflake(reference.channel_id),
-      // guild_id: reference.server ? await toSnowflake(reference.server) : null,
     };
+
+    if (reference.server) discordRef.guild_id = await toSnowflake(reference.server);
+
+    return discordRef;
   },
 };
 
@@ -132,9 +138,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
         if (message.author === systemUserID) {
           if (message.system) {
             if (
-              message.system.type === "user_added"
-            || message.system.type === "user_remove"
-            || message.system.type === "user_kicked"
+              message.system.type === "user_kicked"
             || message.system.type === "user_banned"
             || message.system.type === "user_joined"
             ) {
@@ -144,6 +148,9 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
                 discriminator: "1",
                 avatar: null,
               };
+            }
+            if (message.system.type === "user_added" || message.system.type === "user_remove") {
+              return authorUser;
             }
             if (message.system.type === "channel_renamed") {
               return {
@@ -215,6 +222,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
       discordMessage.message_reference = await MessageReference.from_quark({
         id: reply,
         channel_id: message.channel,
+        server: extra?.server,
       });
     }
 
@@ -224,6 +232,14 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
       switch (message.system.type) {
         case "text": {
           discordMessage.content = message.system.content;
+          break;
+        }
+        case "user_added": {
+          discordMessage.mentions.push(await User.from_quark({
+            _id: message.system.by,
+            username: "fixme",
+          }));
+
           break;
         }
         case "user_left": {
@@ -236,6 +252,10 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
         }
         case "user_kicked": {
           discordMessage.content = `<@${await toSnowflake(message.system.id)}> was kicked.`;
+          break;
+        }
+        case "channel_renamed": {
+          discordMessage.content = message.system.name;
           break;
         }
         default: {
