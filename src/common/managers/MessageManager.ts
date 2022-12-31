@@ -9,21 +9,23 @@ export type MessageContainer = QuarkContainer<API.Message, APIMessage>
 
 export class MessageManager extends BaseManager<string, MessageContainer> {
   async convertMessageObj(rvMessage: API.Message) {
+    const discordMessage = await Message.from_quark(rvMessage);
+
     const authorInfo = await (async () => {
       if (rvMessage.author === systemUserID) {
         if (rvMessage.system) {
           switch (rvMessage.system.type) {
             case "user_remove": {
-              return this.apiWrapper.users.getUser(rvMessage.system.by);
+              return this.apiWrapper.users.fetch(rvMessage.system.by);
             }
             case "user_added": {
-              return this.apiWrapper.users.getUser(rvMessage.system.id);
+              return this.apiWrapper.users.fetch(rvMessage.system.id);
             }
             case "user_joined": {
-              return this.apiWrapper.users.getUser(rvMessage.system.id);
+              return this.apiWrapper.users.fetch(rvMessage.system.id);
             }
             case "channel_renamed": {
-              return this.apiWrapper.users.getUser(rvMessage.system.by);
+              return this.apiWrapper.users.fetch(rvMessage.system.by);
             }
             default: {
               return null;
@@ -31,13 +33,12 @@ export class MessageManager extends BaseManager<string, MessageContainer> {
           }
         }
       } else {
-        return this.apiWrapper.users.getUser(rvMessage.author);
+        return this.apiWrapper.users.fetch(rvMessage.author);
       }
 
       return null;
     })();
 
-    const discordMessage = await Message.from_quark(rvMessage);
     return {
       revolt: {
         message: rvMessage,
@@ -66,7 +67,7 @@ export class MessageManager extends BaseManager<string, MessageContainer> {
     );
 
     const discordMessage = await Message.from_quark(revoltResponse);
-    const selfUser = await this.apiWrapper.users.getSelf();
+    const selfUser = await this.apiWrapper.users.getSelf(false);
 
     return {
       revolt: {

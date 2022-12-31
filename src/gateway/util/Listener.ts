@@ -2,8 +2,10 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-plusplus */
 import {
+  APIChannel,
   GatewayCloseCodes,
   GatewayDispatchEvents,
+  GatewayGuildCreateDispatchData,
   GatewayGuildRoleDeleteDispatchData,
   GatewayGuildRoleUpdateDispatchData,
   GatewayMessageCreateDispatchData,
@@ -50,6 +52,28 @@ import { DbManager } from "@reflectcord/common/db";
 import { WebSocket } from "../Socket";
 import { Dispatch, Send } from "./send";
 import experiments from "./experiments.json";
+
+// TODO: rework lol
+function cacheServerCreateChannels(
+  this: WebSocket,
+  rvChannels: API.Channel[],
+  discordChannels: APIChannel[],
+) {
+  rvChannels.forEach((x) => {
+    const channelHandler = this.rvAPIWrapper.channels.get(x._id);
+    if (!channelHandler
+      || !(
+        "guild_id" in channelHandler.discord
+        && channelHandler.discord.guild_id
+      )) return;
+
+    const discordChannel = discordChannels
+      .find((ch) => ch.id === channelHandler?.discord.id);
+
+    if (!discordChannel || !("parent_id" in discordChannel && discordChannel.parent_id)) return;
+    channelHandler.discord.parent_id = discordChannel.parent_id;
+  });
+}
 
 const voiceStates = DbManager.client.db("reflectcord")
   .collection("voiceStates");
@@ -220,20 +244,7 @@ export async function startListener(
                 server._id,
               );
 
-              rvChannels.forEach((x) => {
-                const channelHandler = this.rvAPIWrapper.channels.get(x._id);
-                if (!channelHandler
-                  || !(
-                    "guild_id" in channelHandler.discord
-                    && channelHandler.discord.guild_id
-                  )) return;
-
-                const discordChannel = serverChannels
-                  .find((ch) => ch.id === channelHandler?.discord.id);
-
-                if (!discordChannel || !("parent_id" in discordChannel && discordChannel.parent_id)) return;
-                channelHandler.discord.parent_id = discordChannel.parent_id;
-              });
+              cacheServerCreateChannels.call(this, rvChannels, serverChannels);
 
               const commonGuild = {
                 channels: serverChannels,
@@ -263,6 +274,8 @@ export async function startListener(
               const botGuild = {
                 ...discordGuild,
                 ...commonGuild,
+                presences: [],
+                voice_states: [],
               };
 
               if (currentUser.bot) {
@@ -697,90 +710,126 @@ export async function startListener(
         case "ChannelDelete": {
           const channel = this.rvAPIWrapper.channels.get(data.id);
 
-          await Send(this, {
-            op: GatewayOpcodes.Dispatch,
-            t: GatewayDispatchEvents.ChannelDelete,
-            s: this.sequence++,
-            d: channel?.discord ?? await Channel.from_quark({
-              _id: data.id,
-              channel_type: "DirectMessage",
-              active: false,
-              recipients: [],
-            }),
-          });
+          await Dispatch(this, GatewayDispatchEvents.ChannelDelete, channel?.discord);
+
+          if (channel) {
+            await this.rvAPIWrapper.channels.deleteChannel(channel.revolt._id, false, true);
+          }
+
           break;
         }
         case "ServerCreate": {
+          await Promise.all(data.channels
+            .map(async (x) => this.rvAPIWrapper.channels.createObj({
+              revolt: x,
+              discord: await Channel.from_quark(x),
+            })));
+
+          const channels = await HandleChannelsAndCategories(
+            data.channels,
+            data.server.categories,
+            data.server._id,
+          );
+
+          cacheServerCreateChannels.call(this, data.channels, channels);
+
           const guild = this.rvAPIWrapper.servers.createObj({
             revolt: data.server,
             discord: await Guild.from_quark(data.server),
           });
 
-          await Send(this, {
-            op: GatewayOpcodes.Dispatch,
-            t: GatewayDispatchEvents.GuildCreate,
-            s: this.sequence++,
-            d: guild.discord,
-          });
+          const member = await this.rvAPIWrapper.members.fetch(data.server._id, this.rv_user_id);
+
+          const commonGuild = {
+            joined_at: new Date().toISOString(),
+            large: false,
+            voice_states: [],
+            presences: [],
+            members: [member.discord],
+            member_count: guild.discord.approximate_member_count ?? 0,
+            channels,
+            threads: [],
+            stage_instances: [],
+            guild_scheduled_events: [],
+          };
+
+          const userGuild = {
+            ...commonGuild,
+            id: guild.discord.id,
+            properties: guild.discord,
+            roles: guild.discord.roles,
+            emojis: guild.discord.emojis,
+            stickers: [],
+            premium_subscription_count: guild.discord.premium_subscription_count ?? 0,
+            embedded_activities: [],
+          };
+
+          const botGuild: GatewayGuildCreateDispatchData = {
+            ...commonGuild,
+            ...guild.discord,
+          };
+
+          await Dispatch(this, GatewayDispatchEvents.GuildCreate, this.bot ? botGuild : userGuild);
+
           break;
         }
         case "ServerDelete": {
-          await Send(this, {
-            op: GatewayOpcodes.Dispatch,
-            t: GatewayDispatchEvents.GuildDelete,
-            s: this.sequence++,
-            d: {
-              id: await toSnowflake(data.id),
-            },
+          const server = this.rvAPIWrapper.servers.get(data.id);
+
+          await Dispatch(this, GatewayDispatchEvents.GuildDelete, {
+            id: server?.discord.id ?? await toSnowflake(data.id),
           });
+
+          if (server) {
+            await this.rvAPIWrapper.servers.removeServer(server.revolt._id, false, true);
+          }
+
           break;
         }
         case "ServerUpdate": {
-          const oldServer = this.rvAPIWrapper.servers.$get(data.id);
-          const server = this.rvAPIWrapper.servers.$get(data.id, {
-            revolt: data.data ?? {},
-            discord: {},
-          });
+          const server = this.rvAPIWrapper.servers.get(data.id);
+          if (server) {
+            const rvEmojis = Array.from(this.rvAPIWrapper.emojis.values())
+              .filter((x) => x.revolt.parent.type === "Server" && x.revolt.parent.id === server.revolt._id);
 
-          if (!server?.revolt) return;
+            this.rvAPIWrapper.servers.update(server.revolt._id, {
+              revolt: data.data,
+              discord: await Guild.from_quark({
+                ...server.revolt,
+                ...data.data,
+              }, {
+                emojis: rvEmojis.map((x) => x.revolt),
+              }),
+            });
 
-          const guild = await Guild.from_quark(server.revolt);
-          const updatedGuild = this.rvAPIWrapper.servers.$get(data.id, {
-            revolt: {},
-            discord: guild,
-          });
+            if (data.data.categories) {
+              await Promise.all(data.data.categories.map(async (x) => {
+                // Only emit channelcreate for new categories - the rest get "updated"
+                const eventType = server.revolt.categories?.find((c) => x.id === c.id)
+                  ? GatewayDispatchEvents.ChannelUpdate
+                  : GatewayDispatchEvents.ChannelCreate;
 
-          if (data.data.categories) {
-            await Promise.all(data.data.categories.map(async (x) => {
-              // Only emit channelcreate for new categories - the rest get "updated"
-              const eventType = oldServer.revolt.categories?.find((c) => x.id === c.id)
-                ? GatewayDispatchEvents.ChannelUpdate
-                : GatewayDispatchEvents.ChannelCreate;
+                const discordCategory = await GuildCategory.from_quark(x, {
+                  server: data.id,
+                });
 
-              const discordCategory = await GuildCategory.from_quark(x, {
-                server: data.id,
-              });
+                await Dispatch(this, eventType, discordCategory);
 
-              await Dispatch(this, eventType, discordCategory);
+                await Promise.all(x.channels.map(async (id) => {
+                  const channel = this.rvAPIWrapper.channels.get(id);
+                  if (!channel || !("parent_id" in channel.discord)) return;
 
-              await Promise.all(x.channels.map(async (id) => {
-                const channel = this.rvAPIWrapper.channels.get(id);
-                if (!channel || !("parent_id" in channel.discord)) return;
+                  if (discordCategory.id === channel.discord.parent_id) return;
 
-                if (discordCategory.id === channel.discord.parent_id) return;
-
-                channel.discord.parent_id = discordCategory.id;
-                await Dispatch(this, GatewayDispatchEvents.ChannelUpdate, channel.discord);
+                  channel.discord.parent_id = discordCategory.id;
+                  await Dispatch(this, GatewayDispatchEvents.ChannelUpdate, channel.discord);
+                }));
               }));
-            }));
+            }
+
+            await Dispatch(this, GatewayDispatchEvents.GuildUpdate, server.discord);
           }
 
-          await Send(this, {
-            op: GatewayOpcodes.Dispatch,
-            t: GatewayDispatchEvents.GuildUpdate,
-            s: this.sequence++,
-            d: updatedGuild.discord,
-          });
           break;
         }
         case "ServerMemberJoin": {

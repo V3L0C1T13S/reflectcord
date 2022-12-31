@@ -47,8 +47,18 @@ export class ServerManager extends BaseManager<string, ServerContainer> {
   /**
    * Leave or delete a server
   */
-  async leave(id: string) {
-    return this.rvAPI.delete(`/servers/${id as ""}`);
+  async leave(id: string, silent?: boolean) {
+    return this.rvAPI.delete(`/servers/${id as ""}`, {
+      leave_silently: silent,
+    });
+  }
+
+  async removeServer(id: string, silent?: boolean, avoidReq?: boolean) {
+    if (!avoidReq) {
+      await this.leave(id, silent);
+    }
+
+    this.delete(id);
   }
 
   editRole(server: string, role: string, body: API.DataEditRole) {
@@ -98,6 +108,8 @@ export class ServerManager extends BaseManager<string, ServerContainer> {
     applyDiscord("name");
     applyDiscord("description");
     applyDiscord("roles");
+    applyDiscord("icon");
+    applyDiscord("icon_hash");
     applyDiscord("banner");
     applyDiscord("nsfw");
     applyDiscord("flags");

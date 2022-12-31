@@ -1,7 +1,6 @@
 import { APIChannel } from "discord.js";
 import { isEqual } from "lodash";
 import { API } from "revolt.js";
-import { Logger } from "../utils";
 import { Channel } from "../models";
 import { BaseManager } from "./BaseManager";
 import { QuarkContainer } from "./types";
@@ -45,6 +44,34 @@ export class ChannelsManager extends BaseManager<string, ChannelContainer> {
 
   async removeFromGroup(id: string, user: string) {
     await this.rvAPI.delete(`/channels/${id}/recipients/${user}`);
+  }
+
+  async deleteChannel(id: string, leaveSilently?: boolean, avoidReq?: boolean) {
+    const channel = this.get(id);
+
+    if (!avoidReq) {
+      await this.rvAPI.delete(`/channels/${id as ""}`, {
+        leave_silently: leaveSilently,
+      });
+    }
+
+    if (!channel) return;
+
+    if (channel.revolt.channel_type === "DirectMessage") {
+      channel.revolt.active = false;
+    }
+
+    if (channel.revolt.channel_type === "TextChannel"
+      || channel.revolt.channel_type === "VoiceChannel") {
+      const server = this.apiWrapper.servers.get(channel.revolt.server);
+      if (server) {
+        server.revolt.channels = server.revolt.channels.filter(
+          (x) => x !== channel.revolt._id,
+        );
+      }
+    }
+
+    this.delete(channel.revolt._id);
   }
 
   update(id: string, data: channelI, clear?: string[]) {
