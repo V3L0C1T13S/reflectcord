@@ -15,11 +15,15 @@ export async function onIdentify(this: WebSocket, data: Payload<IdentifySchema>)
 
   const identify = data.d!;
 
-  const { token } = identify;
+  let { token } = identify;
 
   if (!token) {
     Logger.error(`Invalid token ${token}`);
     return this.close(GatewayCloseCodes.AuthenticationFailed);
+  }
+
+  if (token.startsWith("Bot ")) {
+    token = token.slice("Bot ".length, token.length);
   }
 
   this.token = token;

@@ -107,7 +107,7 @@ export const User: QuarkConversion<RevoltUser, APIUser, UserATQ, UserAFQ> = {
       bot: !!user.bot,
       banner: user.profile?.background?._id ?? null,
       banner_color: null,
-      discriminator: "1",
+      discriminator: "0001",
       flags,
       locale: "en-US",
       username,

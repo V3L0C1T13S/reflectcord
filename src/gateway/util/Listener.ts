@@ -656,12 +656,8 @@ export async function startListener(
             discord: await Channel.from_quark(data),
           });
 
-          await Send(this, {
-            op: GatewayOpcodes.Dispatch,
-            t: GatewayDispatchEvents.ChannelCreate,
-            s: this.sequence++,
-            d: channel.discord,
-          });
+          await Dispatch(this, GatewayDispatchEvents.ChannelCreate, channel.discord);
+
           break;
         }
         case "ChannelUpdate": {
@@ -766,6 +762,16 @@ export async function startListener(
               });
 
               await Dispatch(this, eventType, discordCategory);
+
+              await Promise.all(x.channels.map(async (id) => {
+                const channel = this.rvAPIWrapper.channels.get(id);
+                if (!channel || !("parent_id" in channel.discord)) return;
+
+                if (discordCategory.id === channel.discord.parent_id) return;
+
+                channel.discord.parent_id = discordCategory.id;
+                await Dispatch(this, GatewayDispatchEvents.ChannelUpdate, channel.discord);
+              }));
             }));
           }
 
