@@ -68,11 +68,12 @@ async function HandleRequest(
   if (presences) {
     const discordPresences = await Promise.all(members.users.map(async (x) => {
       const status = await Status.from_quark(x.status);
+      const { activities } = status;
       const discordPresence = {
         user: await User.from_quark(x),
         guild_id: guildId,
         status: status.status,
-        activites: status.activities,
+        activities,
         client_status: {
           desktop: status.status,
         },
