@@ -184,19 +184,15 @@ export async function startListener(
               discord: await User.from_quark(user),
             }).discord));
 
-          await Promise.all(data.channels
+          const channels = await Promise.all(data.channels
             .map(async (channel) => this.rvAPIWrapper.channels.createObj({
               revolt: channel,
               discord: await Channel.from_quark(channel, { excludedUser: currentUser._id }),
             })));
 
-          /**
-           * FIXME: Doing this with the API wrapper on Erlpack/ETF encoding
-           * crashes a lot of clients, so we have to re-instantiate everything
-           */
-          const private_channels = await Promise.all(data.channels
-            .filter((x) => x.channel_type === "DirectMessage" || x.channel_type === "Group")
-            .map((x) => Channel.from_quark(x, { excludedUser: currentUser._id })));
+          const private_channels = channels
+            .filter((x) => x.revolt.channel_type === "DirectMessage" || x.revolt.channel_type === "Group")
+            .map((x) => x.discord);
 
           const guilds = await Promise.all(data.servers
             .map(async (server) => {
@@ -218,12 +214,29 @@ export async function startListener(
               const member = await rvServer.extra?.members
                 .fetch(rvServer.revolt._id, this.rv_user_id);
 
+              const serverChannels = await HandleChannelsAndCategories(
+                rvChannels,
+                server.categories,
+                server._id,
+              );
+
+              rvChannels.forEach((x) => {
+                const channelHandler = this.rvAPIWrapper.channels.get(x._id);
+                if (!channelHandler
+                  || !(
+                    "guild_id" in channelHandler.discord
+                    && channelHandler.discord.guild_id
+                  )) return;
+
+                const discordChannel = serverChannels
+                  .find((ch) => ch.id === channelHandler?.discord.id);
+
+                if (!discordChannel || !("parent_id" in discordChannel && discordChannel.parent_id)) return;
+                channelHandler.discord.parent_id = discordChannel.parent_id;
+              });
+
               const commonGuild = {
-                channels: await HandleChannelsAndCategories(
-                  rvChannels,
-                  server.categories,
-                  server._id,
-                ),
+                channels: serverChannels,
                 joined_at: member?.discord.joined_at ?? new Date().toISOString(),
                 large: false,
                 member_count: discordGuild.approximate_member_count ?? 0,
@@ -316,15 +329,17 @@ export async function startListener(
             });
           });
 
-          await Promise.all(data.members.map(async (x) => {
+          const members = (await Promise.all(data.members.map(async (x) => {
             const server = this.rvAPIWrapper.servers.$get(x._id.server);
-            server.extra?.members.createObj({
+            const member = {
               revolt: x,
               discord: await Member.from_quark(x),
-            });
-          }));
+            };
 
-          const members = await Promise.all(data.members.map((x) => Member.from_quark(x)));
+            server.extra?.members.createObj(member);
+
+            return member.discord;
+          })));
 
           const mergedMembers = members.map((member) => ([{
             ...member,

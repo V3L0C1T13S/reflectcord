@@ -265,7 +265,11 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
     const channelType = await ChannelType.from_quark(channel.channel_type) as any;
 
     // Workaround for weird typechecking bug
-    const commonProperties: { guild_id?: string, owner_id?: string, recipients?: APIUser[] } = {};
+    const commonProperties: {
+      guild_id?: string,
+      owner_id?: string,
+      recipients?: APIUser[]
+    } = {};
 
     if ("server" in channel && typeof channel.server === "string") {
       commonProperties.guild_id = await toSnowflake(channel.server);

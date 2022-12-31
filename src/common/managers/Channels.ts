@@ -93,5 +93,7 @@ export class ChannelsManager extends BaseManager<string, ChannelContainer> {
     apply("discord", "owner_id");
     apply("discord", "icon");
     apply("discord", "nsfw");
+    // FIXME: Overridden with null by Channel.from_quark()
+    // apply("discord", "parent_id");
   }
 }
