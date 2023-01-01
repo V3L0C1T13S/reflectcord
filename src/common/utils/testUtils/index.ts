@@ -20,7 +20,7 @@ export async function getFromAPI(url: string) {
     },
   });
 
-  console.log(JSON.stringify(res.data));
+  console.log(res.data);
 
   return res;
 }
@@ -35,7 +35,21 @@ export async function postToAPI(url: string, data: any) {
     data,
   });
 
-  console.log(JSON.stringify(res.data));
+  console.log(res.data);
+
+  return res;
+}
+
+export async function deleteFromAPI(url: string) {
+  const res = await TestAxiosClient({
+    method: "delete",
+    url: `${apiURL}/${url}`,
+    headers: {
+      authorization: TestingToken,
+    },
+  });
+
+  console.log(res.data);
 
   return res;
 }

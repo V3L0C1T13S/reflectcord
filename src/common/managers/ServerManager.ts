@@ -36,12 +36,19 @@ export class ServerManager extends BaseManager<string, ServerContainer> {
   async fetch(id: string) {
     if (this.has(id)) return this.$get(id);
 
-    const res = await this.rvAPI.get(`/servers/${id as ""}`);
+    const res = await this.fetchRaw(id);
 
     return this.createObj({
       revolt: res,
       discord: await Guild.from_quark(res),
     });
+  }
+
+  /**
+   * Fetch server without caching or conversion
+  */
+  fetchRaw(id: string) {
+    return this.rvAPI.get(`/servers/${id as ""}`);
   }
 
   /**

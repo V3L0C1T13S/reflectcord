@@ -15,7 +15,7 @@ export default (express: Application) => <Resource> {
 
     const serverId = await fromSnowflake(guild_id);
 
-    const server = await res.rvAPI.get(`/servers/${serverId as ""}`);
+    const server = await res.rvAPIWrapper.servers.fetchRaw(serverId);
 
     res.json((await Guild.from_quark(server)).roles);
   },
@@ -52,6 +52,6 @@ export default (express: Application) => <Resource> {
       }
     }
 
-    res.json(await Role.from_quark(role.role));
+    res.json(await Role.from_quark(role.role, serverId));
   },
 };

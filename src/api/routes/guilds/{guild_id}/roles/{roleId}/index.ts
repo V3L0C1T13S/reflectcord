@@ -5,11 +5,24 @@ import {
 } from "@reflectcord/common/models";
 import { HTTPError } from "@reflectcord/common/utils";
 import { API } from "revolt.js";
+import { Response } from "express";
+import { APIRole } from "discord.js";
 
 export default () => <Resource> {
-  // FIXME
-  get: (req, res) => {},
-  patch: async (req, res) => {
+  get: async (req, res: Response<APIRole>) => {
+    const { guild_id, roleId } = req.params;
+
+    if (!roleId || !guild_id) throw new HTTPError("Invalid params");
+
+    const serverId = await fromSnowflake(guild_id);
+
+    const server = await res.rvAPIWrapper.servers.fetch(serverId);
+    const role = server.discord.roles.find((x) => x.id === roleId);
+    if (!role) throw new HTTPError("Role not found", 404);
+
+    res.json(role);
+  },
+  patch: async (req, res: Response<APIRole>) => {
     const { guild_id, roleId } = req.params;
 
     if (!roleId || !guild_id) throw new HTTPError("Invalid params");
