@@ -26,7 +26,7 @@ export class EmojiManager extends BaseManager<string, EmojiContainer> {
   async fetch(id: string) {
     if (this.has(id)) return this.$get(id);
 
-    const res = await this.rvAPI.get(`/custom/emoji/${id as ""}`);
+    const res = await this.rvAPI.get(`/custom/emoji/${encodeURI(id) as ""}`);
 
     return this.createObj({
       revolt: res,

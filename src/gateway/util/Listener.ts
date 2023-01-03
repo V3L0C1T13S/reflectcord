@@ -41,6 +41,7 @@ import {
   ReadState,
   GatewayGuildEmoji,
   Role,
+  Message,
 } from "@reflectcord/common/models";
 import { genSessionId, Logger, RabbitMQ } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
@@ -126,7 +127,7 @@ export async function createInternalListener(this: WebSocket) {
   const consumer = internalConsumer.bind(this);
 
   const opts: { acknowledge: boolean; channel?: any } = {
-    acknowledge: true,
+    acknowledge: false,
   };
   if (RabbitMQ.connection) {
     opts.channel = await RabbitMQ.connection.createChannel();
@@ -342,7 +343,7 @@ export async function startListener(
             });
           });
 
-          const members = (await Promise.all(data.members.map(async (x) => {
+          const memberData = (await Promise.all(data.members.map(async (x) => {
             const server = this.rvAPIWrapper.servers.$get(x._id.server);
             const member = {
               revolt: x,
@@ -351,15 +352,22 @@ export async function startListener(
 
             server.extra?.members.createObj(member);
 
-            return member.discord;
+            return { member, guild: server.discord };
           })));
 
-          const mergedMembers = members.map((member) => ([{
-            ...member,
-            roles: member.roles,
-            settings: undefined,
-            guild: undefined,
-          }]));
+          const mergedMembers = memberData.map((member_data) => {
+            const { guild, member } = member_data;
+
+            // FIXME: Make role with highest ranking take priority
+            const hoisted_role = guild.roles.find((role) => role.hoist
+            && member.discord.roles.find((member_role) => member_role === role.id));
+
+            const body: any = { ...member.discord };
+
+            if (hoisted_role) body.hoisted_role = hoisted_role;
+
+            return body;
+          });
 
           const relationships = await Promise.all(data.users
             .filter((u) => u.relationship !== "None" && u.relationship !== "User")
@@ -437,7 +445,7 @@ export async function startListener(
               },
             },
             country_code: "US",
-            merged_members: mergedMembers,
+            merged_members: [mergedMembers],
           };
 
           await Send(this, {
@@ -497,7 +505,14 @@ export async function startListener(
           break;
         }
         case "Message": {
-          const msgObj = await this.rvAPIWrapper.messages.convertMessageObj(data);
+          const msgObj = await this.rvAPIWrapper.messages.convertMessageObj(
+            data,
+            { mentions: true },
+          );
+          this.rvAPIWrapper.messages.createObj({
+            revolt: msgObj.revolt.message,
+            discord: msgObj.discord,
+          });
           const channel = await this.rvAPIWrapper.channels.fetch(data.channel);
 
           this.rvAPIWrapper.channels.update(data.channel, {
@@ -529,7 +544,20 @@ export async function startListener(
           break;
         }
         case "MessageUpdate": {
-          const msgObj = await this.rvAPIWrapper.messages.getMessage(data.channel, data.id);
+          const msgObj = await this.rvAPIWrapper.messages.fetch(
+            data.channel,
+            data.id,
+            { mentions: true },
+          );
+          const updatedRevolt = { ...msgObj.revolt, ...data.data };
+          this.rvAPIWrapper.messages.update(data.id, {
+            revolt: data.data,
+            discord: await Message.from_quark(updatedRevolt, {
+              mentions: (await this.rvAPIWrapper.messages
+                .getMessageMentions(updatedRevolt))
+                .map((x) => x.revolt),
+            }),
+          });
           const channel = await this.rvAPIWrapper.channels.fetch(data.channel);
 
           const body: GatewayMessageUpdateDispatchData = msgObj.discord;

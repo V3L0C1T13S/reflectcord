@@ -218,7 +218,6 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
     };
 
     if (reply) {
-      // FIXME: Missing guild id
       discordMessage.message_reference = await MessageReference.from_quark({
         id: reply,
         channel_id: message.channel,

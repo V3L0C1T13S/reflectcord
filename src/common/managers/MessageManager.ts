@@ -1,15 +1,32 @@
 import { APIMessage } from "discord.js";
 import { API } from "revolt.js";
+import { isEqual } from "lodash";
 import { Message, User } from "../models";
 import { BaseManager } from "./BaseManager";
 import { QuarkContainer } from "./types";
 import { systemUserID } from "../rvapi/users";
 
-export type MessageContainer = QuarkContainer<API.Message, APIMessage>
+export type MessageContainer = QuarkContainer<API.Message, APIMessage>;
+export type MessageI = QuarkContainer<Partial<API.Message>, Partial<APIMessage>>;
+
+type messageInclude = {
+  mentions: boolean,
+}
 
 export class MessageManager extends BaseManager<string, MessageContainer> {
-  async convertMessageObj(rvMessage: API.Message) {
-    const discordMessage = await Message.from_quark(rvMessage);
+  $get(id: string, data?: MessageContainer) {
+    if (data) this.update(id, data);
+
+    const msg = this.get(id)!;
+
+    return msg;
+  }
+
+  async convertMessageObj(rvMessage: API.Message, include?: messageInclude) {
+    const discordMessage = await Message.from_quark(rvMessage, {
+      mentions: include?.mentions ? (await this.getMessageMentions(rvMessage))
+        .map((x) => x.revolt) : null,
+    });
 
     const authorInfo = await (async () => {
       if (rvMessage.author === systemUserID) {
@@ -49,6 +66,27 @@ export class MessageManager extends BaseManager<string, MessageContainer> {
         author: authorInfo?.discord ?? discordMessage.author,
       },
     };
+  }
+
+  createObj(data: MessageContainer) {
+    if (this.has(data.revolt._id)) return this.$get(data.revolt._id);
+
+    this.set(data.revolt._id, data);
+
+    return data;
+  }
+
+  async fetch(channel: string, id: string, include?: messageInclude) {
+    if (this.has(id)) return this.$get(id);
+
+    const rvMessage = await this.rvAPI.get(`/channels/${channel as ""}/messages/${id as ""}`);
+
+    const convertedMessage = await this.convertMessageObj(rvMessage, include);
+
+    return this.createObj({
+      revolt: rvMessage,
+      discord: convertedMessage.discord,
+    });
   }
 
   async getMessage(channel: string, id: string) {
@@ -94,5 +132,45 @@ export class MessageManager extends BaseManager<string, MessageContainer> {
 
   deleteMessage(channel: string, id: string) {
     return this.rvAPI.delete(`/channels/${channel as ""}/messages/${id as ""}`);
+  }
+
+  async getMessageMentions(message: API.Message) {
+    if (!message.mentions) return [];
+
+    return Promise.all(message.mentions
+      .map((mention) => this.apiWrapper.users.fetch(mention)));
+  }
+
+  update(id: string, data: MessageI) {
+    const msg = this.get(id)!;
+    const apply = (ctx: string, key: string, target?: string) => {
+      if (
+        // @ts-expect-error TODO: clean up types here
+        typeof data[ctx][key] !== "undefined"
+            // @ts-expect-error TODO: clean up types here
+            && !isEqual(msg[ctx][target ?? key], data[ctx][key])
+      ) {
+        // @ts-expect-error TODO: clean up types here
+        msg[ctx][target ?? key] = data[ctx][key];
+      }
+    };
+    const applyRevolt = (key: string, target?: string) => apply("revolt", key, target);
+    const applyDiscord = (key: string, target?: string) => apply("discord", key, target);
+
+    applyRevolt("content");
+    applyRevolt("attachments");
+    applyRevolt("edited");
+    applyRevolt("embeds");
+    // FIXME (REVOLT DELTA): this never updates
+    applyRevolt("mentions");
+    applyRevolt("masquerade");
+    applyRevolt("reactions");
+    applyRevolt("interactions");
+
+    applyDiscord("content");
+    applyDiscord("attachments");
+    applyDiscord("edited_timestamp");
+    applyDiscord("embeds");
+    applyDiscord("mentions");
   }
 }

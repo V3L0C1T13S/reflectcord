@@ -1,6 +1,8 @@
 /* eslint-disable camelcase */
 import { AddUndefinedToPossiblyUndefinedPropertiesOfInterface } from "discord-api-types/utils/internals";
-import { APIEmbed, APIEmbedImage, APIEmbedVideo } from "discord.js";
+import {
+  APIEmbed, APIEmbedImage, APIEmbedVideo,
+} from "discord.js";
 import { API } from "revolt.js";
 import axios from "axios";
 import { uploadFile } from "@reflectcord/cdn/util";
@@ -360,16 +362,22 @@ export const SendableEmbed: QuarkConversion<
 > = {
   async to_quark(embed) {
     const {
-      title, description, url, fields, footer, color, image,
+      title, description, url, fields, footer, color, image, author,
     } = embed;
 
     const rvEmbed: API.SendableEmbed = {
       title: title ?? null,
       description: (() => {
-        let realDescription = description ?? "";
+        let realDescription = "";
+
+        if (author) {
+          realDescription += `**${author.name}**\n\n`;
+        }
+
+        realDescription += description;
 
         fields?.forEach((field) => {
-          realDescription += `\n\n**${field.name}**\n\n${field.value}`;
+          realDescription += `\n\n**${field.name}**\n${field.value}`;
         });
 
         if (footer) realDescription += `\n\n${footer.text}`;
@@ -396,6 +404,10 @@ export const SendableEmbed: QuarkConversion<
       } catch (e) {
         Logger.error(e);
       }
+    }
+
+    if (embed.author?.icon_url) {
+      rvEmbed.icon_url = embed.author.icon_url;
     }
 
     return rvEmbed;
