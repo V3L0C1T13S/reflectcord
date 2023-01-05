@@ -53,6 +53,7 @@ import { DbManager } from "@reflectcord/common/db";
 import { WebSocket } from "../Socket";
 import { Dispatch, Send } from "./send";
 import experiments from "./experiments.json";
+import { isDeprecatedClient } from "../versioning";
 
 // TODO: rework lol
 function cacheServerCreateChannels(
@@ -187,6 +188,7 @@ export async function startListener(
           this.rv_user_id = currentUser._id;
 
           this.session_id = genSessionId();
+          this.is_deprecated = isDeprecatedClient.call(this);
 
           this.typingConsumer = await RabbitMQ.channel?.consume(userStartTyping, (msg) => {
             if (!msg) return;
@@ -243,6 +245,7 @@ export async function startListener(
                 rvChannels,
                 server.categories,
                 server._id,
+                this.is_deprecated,
               );
 
               cacheServerCreateChannels.call(this, rvChannels, serverChannels);
@@ -277,6 +280,12 @@ export async function startListener(
                 ...commonGuild,
                 presences: [],
                 voice_states: [],
+                unavailable: false,
+              };
+
+              const legacyGuild = {
+                ...botGuild,
+                presences: [],
               };
 
               if (currentUser.bot) {
@@ -289,6 +298,11 @@ export async function startListener(
                   });
                 }, 500);
                 return { id: guild.id, unavailable: true };
+              }
+
+              // Older clients expect bot guilds
+              if (this.version < 9 && !this.bot) {
+                return legacyGuild;
               }
 
               return guild;
@@ -379,6 +393,28 @@ export async function startListener(
               revolt: u,
             })));
 
+          const friendPresences = await Promise.all(relationships.map(async (relationship) => {
+            const rvUser = relationship.revolt;
+
+            const status = await Status.from_quark(rvUser.status, {
+              online: rvUser.online,
+            });
+
+            const presence = status.status === "invisible" ? "offline" : status.status ?? "offline";
+
+            return {
+              user: {
+                id: relationship.discord.user.id,
+              },
+              activities: status.activities,
+              client_status: {
+                desktop: presence,
+              },
+              status: presence,
+              last_modified: Date.now(),
+            };
+          }));
+
           const rvSettings = !currentUser.bot ? await this.rvAPI.post("/sync/settings/fetch", {
             keys: SettingsKeys,
           }) as unknown as RevoltSettings : null;
@@ -398,7 +434,7 @@ export async function startListener(
           const readStateEntries = await Promise.all(unreads.map((x) => ReadState.from_quark(x)));
 
           const readyData = {
-            v: 9,
+            v: this.version,
             application: currentUserDiscord.bot ? {
               id: currentUserDiscord.id,
               flags: 0,
@@ -418,16 +454,16 @@ export async function startListener(
               nickname: x.discord.user.username,
               user: x.discord.user,
             })),
-            read_state: {
+            read_state: this.version > 7 ? {
               entries: readStateEntries,
               partial: false,
               version: 304128,
-            },
-            user_guild_settings: {
+            } : readStateEntries,
+            user_guild_settings: this.version > 7 ? {
               entries: user_settings?.user_guild_settings,
               partial: false,
               version: 642,
-            },
+            } : user_settings?.user_guild_settings ?? [],
             users,
             experiments, // ily fosscord
             private_channels,
@@ -446,40 +482,19 @@ export async function startListener(
             },
             country_code: "US",
             merged_members: [mergedMembers],
+            // V6 & V7 garbo
+            indicators_confirmed: [],
+            notes: {},
+            _trace: ["s2-gateway-prd-7-5"],
+            shard: [0, 1],
+            presences: friendPresences,
           };
 
-          await Send(this, {
-            op: GatewayOpcodes.Dispatch,
-            t: GatewayDispatchEvents.Ready,
-            s: this.sequence++,
-            d: readyData,
-          });
+          await Dispatch(this, GatewayDispatchEvents.Ready, readyData);
 
           await createInternalListener.call(this);
 
           if (!currentUserDiscord.bot) {
-            const friendPresences = await Promise.all(relationships.map(async (relationship) => {
-              const rvUser = relationship.revolt;
-
-              const status = await Status.from_quark(rvUser.status, {
-                online: rvUser.online,
-              });
-
-              const presence = status.status === "invisible" ? "offline" : status.status ?? "offline";
-
-              return {
-                user: {
-                  id: relationship.discord.user.id,
-                },
-                activities: status.activities,
-                client_status: {
-                  desktop: presence,
-                },
-                status: presence,
-                last_modified: Date.now(),
-              };
-            }));
-
             const supplementalData = {
               guilds: await Promise.all(guilds.map(async (x) => ({
                 id: x.id,
@@ -494,12 +509,7 @@ export async function startListener(
               },
             };
 
-            await Send(this, {
-              op: GatewayOpcodes.Dispatch,
-              t: "READY_SUPPLEMENTAL",
-              s: this.sequence++,
-              d: supplementalData,
-            });
+            await Dispatch(this, GatewayDispatchCodes.ReadySupplemental, supplementalData);
           }
 
           break;
@@ -757,6 +767,7 @@ export async function startListener(
             data.channels,
             data.server.categories,
             data.server._id,
+            this.is_deprecated,
           );
 
           cacheServerCreateChannels.call(this, data.channels, channels);

@@ -58,6 +58,7 @@ export interface GuildIntegrationsUpdateResponse {
 }
 
 export enum GatewayDispatchCodes {
+  ReadySupplemental = "READY_SUPPLEMENTAL",
   PassiveUpdateV1 = "PASSIVE_UPDATE_V1",
   GuildIntegrationsUpdate = "GUILD_INTEGRATIONS_UPDATE",
   IntegrationUpdate = "INTEGRATION_UPDATE",

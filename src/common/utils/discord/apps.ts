@@ -1,10 +1,10 @@
 import axios from "axios";
+import { discordBaseAPIURL } from "common/constants";
 import { DbManager } from "../../db";
 import { Logger } from "../Logger";
 
 const client = axios.create();
-const discordBaseURL = "https://discord.com/api/v9";
-const discordAppsURL = `${discordBaseURL}/applications/detectable`;
+const discordAppsURL = `${discordBaseAPIURL}/applications/detectable`;
 
 const appData = DbManager.client.db("reflectcord")
   .collection("discordApps");
@@ -42,7 +42,7 @@ export async function GetDetectableApps(): Promise<AppDataResponse> {
 export async function GetRPCApplication(appId: string) {
   const app = await appData.findOne({
     id: appId,
-  }) ?? (await client.get(`${discordBaseURL}/oauth2/applications/${appId}/rpc`)).data;
+  }) ?? (await client.get(`${discordBaseAPIURL}/oauth2/applications/${appId}/rpc`)).data;
 
   await appData.findOneAndReplace({
     id: appId,

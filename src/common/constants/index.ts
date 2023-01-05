@@ -54,6 +54,9 @@ export const twitterAPIKey = process.env["TWITTER_API_KEY"] ?? null;
 export const twitterAPIKeySecret = process.env["TWITTER_API_KEY_SECRET"] ?? null;
 export const TwitterAPIBearer = process.env["TWITTER_API_BEARER"] ?? null;
 
+export const discordBaseURL = process.env["DISCORD_BASE_URL"] ?? "https://discord.com";
+export const discordBaseAPIURL = `${discordBaseURL}/api/v9`;
+
 export async function getRevoltDiscoveryDataURL() {
   const discoveryBuildId = await getNextData();
 

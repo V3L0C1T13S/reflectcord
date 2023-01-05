@@ -47,6 +47,12 @@ export interface UserSettings {
   disable_games_tab?: boolean;
   enable_tts_command?: boolean;
   explicit_content_filter?: number;
+  /** V6 - 8 */
+  friend_source_flags: {
+    all: boolean,
+    mutual_friends: boolean,
+    mutual_guilds: boolean,
+  };
   gateway_connected?: boolean;
   gif_auto_play?: boolean;
   guild_folders?: GuildFolder[];
@@ -81,6 +87,11 @@ export const DefaultUserSettings: UserSettings = {
   developer_mode: true,
   disable_games_tab: true,
   enable_tts_command: true,
+  friend_source_flags: {
+    all: true,
+    mutual_friends: true,
+    mutual_guilds: true,
+  },
   explicit_content_filter: 0,
   gateway_connected: false,
   gif_auto_play: true,

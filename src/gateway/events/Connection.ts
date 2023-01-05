@@ -29,8 +29,8 @@ export async function Connection(this: ws.Server, socket: WebSocket, request: In
       return socket.close(GatewayCloseCodes.DecodeError);
     }
 
-    socket.version = 8;
-    if (socket.version !== 8) return socket.close(GatewayCloseCodes.InvalidAPIVersion);
+    socket.version = searchParams.get("version")?.toNumber() ?? searchParams.get("v")?.toNumber() ?? 6;
+    if (socket.version < 6) return socket.close(GatewayCloseCodes.InvalidAPIVersion);
 
     // @ts-ignore
     socket.compress = searchParams.get("compress") || "";

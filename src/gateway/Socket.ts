@@ -31,6 +31,7 @@ interface subscribedServer {
 export interface WebSocket extends WS {
   bot: boolean;
   subscribed_servers: Record<string, subscribedServer>;
+  is_deprecated: boolean;
   version: number;
   user_id: string;
   rv_user_id: string;

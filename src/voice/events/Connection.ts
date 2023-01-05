@@ -17,7 +17,7 @@ export async function onConnect(this: ws.Server, socket: WebSocket, request: Inc
 
     socket.encoding = "json";
     socket.version = 4;
-    if (socket.version < 3) return socket.close(GatewayCloseCodes.UnknownError, "invalid version");
+    if (socket.version > 7) return socket.close(GatewayCloseCodes.UnknownError, "invalid version");
 
     setHeartbeat(socket);
 

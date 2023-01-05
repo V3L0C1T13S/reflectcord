@@ -7,7 +7,7 @@ import fetch, { Headers, Response as FetchResponse } from "node-fetch";
 import axios from "axios";
 import favicon from "serve-favicon";
 import { Logger } from "@reflectcord/common/utils";
-import { reflectcordWsURL, reflectcordCDNURL } from "@reflectcord/common/constants/index";
+import { reflectcordWsURL, reflectcordCDNURL, discordBaseURL } from "@reflectcord/common/constants";
 
 const AssetsPath = path.join(__dirname, "..", "..", "..", "assets");
 
@@ -83,7 +83,7 @@ export function ClientV2(app: Application) {
     if (req.params.file.endsWith(".map")) return res.sendStatus(404);
 
     if (!fs.existsSync(fullFilePath) && !fs.existsSync(cachedFilePath)) {
-      const file = await axios.get(`https://discord.com/assets/${req.params.file}`, {
+      const file = await axios.get(`${discordBaseURL}/assets/${req.params.file}`, {
         httpAgent: agent,
         headers: {
           ...req.headers,
@@ -158,7 +158,7 @@ export function Client(app: Application) {
         }
         // eslint-disable-next-line no-console
         Logger.log(`[TestClient] Downloading file not yet cached! Asset file: ${req.params.file}`);
-        response = await fetch(`https://discord.com/assets/${req.params.file}`, {
+        response = await fetch(`${discordBaseURL}/assets/${req.params.file}`, {
           agent,
           // @ts-ignore
           headers: {

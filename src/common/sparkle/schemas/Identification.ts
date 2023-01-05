@@ -23,6 +23,8 @@ export const IdentifySchema = {
   },
   $v: Number,
   $version: Number,
+  // OLD/DEPRECATED
+  $synced_guilds: [Number],
 };
 
 export interface IdentifySchema {

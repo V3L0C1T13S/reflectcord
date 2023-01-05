@@ -1,5 +1,7 @@
 export interface LoginSchema {
   login: string;
+  /** V6/V7 login */
+  email?: string;
   password: string;
   undelete?: boolean;
   captcha_key?: string;
