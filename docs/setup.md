@@ -12,7 +12,7 @@ While WSL2 is an officially supported platform, WSL1 is **not** officially suppo
 
 ## Requirements
 
-Docker
+Docker (optional)
 
 NodeJS (v16 & up) & NPM
 
@@ -30,7 +30,13 @@ Reflectcord uses a feature called git submodules. In order to download the requi
 
 #### RabbitMQ
 
-RabbitMQ is needed for the microservices in Reflectcord to communicate with each other. To start RabbitMQ, simply use the command below.
+RabbitMQ is needed for the microservices in Reflectcord to communicate with each other. You can install it with the command below:
+
+`sudo apt install rabbitmq-server`
+
+After installation, Ubuntu will automatically start the systemd service for RabbitMQ.
+
+Alternatively, you can use Docker to run RabbitMQ.
 
 `docker run -d --hostname reflectcord --name reflectcord-rabbit -p 5672:5672 rabbitmq:3.11-management`
 
