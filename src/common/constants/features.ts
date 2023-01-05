@@ -17,3 +17,5 @@ export const messageFullMentions = process.env["MESSAGE_FULL_MENTIONS"] ?? false
 export const RPCUseStub = process.env["RPC_USE_STUB"] ?? false;
 
 export const enableProfileThemes = process.env["ENABLE_PROFILE_THEMES"] ?? false;
+
+export const enableBodyValidation = process.env["ENABLE_BODY_VALIDATION"] ?? false;

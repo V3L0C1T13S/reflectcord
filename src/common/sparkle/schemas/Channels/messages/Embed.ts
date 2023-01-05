@@ -1,0 +1,15 @@
+export const EmbedSchema = {
+  $title: String,
+  $type: String,
+  $description: String,
+  $url: String,
+  $timestamp: String,
+  $color: String,
+  $footer: Object,
+  $image: Object,
+  $thumbnail: Object,
+  $video: Object,
+  $provider: Object,
+  $author: Object,
+  $fields: [],
+};

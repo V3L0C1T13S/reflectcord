@@ -7,7 +7,10 @@ import {
   fromSnowflake,
   Message, MessageSendData,
 } from "@reflectcord/common/models";
-import { Logger } from "@reflectcord/common/utils";
+import {
+  Logger, validateBody,
+} from "@reflectcord/common/utils";
+import { MessageCreateSchema } from "@reflectcord/common/sparkle";
 
 export type sendReq = Request<any, any, RESTPostAPIChannelMessageJSONBody & { payload_json: any }>;
 
@@ -59,13 +62,14 @@ export default (express: Application) => <Resource> {
     return res.json(convMessages);
   },
   post: {
-    // middleware: validate({ body: "MessageCreateSchema" }),
     handler: async (req: sendReq, res: Response<APIMessage>) => {
       const { channel_id } = req.params;
 
       if (req.body.payload_json) {
         req.body = JSON.parse(req.body.payload_json);
       }
+
+      validateBody(MessageCreateSchema, req.body);
 
       const rvId = await fromSnowflake(channel_id);
 
