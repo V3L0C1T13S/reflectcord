@@ -58,6 +58,10 @@ export interface DiscoveryBot {
   tags: string[];
   servers: number;
   usage: DiscoveryUsage;
+  install_params?: {
+    scopes: string[],
+    permissions: string,
+  };
 }
 
 export type pageProps = {

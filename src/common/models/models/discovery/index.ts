@@ -141,6 +141,10 @@ export const FullDiscoverableBot: QuarkConversion<DiscoveryBot, FullDiscoveryBot
         external_urls: [],
       },
       tags: data.tags,
+      install_params: {
+        scopes: ["bot"],
+        permissions: "0",
+      },
     };
   },
 };

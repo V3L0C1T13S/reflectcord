@@ -1,10 +1,12 @@
 import { APIGuild } from "discord.js";
 import { API } from "revolt.js";
 import { isEqual } from "lodash";
-import { Guild } from "../models";
+import {
+  Guild, RevoltOrderingSetting, RevoltSettings, SettingsKeys,
+} from "../models";
 import { BaseManager } from "./BaseManager";
 import { QuarkContainer } from "./types";
-import { MemberContainer, MemberManager } from "./MemberManager";
+import { MemberManager } from "./MemberManager";
 
 export type ServerContainer = QuarkContainer<API.Server, APIGuild, {
   members: MemberManager,
@@ -81,6 +83,20 @@ export class ServerManager extends BaseManager<string, ServerContainer> {
   */
   deleteServer(id: string) {
     return this.leave(id);
+  }
+
+  async getServers() {
+    // FIXME: Worst possible way to get it unless we have WS access (which we dont)
+    const rvSettings = await this.rvAPI.post("/sync/settings/fetch", {
+      keys: SettingsKeys,
+    }) as RevoltSettings;
+
+    const ordering: RevoltOrderingSetting = JSON.parse(rvSettings.ordering?.[1] ?? "{}");
+
+    const servers = ordering.servers
+      ? await Promise.all(ordering.servers.map((x) => this.apiWrapper.servers.fetch(x))) : [];
+
+    return servers;
   }
 
   update(id: string, data: serverI) {
