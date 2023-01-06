@@ -10,6 +10,12 @@ Keep in mind, Reflectcord is currently DEVELOPMENT stage software, stability is 
 
 While WSL2 is an officially supported platform, WSL1 is **not** officially supported. Any issues relating to it will be closed as "wontfix".
 
+### A note on native Windows support
+
+In order to install Reflectcord on native Windows, you will need to remove the medooze-media-server dependency from src/voice/package.json.
+
+It is highly recommended you use WSL2 over native Windows, as this will stop voice chat from functioning entirely.
+
 ## Requirements
 
 Docker (optional)
