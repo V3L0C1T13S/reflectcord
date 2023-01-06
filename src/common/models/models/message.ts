@@ -217,6 +217,10 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
       reactions: await Reactions.from_quark(reactions),
     };
 
+    if (masquerade?.name) {
+      discordMessage.webhook_id = "0";
+    }
+
     if (reply) {
       discordMessage.message_reference = await MessageReference.from_quark({
         id: reply,

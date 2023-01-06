@@ -6,7 +6,7 @@ import { Resource } from "express-automatic-routes";
 export default (express: Application) => <Resource> {
   get: async (req, res: Response) => {
     res.json([{
-      id: null,
+      id: "0",
       name: "United States",
       custom: null,
       deprecated: false,

@@ -93,7 +93,7 @@ export const User: QuarkConversion<RevoltUser, APIUser, UserATQ, UserAFQ> = {
     };
   },
 
-  async from_quark(user) {
+  async from_quark(user, extra) {
     const { _id, username } = user;
     const flags = await PublicFlags.from_quark(user.badges ?? 0, {
       id: _id,
@@ -110,10 +110,10 @@ export const User: QuarkConversion<RevoltUser, APIUser, UserATQ, UserAFQ> = {
       discriminator: "0001",
       flags,
       locale: "en-US",
-      username,
+      username: extra?.masquerade?.name ?? username,
       public_flags: flags,
       verified: true, // all accounts on revolt are implicitly verified
-      premium_type: UserPremiumType.Nitro, // unlocks all nitro features
+      premium_type: UserPremiumType.Nitro, // unlocks all nitro features,
     };
   },
 };
