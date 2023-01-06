@@ -1,6 +1,6 @@
 # Reflectcord
 
-REST and Websocket compatability layer for Discord->Revolt
+REST and Websocket compatibility layer for Discord->Revolt
 
 ## Features
 
