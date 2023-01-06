@@ -1,19 +1,22 @@
 import { RESTPostAPIChannelMessageJSONBody } from "discord.js";
 import { Tuple } from "../../../../utils/check";
 import { AllowedMentions } from "./AllowedMentions";
+import { AttachmentSchema } from "./Attachment";
+import { EmbedSchema } from "./Embed";
 import { MessageReferenceSend } from "./MessageReference";
 
 export const MessageCreateSchema = {
   $content: String,
   $nonce: new Tuple(String, Number),
   $tts: Boolean,
-  $embeds: [],
+  $embeds: [EmbedSchema],
   $allowed_mentions: AllowedMentions,
   $message_reference: MessageReferenceSend,
-  $components: [],
+  $components: [Object],
   $sticker_ids: [String],
-  $attachments: [],
+  $attachments: [AttachmentSchema],
   $flags: Number,
+  // These usually exist when attachments are present
   $channel_id: String,
   $type: Number,
 };
