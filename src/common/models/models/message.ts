@@ -236,7 +236,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
       });
     }
 
-    if (message.nonce) discordMessage.nonce = message.nonce;
+    if (message.nonce) discordMessage.nonce = await tryToSnowflake(message.nonce);
 
     if (message.system) {
       switch (message.system.type) {
