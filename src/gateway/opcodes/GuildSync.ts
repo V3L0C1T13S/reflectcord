@@ -3,30 +3,27 @@
 import { GatewayOpcodes } from "discord.js";
 import { fromSnowflake, Member, internalActivity } from "@reflectcord/common/models";
 import { GuildSyncSchema } from "@reflectcord/common/sparkle";
-import { Send } from "../util";
+import { Dispatch, Send } from "../util";
 import { WebSocket } from "../Socket";
 import { Payload } from "../util/Constants";
 
 async function GuildSync(this: WebSocket, guild_id: string) {
   const rvServerId = await fromSnowflake(guild_id);
 
-  const members = await this.rvAPI.get(`/servers/${rvServerId as ""}/members`);
+  const server = this.rvAPIWrapper.servers.get(rvServerId);
+  if (!server) return;
 
-  const discordMembers = await Promise.all(members.members
-    .map((x) => Member.from_quark(x, members.users.find((u) => u._id === x._id.user))));
+  const members = await server.extra!.members.fetchAll(rvServerId, false);
+
+  const discordMembers = members.map((x) => x.discord);
 
   // FIXME
   const presences: internalActivity[] = [];
 
-  await Send(this, {
-    op: GatewayOpcodes.Dispatch,
-    t: "GUILD_SYNC",
-    s: this.sequence++,
-    d: {
-      id: guild_id,
-      members: discordMembers,
-      presences,
-    },
+  await Dispatch(this, "GUILD_SYNC", {
+    id: guild_id,
+    members: discordMembers,
+    presences,
   });
 }
 
@@ -35,9 +32,5 @@ export async function HandleGuildSync(this: WebSocket, data: Payload<GuildSyncSc
 
   const reqData = data.d;
 
-  // eslint-disable-next-line no-restricted-syntax
-  for (const guild_id of reqData) {
-    // eslint-disable-next-line no-await-in-loop
-    await GuildSync.call(this, guild_id);
-  }
+  await Promise.all((reqData.map((x) => GuildSync.call(this, x))));
 }

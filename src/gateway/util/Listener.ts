@@ -518,6 +518,7 @@ export async function startListener(
           const msgObj = await this.rvAPIWrapper.messages.convertMessageObj(
             data,
             { mentions: true },
+            { api_version: this.version },
           );
           this.rvAPIWrapper.messages.createObj({
             revolt: msgObj.revolt.message,

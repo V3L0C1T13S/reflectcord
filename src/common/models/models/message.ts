@@ -58,6 +58,7 @@ export type MessageAFQ = Partial<{
   user: API.User | null | undefined,
   mentions: API.User[] | null | undefined,
   server: string | null,
+  api_version: number,
 }>
 
 export const MessageReference: QuarkConversion<
@@ -116,7 +117,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
       })
       : await User.from_quark({
         _id: author,
-        username: masquerade?.name ?? "fixme",
+        username: "fixme",
       }, {
         masquerade,
       });
@@ -185,6 +186,10 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
         : [],
       pinned: false,
       type: (() => {
+        if (extra?.api_version && extra?.api_version < 7) {
+          return MessageType.Default;
+        }
+
         if (reply) {
           return MessageType.Reply;
         }
@@ -219,6 +224,8 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
 
     if (masquerade?.name) {
       discordMessage.webhook_id = "0";
+      discordMessage.application_id = discordMessage.author.id;
+      discordMessage.author.discriminator = "0000";
     }
 
     if (reply) {

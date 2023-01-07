@@ -1,7 +1,7 @@
 import { APIMessage } from "discord.js";
 import { API } from "revolt.js";
 import { isEqual } from "lodash";
-import { Message, User } from "../models";
+import { Message, MessageAFQ, User } from "../models";
 import { BaseManager } from "./BaseManager";
 import { QuarkContainer } from "./types";
 import { systemUserID } from "../rvapi/users";
@@ -13,6 +13,8 @@ type messageInclude = {
   mentions: boolean,
 }
 
+type messageExtra = MessageAFQ;
+
 export class MessageManager extends BaseManager<string, MessageContainer> {
   $get(id: string, data?: MessageContainer) {
     if (data) this.update(id, data);
@@ -22,13 +24,10 @@ export class MessageManager extends BaseManager<string, MessageContainer> {
     return msg;
   }
 
-  async convertMessageObj(rvMessage: API.Message, include?: messageInclude) {
-    const discordMessage = await Message.from_quark(rvMessage, {
-      mentions: include?.mentions ? (await this.getMessageMentions(rvMessage))
-        .map((x) => x.revolt) : null,
-    });
-
+  async convertMessageObj(rvMessage: API.Message, include?: messageInclude, extra?: messageExtra) {
     const authorInfo = await (async () => {
+      if (rvMessage.masquerade) return null;
+
       if (rvMessage.author === systemUserID) {
         if (rvMessage.system) {
           switch (rvMessage.system.type) {
@@ -54,7 +53,14 @@ export class MessageManager extends BaseManager<string, MessageContainer> {
       }
 
       return null;
-    })();
+    })().catch(() => null);
+
+    const discordMessage = await Message.from_quark(rvMessage, {
+      mentions: include?.mentions ? (await this.getMessageMentions(rvMessage))
+        .map((x) => x.revolt) : null,
+      ...extra,
+      user: extra?.user ?? authorInfo?.revolt,
+    });
 
     return {
       revolt: {

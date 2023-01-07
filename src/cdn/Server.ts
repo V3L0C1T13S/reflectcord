@@ -3,6 +3,7 @@ import path from "path";
 import { Server, RabbitMQ } from "@reflectcord/common/utils";
 import "express-async-errors";
 import { initDb } from "@reflectcord/common/db";
+import fileUpload from "express-fileupload";
 
 export class ReflectcordCDN extends Server {
   port = 3001;
@@ -25,6 +26,7 @@ export class ReflectcordCDN extends Server {
       next();
     });
     this.app.use(bodyParser.json({ inflate: true, limit: "10mb" }));
+    this.app.use(fileUpload());
 
     await initDb();
 

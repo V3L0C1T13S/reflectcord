@@ -10,6 +10,8 @@ export type MemberContainer = QuarkContainer<API.Member, APIGuildMember>;
 export type MemberI = QuarkContainer<Partial<API.Member>, Partial<APIGuildMember>>;
 
 export class MemberManager extends BaseManager<string, MemberContainer> {
+  fullyCached: string[] = [];
+
   $get(id: string, data?: MemberI) {
     if (data) this.update(id, data);
     const member = this.get(id)!;
@@ -73,11 +75,26 @@ export class MemberManager extends BaseManager<string, MemberContainer> {
     });
   }
 
-  async fetchMembers(serverId: string, excludeOffline = true) {
+  async fetchMembers(serverId: string, excludeOffline = true, cache = true) {
     const members = await this.rvAPI.get(`/servers/${serverId as ""}/members`, {
       exclude_offline: excludeOffline,
     });
 
     return members;
+  }
+
+  async fetchAll(serverId: string, excludeOffline?: boolean) {
+    if (this.fullyCached.find((x) => x === serverId)) return Array.from(this.values());
+
+    const members = await this.fetchMembers(serverId, excludeOffline);
+
+    const memberHandlers = await Promise.all(members.members.map(async (x) => this.createObj({
+      revolt: x,
+      discord: await Member.from_quark(x, members.users.find((y) => y._id === x._id.user)),
+    })));
+
+    this.fullyCached.push(serverId);
+
+    return memberHandlers;
   }
 }
