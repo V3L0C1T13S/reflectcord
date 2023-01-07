@@ -691,10 +691,14 @@ export async function startListener(
           };
 
           if ("guild_id" in channel.discord && channel.discord.guild_id && "server" in channel.revolt) {
-            if (!this.bot && !this.subscribed_servers[channel.revolt.server]?.typing) {
+            if (!this.bot
+              && !this.is_deprecated
+              && !this.subscribed_servers[channel.revolt.server]?.typing) {
               return;
             }
             body.guild_id = channel.discord.guild_id;
+            body.member = (await this.rvAPIWrapper.members
+              .fetch(channel.revolt.server, data.user)).discord;
           }
 
           await Dispatch(this, GatewayDispatchEvents.TypingStart, body);
