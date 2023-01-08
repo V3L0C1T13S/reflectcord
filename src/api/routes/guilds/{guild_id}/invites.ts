@@ -11,10 +11,11 @@ export default () => <Resource> {
 
     const serverId = await fromSnowflake(guild_id);
 
-    const rvInvites = await res.rvAPI.get(`/servers/${serverId as ""}/invites`);
+    const rvInvites = await res.rvAPIWrapper.servers.getInvites(serverId);
 
     res.json(await Promise.all(rvInvites.map(async (x) => InviteCreate.from_quark(x, {
       inviter: (await res.rvAPIWrapper.users.fetch(x.creator)).revolt,
+      channel: (await res.rvAPIWrapper.channels.fetch(x.channel)).revolt,
     }))));
   },
 };

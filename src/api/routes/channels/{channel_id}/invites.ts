@@ -38,13 +38,15 @@ export default (express: Application) => <Resource> {
     if (!channel_id) throw new HTTPError("Invalid params");
 
     const rvChannelId = await fromSnowflake(channel_id);
-    const rvChannel = await res.rvAPI.get(`/channels/${rvChannelId as ""}`);
+    const rvChannel = await res.rvAPIWrapper.channels.fetch(rvChannelId);
 
-    if (!("server" in rvChannel && rvChannel.server)) return res.json([]);
+    if (!("server" in rvChannel.revolt && rvChannel.revolt.server)) return res.json([]);
 
-    const invites = (await res.rvAPI.get(`/servers/${rvChannel.server as ""}/invites`))
+    const invites = (await res.rvAPIWrapper.servers.getInvites(rvChannel.revolt.server))
       .filter((x) => x.channel === rvChannelId);
 
-    return res.json(await Promise.all(invites.map((x) => InviteCreate.from_quark(x))));
+    return res.json(await Promise.all(invites.map((x) => InviteCreate.from_quark(x, {
+      channel: rvChannel.revolt,
+    }))));
   },
 };

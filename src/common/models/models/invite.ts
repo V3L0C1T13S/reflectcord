@@ -1,4 +1,5 @@
 import {
+  APIChannel,
   APIExtendedInvite, APIInvite, APIUser,
 } from "discord.js";
 import { API } from "revolt.js";
@@ -80,6 +81,7 @@ export type InviteCreateATQ = {};
 export type InviteCreateAFQ = Partial<{
   inviter: API.User,
   discordInviter: APIUser,
+  channel: API.Channel,
 }>;
 
 export const InviteCreate: QuarkConversion<
@@ -100,14 +102,16 @@ API.Invite, APIInvite, InviteCreateATQ, InviteCreateAFQ
   async from_quark(invite, extra) {
     const { _id } = invite;
 
+    const partialChannel = await PartialChannel.from_quark(extra?.channel ?? {
+      _id: invite.channel,
+      channel_type: "TextChannel",
+    });
+
     const discordInvite: APIInvite = {
       code: _id,
       channel: {
-        ...await PartialChannel.from_quark({
-          _id: invite.channel,
-          channel_type: "TextChannel",
-        }),
-        name: "fixme",
+        ...partialChannel,
+        name: partialChannel.name ?? "fixme",
       },
       inviter: extra?.discordInviter ?? extra?.inviter
         ? await User.from_quark(extra.inviter!)

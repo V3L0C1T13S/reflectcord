@@ -105,6 +105,14 @@ export class ServerManager extends BaseManager<string, ServerContainer> {
     });
   }
 
+  getInvite(id: string) {
+    return this.rvAPI.get(`/invites/${id as ""}`);
+  }
+
+  getInvites(server: string) {
+    return this.rvAPI.get(`/servers/${server as ""}/invites`);
+  }
+
   update(id: string, data: serverI) {
     const server = this.get(id)!;
     const apply = (ctx: string, key: string, target?: string) => {
