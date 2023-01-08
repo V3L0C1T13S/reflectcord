@@ -7,6 +7,9 @@ export default (express: Application) => <Resource> {
   get: async (req, res: Response<APIGuild[]>) => {
     const servers = await res.rvAPIWrapper.servers.getServers();
 
-    res.json(servers.map((x) => x.discord));
+    res.json(servers.map((x) => ({
+      ...x.discord,
+      permissions: "0",
+    })));
   },
 };

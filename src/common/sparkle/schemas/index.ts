@@ -11,3 +11,4 @@ export * from "./auth";
 export * from "./Channels";
 export * from "./AppDirectory";
 export * from "./settings";
+export * from "./oauth2";

@@ -6,9 +6,9 @@ import { Application as botApplication, OwnedApplication } from "@reflectcord/co
 
 export default (express: Application) => <Resource> {
   get: async (req, res) => {
-    const api = res.rvAPI;
+    const currentUser = await res.rvAPIWrapper.users.getSelf(true);
 
-    const revoltBots = await api.get("/bots/@me") as API.OwnedBotsResponse;
+    const revoltBots = await res.rvAPI.get("/bots/@me") as API.OwnedBotsResponse;
 
     const ownedRevoltBots: API.BotResponse[] = revoltBots.bots.map((bot) => {
       const user = revoltBots.users.find((u) => u._id === bot._id)!;
@@ -20,7 +20,9 @@ export default (express: Application) => <Resource> {
     });
 
     const discordBots = await Promise.all(ownedRevoltBots
-      .map((bot) => OwnedApplication.from_quark(bot)));
+      .map((bot) => OwnedApplication.from_quark(bot, {
+        user: currentUser,
+      })));
 
     return res.json(discordBots);
   },

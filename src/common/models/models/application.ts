@@ -1,13 +1,25 @@
-import { APIApplication, APIUser } from "discord.js";
+import {
+  APIApplication, APIUser, ApplicationFlags, ApplicationFlagsBitField,
+} from "discord.js";
 import { Bot, BotResponse } from "revolt-api";
 import { API } from "revolt.js";
 import { QuarkConversion } from "../QuarkConversion";
 import { fromSnowflake, toSnowflake } from "../util";
 import { User } from "./user";
 
+export const stubFlags = new ApplicationFlagsBitField();
+
+stubFlags.add(
+  ApplicationFlags.GatewayGuildMembers,
+  ApplicationFlags.GatewayMessageContent,
+  ApplicationFlags.GatewayPresence,
+  ApplicationFlags.GroupDMCreate,
+);
+
 export type ApplicationATQ = {};
 export type ApplicationAFQ = Partial<{
   user: API.User,
+  owner: API.User,
 }>;
 
 export const Application: QuarkConversion<Bot, APIApplication, ApplicationATQ, ApplicationAFQ> = {
@@ -30,18 +42,19 @@ export const Application: QuarkConversion<Bot, APIApplication, ApplicationATQ, A
     const {
       _id, owner, token,
     } = bot;
+
     return {
       id: await toSnowflake(_id),
       description: extra?.user?.profile?.content ?? "",
       bot_public: bot.public,
       verify_key: "fixme",
-      flags: 0,
+      flags: stubFlags.bitfield.toInt(),
       name: extra?.user?.username ?? "fixme",
       icon: extra?.user?.avatar?._id ?? null,
       bot_require_code_grant: false,
       summary: "",
       team: null,
-      owner: {
+      owner: extra?.owner ? await User.from_quark(extra.owner) : {
         id: await toSnowflake(owner),
         username: "fixme",
         discriminator: "1",
@@ -58,12 +71,20 @@ interface OwnedAPIApplication extends APIApplication {
   bot?: APIUser;
 }
 
-export const OwnedApplication: QuarkConversion<BotResponse, OwnedAPIApplication> = {
-  async to_quark(data) {
+export type OwnedApplicationATQ = ApplicationATQ;
+export type OwnedApplicationAFQ = ApplicationAFQ;
+
+export const OwnedApplication: QuarkConversion<
+  BotResponse,
+  OwnedAPIApplication,
+  OwnedApplicationATQ,
+  OwnedApplicationAFQ
+> = {
+  async to_quark(data, extra) {
     const { id, name } = data;
 
     return {
-      bot: await Application.to_quark(data),
+      bot: await Application.to_quark(data, extra),
       user: {
         _id: id,
         username: name,
@@ -71,7 +92,7 @@ export const OwnedApplication: QuarkConversion<BotResponse, OwnedAPIApplication>
     };
   },
 
-  async from_quark(data) {
+  async from_quark(data, extra) {
     const { bot, user } = data;
 
     const discordUser = await User.from_quark(user);
@@ -79,7 +100,7 @@ export const OwnedApplication: QuarkConversion<BotResponse, OwnedAPIApplication>
     const { username } = discordUser;
 
     const app: OwnedAPIApplication = {
-      ...await Application.from_quark(bot),
+      ...await Application.from_quark(bot, extra),
       name: username,
       description: user.profile?.content ?? "",
       icon: user.avatar?._id ?? null,

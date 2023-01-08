@@ -7,6 +7,7 @@ import { App, GuildDiscoveryInfo } from "../../../sparkle";
 import { getServerFeatures } from "../guilds";
 import { UserProfile } from "../user";
 import { FullDiscoveryBot } from "../../../sparkle/schemas/AppDirectory/bots";
+import { stubFlags } from "../application";
 
 export const DiscoverableGuild: QuarkConversion<DiscoveryServer, GuildDiscoveryInfo> = {
   async to_quark(data) {
@@ -104,7 +105,7 @@ export const DiscoverableBot: QuarkConversion<DiscoveryBot, App> = {
       summary: "",
       verify_key: "",
       team: null,
-      flags: 0,
+      flags: stubFlags.bitfield.toInt(),
       position: 1,
       bot: {
         id,

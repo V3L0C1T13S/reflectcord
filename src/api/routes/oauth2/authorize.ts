@@ -1,14 +1,17 @@
 /* eslint-disable camelcase */
 import { Resource } from "express-automatic-routes";
-import { HTTPError } from "@reflectcord/common/utils";
+import { HTTPError, validate } from "@reflectcord/common/utils";
 import { fromSnowflake, Application, User } from "@reflectcord/common/models";
 import { systemUserID } from "@reflectcord/common/rvapi";
+import { AuthorizePOSTSchema } from "@reflectcord/common/sparkle";
+
+const precheckClientId = (id: any): id is string => typeof id === "string";
 
 export default () => <Resource> {
   get: async (req, res) => {
     const { client_id } = req.query;
 
-    if (typeof client_id !== "string") throw new HTTPError("Invalid params");
+    if (!precheckClientId(client_id)) throw new HTTPError("Invalid params");
 
     const rvId = await fromSnowflake(client_id);
 
@@ -41,5 +44,20 @@ export default () => <Resource> {
         permissions: "4398046511103",
       })),
     });
+  },
+  post: {
+    middleware: validate(AuthorizePOSTSchema),
+    handler: async (req, res) => {
+      const { client_id } = req.query;
+      const { authorize, guild_id, permissions } = req.body as AuthorizePOSTSchema;
+
+      if (!precheckClientId(client_id)) throw new HTTPError("Invalid params");
+
+      const rvBotId = await fromSnowflake(client_id);
+      const rvServer = await fromSnowflake(guild_id);
+      await res.rvAPIWrapper.servers.inviteBot(rvServer, rvBotId);
+
+      res.sendStatus(200);
+    },
   },
 };

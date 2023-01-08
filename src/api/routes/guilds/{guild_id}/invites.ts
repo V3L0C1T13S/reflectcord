@@ -13,6 +13,8 @@ export default () => <Resource> {
 
     const rvInvites = await res.rvAPI.get(`/servers/${serverId as ""}/invites`);
 
-    res.json(await Promise.all(rvInvites.map((x) => InviteCreate.from_quark(x))));
+    res.json(await Promise.all(rvInvites.map(async (x) => InviteCreate.from_quark(x, {
+      inviter: (await res.rvAPIWrapper.users.fetch(x.creator)).revolt,
+    }))));
   },
 };

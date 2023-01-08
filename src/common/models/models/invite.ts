@@ -1,5 +1,5 @@
 import {
-  APIExtendedInvite, APIInvite,
+  APIExtendedInvite, APIInvite, APIUser,
 } from "discord.js";
 import { API } from "revolt.js";
 import { QuarkConversion } from "../QuarkConversion";
@@ -76,7 +76,15 @@ export const InviteFull: QuarkConversion<API.InviteResponse, APIExtendedInvite> 
   },
 };
 
-export const InviteCreate: QuarkConversion<API.Invite, APIInvite> = {
+export type InviteCreateATQ = {};
+export type InviteCreateAFQ = Partial<{
+  inviter: API.User,
+  discordInviter: APIUser,
+}>;
+
+export const InviteCreate: QuarkConversion<
+API.Invite, APIInvite, InviteCreateATQ, InviteCreateAFQ
+> = {
   async to_quark(invite) {
     const { code } = invite;
 
@@ -89,7 +97,7 @@ export const InviteCreate: QuarkConversion<API.Invite, APIInvite> = {
     };
   },
 
-  async from_quark(invite) {
+  async from_quark(invite, extra) {
     const { _id } = invite;
 
     const discordInvite: APIInvite = {
@@ -101,10 +109,12 @@ export const InviteCreate: QuarkConversion<API.Invite, APIInvite> = {
         }),
         name: "fixme",
       },
-      inviter: await User.from_quark({
-        username: "fixme",
-        _id: invite.creator,
-      }),
+      inviter: extra?.discordInviter ?? extra?.inviter
+        ? await User.from_quark(extra.inviter!)
+        : await User.from_quark({
+          username: "fixme",
+          _id: invite.creator,
+        }),
     };
 
     if (invite.type === "Server") {

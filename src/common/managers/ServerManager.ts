@@ -99,6 +99,12 @@ export class ServerManager extends BaseManager<string, ServerContainer> {
     return servers;
   }
 
+  async inviteBot(server: string, bot: string) {
+    return this.rvAPI.post(`/bots/${bot as ""}/invite`, {
+      server,
+    });
+  }
+
   update(id: string, data: serverI) {
     const server = this.get(id)!;
     const apply = (ctx: string, key: string, target?: string) => {
