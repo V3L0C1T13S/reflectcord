@@ -54,6 +54,7 @@ import { WebSocket } from "../Socket";
 import { Dispatch, Send } from "./send";
 import experiments from "./experiments.json";
 import { isDeprecatedClient } from "../versioning";
+import { updateMessage } from "./messages";
 
 // TODO: rework lol
 function cacheServerCreateChannels(
@@ -552,28 +553,7 @@ export async function startListener(
           break;
         }
         case "MessageUpdate": {
-          const msgObj = await this.rvAPIWrapper.messages.fetch(
-            data.channel,
-            data.id,
-            { mentions: true },
-          );
-          const updatedRevolt = { ...msgObj.revolt, ...data.data };
-          this.rvAPIWrapper.messages.update(data.id, {
-            revolt: data.data,
-            discord: await Message.from_quark(updatedRevolt, {
-              mentions: (await this.rvAPIWrapper.messages
-                .getMessageMentions(updatedRevolt))
-                .map((x) => x.revolt),
-            }),
-          });
-          const channel = await this.rvAPIWrapper.channels.fetch(data.channel);
-
-          const body: GatewayMessageUpdateDispatchData = msgObj.discord;
-
-          if ("guild_id" in channel.discord && channel.discord.guild_id) body.guild_id = channel.discord.guild_id;
-
-          await Dispatch(this, GatewayDispatchEvents.MessageUpdate, body);
-
+          await updateMessage.call(this, data);
           break;
         }
         case "MessageDelete": {
@@ -644,17 +624,7 @@ export async function startListener(
           break;
         }
         case "MessageAppend": {
-          const msg = await this.rvAPIWrapper.messages.getMessage(data.channel, data.id);
-          const channel = await this.rvAPIWrapper.channels.fetch(data.channel);
-
-          const body: GatewayMessageUpdateDispatchData = {
-            ...msg.discord,
-          };
-
-          if ("guild_id" in channel.discord && channel.discord.guild_id) body.guild_id = channel.discord.guild_id;
-
-          await Dispatch(this, GatewayDispatchEvents.MessageUpdate, body);
-
+          await updateMessage.call(this, data);
           break;
         }
         case "BulkMessageDelete": {
