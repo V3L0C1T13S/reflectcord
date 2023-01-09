@@ -1,9 +1,8 @@
 /* eslint-disable no-plusplus */
 /* eslint-disable camelcase */
-import { GatewayOpcodes } from "discord.js";
-import { fromSnowflake, Member, internalActivity } from "@reflectcord/common/models";
+import { fromSnowflake, internalActivity } from "@reflectcord/common/models";
 import { GatewayDispatchCodes, GuildSyncSchema } from "@reflectcord/common/sparkle";
-import { Dispatch, Send } from "../util";
+import { Dispatch } from "../util";
 import { WebSocket } from "../Socket";
 import { Payload } from "../util/Constants";
 

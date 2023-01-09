@@ -18,7 +18,7 @@ import { uploadBase64File } from "@reflectcord/cdn/util";
 import { API } from "revolt.js";
 import { QuarkConversion } from "../../QuarkConversion";
 import { fromSnowflake, toSnowflake } from "../../util";
-import { convertPermNumber } from "../permissions";
+import { convertPermNumber, Permissions } from "../permissions";
 import { Role } from "../role";
 import { Emoji } from "../emoji";
 
@@ -73,6 +73,8 @@ export const Guild: QuarkConversion<Server, APIGuild, GuildATQ, GuildAFQ> = {
 
     const _id = await fromSnowflake(id);
 
+    const defaultRole = guild.roles.find((role) => role.id === id);
+
     return {
       _id,
       owner: await fromSnowflake(ownerId),
@@ -82,7 +84,9 @@ export const Guild: QuarkConversion<Server, APIGuild, GuildATQ, GuildAFQ> = {
       categories: null,
       system_messages: null,
       roles: {},
-      default_permissions: 0,
+      default_permissions: defaultRole
+        ? (await Permissions.to_quark(BigInt(defaultRole.permissions))).a
+        : 0,
       icon: null,
       banner: null,
       flags: null,
@@ -168,14 +172,6 @@ export const Guild: QuarkConversion<Server, APIGuild, GuildATQ, GuildAFQ> = {
       // max_video_channel_users: 25,
       // max_stage_video_channel_users: 0,
       stage_instances: [],
-      // member_count: 1,
-      // version: 1668028225734,
-      /**
-       * FIXME: Discord seems to be reorganizing the way that Guild properties work
-       * for the Discord client. Thankfully, this seems to only affect the
-       * gateway "READY" event.
-      */
-      // properties: {},
     };
   },
 };

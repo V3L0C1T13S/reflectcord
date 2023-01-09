@@ -179,12 +179,12 @@ export async function settingsToProtoBuf(settings: DiscordUserSettings, extra?: 
       // hub_progess: 1,
       guildOnboardingProgress: 1,
     },
-    user_content: {
+    userContent: {
       // dismissed_contents: 0,
-      last_dismissed_outbound_promotion_start_date: {
+      lastDismissedOutboundPromotionStartDate: {
         value: new Date().toISOString(),
       },
-      premium_tier_0_modal_dismissed_at: {
+      premiumTier0ModalDismissedAt: {
         timestamp: Date.now(),
       },
     },
