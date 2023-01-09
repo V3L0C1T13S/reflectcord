@@ -1,7 +1,6 @@
 /* eslint-disable camelcase */
 import { Payload } from "@reflectcord/gateway/util";
 import { WebSocket } from "@reflectcord/gateway/Socket";
-import { Logger } from "@reflectcord/common/utils";
 import { check } from "./instanceOf";
 
 const StreamCreateSchema = {

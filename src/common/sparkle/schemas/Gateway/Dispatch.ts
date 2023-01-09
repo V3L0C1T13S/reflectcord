@@ -61,6 +61,7 @@ export enum GatewayDispatchCodes {
   ReadySupplemental = "READY_SUPPLEMENTAL",
   PassiveUpdateV1 = "PASSIVE_UPDATE_V1",
   GuildIntegrationsUpdate = "GUILD_INTEGRATIONS_UPDATE",
+  GuildSync = "GUILD_SYNC",
   IntegrationUpdate = "INTEGRATION_UPDATE",
   VoiceChannelEffectSend = "VOICE_CHANNEL_EFFECT_SEND",
   StreamCreate = "STREAM_CREATE",

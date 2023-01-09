@@ -2,7 +2,7 @@
 /* eslint-disable camelcase */
 import { GatewayOpcodes } from "discord.js";
 import { fromSnowflake, Member, internalActivity } from "@reflectcord/common/models";
-import { GuildSyncSchema } from "@reflectcord/common/sparkle";
+import { GatewayDispatchCodes, GuildSyncSchema } from "@reflectcord/common/sparkle";
 import { Dispatch, Send } from "../util";
 import { WebSocket } from "../Socket";
 import { Payload } from "../util/Constants";
@@ -20,7 +20,7 @@ async function GuildSync(this: WebSocket, guild_id: string) {
   // FIXME
   const presences: internalActivity[] = [];
 
-  await Dispatch(this, "GUILD_SYNC", {
+  await Dispatch(this, GatewayDispatchCodes.GuildSync, {
     id: guild_id,
     members: discordMembers,
     presences,

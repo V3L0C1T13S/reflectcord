@@ -1,9 +1,8 @@
 /* eslint-disable no-plusplus */
 /* eslint-disable camelcase */
 import {
-  GatewayOpcodes, GatewayDispatchEvents,
+  GatewayDispatchEvents,
 } from "discord.js";
-import { compareTwoStrings } from "string-similarity";
 import { API } from "revolt.js";
 import { clamp } from "lodash";
 import {
@@ -11,7 +10,7 @@ import {
 } from "@reflectcord/common/models";
 import { ReqGuildMembersSchema, GuildMembersChunk } from "@reflectcord/common/sparkle";
 import rfcNative from "rfcNative";
-import { Payload, Send } from "../util";
+import { Dispatch, Payload } from "../util";
 import { WebSocket } from "../Socket";
 import { check } from "./instanceOf";
 
@@ -85,12 +84,7 @@ async function HandleRequest(
     body.presences = discordPresences;
   }
 
-  await Send(this, {
-    op: GatewayOpcodes.Dispatch,
-    t: GatewayDispatchEvents.GuildMembersChunk,
-    s: this.sequence++,
-    d: body,
-  });
+  await Dispatch(this, GatewayDispatchEvents.GuildMembersChunk, body);
 }
 
 export async function RequestGuildMembers(
