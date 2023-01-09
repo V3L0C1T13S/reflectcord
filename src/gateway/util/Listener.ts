@@ -271,7 +271,7 @@ export async function startListener(
                 premium_subscription_count: discordGuild.premium_subscription_count ?? 0,
                 properties: discordGuild,
                 roles: discordGuild.roles,
-                stickers: [],
+                stickers: discordGuild.stickers,
                 version: 0,
               };
 
@@ -283,10 +283,7 @@ export async function startListener(
                 unavailable: false,
               };
 
-              const legacyGuild = {
-                ...botGuild,
-                presences: [],
-              };
+              const legacyGuild = botGuild;
 
               if (currentUser.bot) {
                 setTimeout(() => {
@@ -650,15 +647,14 @@ export async function startListener(
           const msg = await this.rvAPIWrapper.messages.getMessage(data.channel, data.id);
           const channel = await this.rvAPIWrapper.channels.fetch(data.channel);
 
-          await Send(this, {
-            op: GatewayOpcodes.Dispatch,
-            t: GatewayDispatchEvents.MessageUpdate,
-            s: this.sequence++,
-            d: {
-              ...msg.discord,
-              guild_id: channel?.discord && ("guild_id" in channel.discord) ? channel?.discord.guild_id : null,
-            },
-          });
+          const body: GatewayMessageUpdateDispatchData = {
+            ...msg.discord,
+          };
+
+          if ("guild_id" in channel.discord && channel.discord.guild_id) body.guild_id = channel.discord.guild_id;
+
+          await Dispatch(this, GatewayDispatchEvents.MessageUpdate, body);
+
           break;
         }
         case "BulkMessageDelete": {
