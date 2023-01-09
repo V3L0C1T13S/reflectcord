@@ -91,7 +91,7 @@
     "@types/serve-favicon": "^2.5.3",
     "@types/socket.io": "^3.0.2",
     "@types/string-similarity": "^4.0.0",
-    "@typescript-eslint/eslint-plugin": "^5.47.1",
+    "@typescript-eslint/eslint-plugin": "^5.48.0",
     "@typescript-eslint/parser": "^5.48.0",
     "eslint": "^8.30.0",
     "eslint-config-airbnb-base": "^15.0.0",
