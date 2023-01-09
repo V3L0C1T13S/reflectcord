@@ -368,6 +368,7 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
       topic: ("description" in channel) ? channel.description : null,
       parent_id: categoryId,
       position: 0,
+      icon: ("icon" in channel && channel.icon) ? channel.icon._id : null,
     };
   },
 };
