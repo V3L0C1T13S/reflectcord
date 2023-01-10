@@ -52,6 +52,7 @@
     "gifbox.js": "^0.9.0",
     "gm": "^1.25.0",
     "helmet": "^6.0.1",
+    "jimp": "^0.16.2",
     "lodash": "^4.17.21",
     "long": "^5.2.0",
     "missing-native-js-functions": "^1.3.1",

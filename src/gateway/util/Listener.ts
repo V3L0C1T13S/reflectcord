@@ -42,6 +42,7 @@ import {
   GatewayGuildEmoji,
   Role,
   Message,
+  createCommonGatewayGuild,
 } from "@reflectcord/common/models";
 import { genSessionId, Logger, RabbitMQ } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
@@ -251,16 +252,11 @@ export async function startListener(
 
               cacheServerCreateChannels.call(this, rvChannels, serverChannels);
 
-              const commonGuild = {
+              const commonGuild = createCommonGatewayGuild(discordGuild, {
                 channels: serverChannels,
-                joined_at: member?.discord.joined_at ?? new Date().toISOString(),
-                large: false,
-                member_count: discordGuild.approximate_member_count ?? 0,
-                members: [member?.discord],
-                threads: [],
-                stage_instances: [],
-                guild_scheduled_events: [],
-              };
+                members: member ? [member.discord] : [],
+                member: member ? member.discord : null,
+              });
 
               const guild = {
                 ...commonGuild,
@@ -639,12 +635,7 @@ export async function startListener(
             body.guild_id = channel.discord.guild_id;
           }
 
-          await Send(this, {
-            op: GatewayOpcodes.Dispatch,
-            t: GatewayDispatchEvents.MessageDeleteBulk,
-            s: this.sequence++,
-            d: body,
-          });
+          await Dispatch(this, GatewayDispatchEvents.MessageDeleteBulk, body);
 
           break;
         }
@@ -769,7 +760,7 @@ export async function startListener(
             properties: guild.discord,
             roles: guild.discord.roles,
             emojis: guild.discord.emojis,
-            stickers: [],
+            stickers: guild.discord.stickers,
             premium_subscription_count: guild.discord.premium_subscription_count ?? 0,
             embedded_activities: [],
           };

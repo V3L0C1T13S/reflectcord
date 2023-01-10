@@ -1,8 +1,13 @@
 /* eslint-disable camelcase */
 /* eslint-disable no-bitwise */
 import {
+  APIChannel,
+  APIEmoji,
   APIGuild,
+  APIGuildMember,
   APIRole,
+  APISticker,
+  GatewayGuildCreateDispatchData,
   GuildDefaultMessageNotifications,
   GuildExplicitContentFilter,
   GuildFeature,
@@ -20,7 +25,7 @@ import { QuarkConversion } from "../../QuarkConversion";
 import { fromSnowflake, toSnowflake } from "../../util";
 import { convertPermNumber, Permissions } from "../permissions";
 import { Role } from "../role";
-import { Emoji } from "../emoji";
+import { discordGatewayGuildEmoji, Emoji, GatewayGuildEmoji } from "../emoji";
 
 export type DiscordPartialGuild = {
   id: string,
@@ -38,6 +43,30 @@ export type revoltPartialServer = {
   flags?: Server["flags"],
   owner: Server["owner"]
 };
+
+export interface CommonGatewayGuild {
+  channels: APIChannel[];
+  joined_at: string;
+  large: boolean;
+  member_count?: number;
+  members: APIGuildMember[];
+  threads: unknown[];
+  stage_instances: unknown[];
+  guild_scheduled_events: unknown[];
+}
+
+export interface UserGatewayGuild extends CommonGatewayGuild {
+  id: string;
+  data_mode: "full" | "lazy"
+  stickers: APISticker[];
+  roles: APIRole[];
+  emojis: discordGatewayGuildEmoji[];
+  embedded_activities: unknown[];
+  properties: APIGuild;
+  lazy: boolean;
+  premium_subscription_count?: number;
+  version: number;
+}
 
 export const stubFeatures = [
   GuildFeature.Banner,
@@ -246,3 +275,62 @@ export const GuildEditBody: QuarkConversion<DataEditServer, RESTPatchAPIGuildJSO
     };
   },
 };
+
+type CommonGatewayGuildData = {
+  channels: APIChannel[],
+  members: APIGuildMember[],
+  member?: APIGuildMember | null,
+  emojis?: API.Emoji[],
+}
+
+type UserGatewayGuildData = CommonGatewayGuildData & {
+}
+
+export function createCommonGatewayGuild(
+  guild: APIGuild,
+  data: CommonGatewayGuildData,
+) {
+  return {
+    channels: data.channels,
+    joined_at: data.member?.joined_at ?? new Date().toISOString(),
+    large: false,
+    member_count: guild.approximate_member_count ?? 0,
+    members: data.members,
+    threads: [],
+    stage_instances: [],
+    guild_scheduled_events: [],
+  };
+}
+
+export function createBotGatewayGuild(
+  guild: APIGuild,
+  data: CommonGatewayGuildData,
+): GatewayGuildCreateDispatchData {
+  return {
+    ...guild,
+    ...createCommonGatewayGuild(guild, data),
+    presences: [],
+    voice_states: [],
+    unavailable: false,
+  };
+}
+
+export async function createUserGatewayGuild(
+  guild: APIGuild,
+  data: UserGatewayGuildData,
+): Promise<UserGatewayGuild> {
+  return {
+    ...createCommonGatewayGuild(guild, data),
+    data_mode: "full",
+    emojis: data.emojis ? await Promise.all(data.emojis
+      ?.map((x) => GatewayGuildEmoji.from_quark(x))) : [],
+    id: guild.id,
+    lazy: true,
+    premium_subscription_count: guild.premium_subscription_count ?? 0,
+    properties: guild,
+    roles: guild.roles,
+    stickers: guild.stickers,
+    embedded_activities: [],
+    version: 0,
+  };
+}

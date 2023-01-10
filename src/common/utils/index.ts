@@ -13,4 +13,5 @@ export * from "./RabbitMQ";
 export * from "./ip";
 export * from "./checkRoute";
 export * from "./UnimplementedError";
+export * from "./types";
 // export * from "./handlers";
