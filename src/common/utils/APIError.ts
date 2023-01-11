@@ -10,7 +10,13 @@ export class ApiError extends Error {
   }
 
   withDefaultParams(): ApiError {
-    if (this.defaultParams) return new ApiError(applyParamsToString(this.message, this.defaultParams), this.code, this.httpStatus);
+    if (this.defaultParams) {
+      return new ApiError(
+        applyParamsToString(this.message, this.defaultParams),
+        this.code,
+        this.httpStatus,
+      );
+    }
     return this;
   }
 
