@@ -22,14 +22,14 @@ export default () => <Resource> {
 
     const rvId = await fromSnowflake(channel_id);
 
-    const msg = await res.rvAPI.post(`/channels/${rvId as ""}/messages`, {
+    const msg = await res.rvAPIWrapper.messages.sendMessage(rvId, {
       content: ":wave:",
-      replies: [{
+      replies: req.body.message_reference ? [{
         id: await fromSnowflake(req.body.message_reference.message_id),
         mention: true,
-      }],
+      }] : null,
     });
 
-    res.json(await Message.from_quark(msg));
+    res.json(msg.discord);
   },
 };
