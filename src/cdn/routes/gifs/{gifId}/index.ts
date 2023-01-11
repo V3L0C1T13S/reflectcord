@@ -5,8 +5,8 @@ import {
   existsSync, mkdirSync, readFileSync, writeFileSync,
 } from "fs";
 import gm from "gm";
-import fetch from "node-fetch";
 import { join } from "path";
+import axios from "axios";
 import { Logger } from "../../../../common/utils";
 import { gifBoxAPIUrl } from "../../../../common/constants";
 import { getMimeType, imageCacheDir } from "../../../util";
@@ -40,7 +40,7 @@ export default () => <Resource> {
       return res.send(data);
     }
 
-    if (!existsSync(webpFile)) writeFileSync(webpFile, await (await fetch(`${gifBoxAPIUrl}/file/posts/${gifId}`)).buffer());
+    if (!existsSync(webpFile)) writeFileSync(webpFile, (await axios.get(`${gifBoxAPIUrl}/file/posts/${gifId}`, { responseType: "arraybuffer" })).data);
 
     /**
      * FIXME: This is awful since ffmpeg doesn't support webp->mp4 directly

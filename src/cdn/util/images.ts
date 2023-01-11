@@ -1,4 +1,3 @@
-import fetch from "node-fetch";
 import { join } from "path";
 import {
   existsSync, mkdirSync, readFileSync, writeFileSync,
@@ -26,13 +25,13 @@ if (!existsSync(imageCacheDir)) {
 export async function downloadImage(type: ImageType, id: string) {
   const rvURL = `${AutumnURL}/${type}/${id}`;
   const imgTypeCacheDir = join(imageCacheDir, type);
+  const imgDir = join(imgTypeCacheDir, id);
 
   if (!existsSync(imgTypeCacheDir)) mkdirSync(imgTypeCacheDir);
 
-  const imgDir = join(imgTypeCacheDir, id);
   if (!existsSync(imgDir)) {
     Logger.log(`Downloading uncached ${type} ${id}`);
-    const res = await (await fetch(rvURL)).buffer();
+    const res = await (await axios.get(rvURL, { responseType: "arraybuffer" })).data;
     writeFileSync(imgDir, res);
     return res;
   }
