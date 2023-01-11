@@ -4,6 +4,7 @@ import {
 } from "../managers";
 
 export class APIWrapper {
+  bot: boolean;
   rvAPI: API.API;
 
   channels: ChannelsManager;
@@ -18,8 +19,10 @@ export class APIWrapper {
 
   emojis: EmojiManager;
 
-  constructor(api: API.API) {
+  constructor(api: API.API, options?: { bot?: boolean }) {
     this.rvAPI = api;
+
+    this.bot = options?.bot ?? false;
 
     this.channels = new ChannelsManager(this);
     this.messages = new MessageManager(this);

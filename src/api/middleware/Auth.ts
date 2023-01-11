@@ -40,7 +40,6 @@ declare global {
         interface Response {
           rvAPI: API.API;
           rvAPIWrapper: APIWrapper,
-          fromBot?: boolean;
         }
     }
 }
@@ -63,20 +62,21 @@ export async function Authentication(req: Request, res: Response, next: NextFunc
   if (!req.headers.authorization) return next(new HTTPError("Missing authorization header!", 401));
 
   try {
+    let bot = false;
     req.token = req.headers.authorization;
     // Bots emit this at the beginning to signify they're a bot token
     if (req.token.startsWith("Bot ")) {
       req.token = req.token.substring(4);
 
       res.rvAPI = createAPI(req.token);
-      res.fromBot = true;
+      bot = true;
     } else {
       res.rvAPI = createAPI({
         token: req.token,
       });
     }
 
-    res.rvAPIWrapper = new APIWrapper(res.rvAPI);
+    res.rvAPIWrapper = new APIWrapper(res.rvAPI, { bot });
 
     return next();
   } catch (error: any) {
