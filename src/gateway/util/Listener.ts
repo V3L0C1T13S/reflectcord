@@ -220,7 +220,7 @@ export async function startListener(
             })));
 
           const private_channels = channels
-            .filter((x) => x.revolt.channel_type === "DirectMessage" || x.revolt.channel_type === "Group")
+            .filter((x) => x.revolt.channel_type === "DirectMessage" || x.revolt.channel_type === "Group" || x.revolt.channel_type === "SavedMessages")
             .map((x) => x.discord);
 
           const guilds = await Promise.all(data.servers

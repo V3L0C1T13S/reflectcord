@@ -287,6 +287,11 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
           _id: x,
           username: "fixme",
         })));
+    } else if (channel.channel_type === "SavedMessages") {
+      commonProperties.recipients = [await User.from_quark({
+        _id: channel.user,
+        username: "Saved Messages",
+      })];
     }
 
     return {
@@ -295,20 +300,8 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
       id,
       invitable: undefined,
       type: channelType,
-      last_message_id: await (() => {
-        switch (channel.channel_type) {
-          case "VoiceChannel": {
-            return null;
-          }
-          case "SavedMessages": {
-            return null;
-          }
-          default: {
-            if (!channel.last_message_id) return null;
-            return toSnowflake(channel.last_message_id);
-          }
-        }
-      })(),
+      last_message_id: "last_message_id" in channel && channel.last_message_id
+        ? await toSnowflake(channel.last_message_id) : null,
       name: (() => {
         if (channel.channel_type === "SavedMessages") {
           return "Saved Messages";

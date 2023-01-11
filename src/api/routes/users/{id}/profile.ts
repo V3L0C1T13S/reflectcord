@@ -48,11 +48,15 @@ export default (express: Application) => <Resource> {
 
     const user = await fetchUser(api, rvId);
     const rvProfile = await getProfile(api, rvId);
-    if (!rvProfile || !user) throw new HTTPError("User not found", 422);
+    if (!rvProfile || !user) throw new HTTPError("User not found", 404);
+
+    let mutual_friends_count: number | null = null;
 
     // FIXME: Discord client sometimes does this garbage
     if (with_mutual_guilds === "true" && rvId !== currentId) {
       const mutuals = await api.get(`/users/${rvId as ""}/mutual`);
+
+      mutual_friends_count = mutuals.users.length;
 
       await Promise.all(mutuals.servers.map(async (x) => {
         mutual_guilds.push({
@@ -68,6 +72,7 @@ export default (express: Application) => <Resource> {
       user_profile: await UserProfile.from_quark(rvProfile),
       premium_since: new Date(decodeTime(rvId)).toISOString(),
       premium_type: UserPremiumType.Nitro,
+      mutual_friends_count,
       mutual_guilds,
       profile_themes_experiment_bucket: enableProfileThemes
         ? ProfileThemesExperimentBucket.ViewAndEditWithTryItOut
