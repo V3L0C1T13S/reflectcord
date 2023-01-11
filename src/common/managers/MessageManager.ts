@@ -114,9 +114,7 @@ export class MessageManager extends BaseManager<string, MessageContainer> {
     const discordMessage = await Message.from_quark(revoltResponse);
     const selfUser = await this.apiWrapper.users.getSelf(false);
 
-    setTimeout(() => {
-      this.ack(channel, revoltResponse._id).catch(Logger.error);
-    }, 4000);
+    await this.ack(channel, revoltResponse._id).catch(Logger.error);
 
     return {
       revolt: {
