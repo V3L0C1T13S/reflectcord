@@ -24,7 +24,7 @@ export class UserManager extends BaseManager<string, UserContainer> {
       discord: {
         id: "0",
         username: "Revolt",
-        discriminator: "1",
+        discriminator: "0001",
         avatar: null,
       },
     });
@@ -44,6 +44,8 @@ export class UserManager extends BaseManager<string, UserContainer> {
     if (data) return this.createObj(data);
 
     const res = await this.rvAPI.get(`/users/${id as ""}`);
+    // const profile = await this.rvAPI.get(`/users/${id as ""}/profile`);
+    // res.profile = profile;
 
     return this.createObj({
       revolt: res,
