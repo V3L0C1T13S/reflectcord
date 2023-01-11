@@ -1,6 +1,7 @@
 import { APIMessage } from "discord.js";
 import { API } from "revolt.js";
 import { isEqual } from "lodash";
+import { Logger } from "@reflectcord/common/utils";
 import { Message, MessageAFQ, User } from "../models";
 import { BaseManager } from "./BaseManager";
 import { QuarkContainer } from "./types";
@@ -113,6 +114,10 @@ export class MessageManager extends BaseManager<string, MessageContainer> {
     const discordMessage = await Message.from_quark(revoltResponse);
     const selfUser = await this.apiWrapper.users.getSelf(false);
 
+    setTimeout(() => {
+      this.ack(channel, revoltResponse._id).catch(Logger.error);
+    }, 4000);
+
     return {
       revolt: {
         message: revoltResponse,
@@ -124,10 +129,8 @@ export class MessageManager extends BaseManager<string, MessageContainer> {
     };
   }
 
-  async ack(channel:string, id: string) {
-    const res = await this.rvAPI.put(`/channels/${channel as ""}/ack/${id as ""}`);
-
-    return res;
+  ack(channel:string, id: string) {
+    return this.rvAPI.put(`/channels/${channel as ""}/ack/${id as ""}`);
   }
 
   async bulkDelete(channel: string, ids: string[]) {
