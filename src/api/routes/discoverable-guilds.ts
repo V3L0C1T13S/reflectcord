@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import { Application } from "express";
 import { Resource } from "express-automatic-routes";
 import { DiscoveryClient } from "@reflectcord/common/rvapi";
@@ -10,7 +11,7 @@ export default (express: Application) => <Resource> {
   get: async (req, res) => {
     await client.init();
 
-    const { categories } = req.query as { categories: string };
+    const { categories, guild_ids } = req.query as { categories: string, guild_ids: string[] };
 
     const revoltData = await client.servers.fetchPopular();
     let revoltServers = revoltData.pageProps.servers;
@@ -27,11 +28,14 @@ export default (express: Application) => <Resource> {
       revoltServers = filteredServers;
     }
 
-    const total = revoltServers.length;
+    let guilds = await Promise.all(revoltServers
+      .map((x) => DiscoverableGuild.from_quark(x)));
+
+    if (guild_ids) guilds = guilds.filter((x) => guild_ids.includes(x.id));
+
     res.json({
-      total,
-      guilds: await Promise.all(revoltServers
-        .map((x) => DiscoverableGuild.from_quark(x))),
+      total: guilds.length,
+      guilds,
     });
   },
 };
