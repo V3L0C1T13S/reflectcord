@@ -300,13 +300,13 @@ const skus = new Map([
 
 export default (express: Application) => <Resource> {
   get: (req, res) => {
-    const { sku_id } = req.params as { sku_id: string };
+    const { skuId } = req.params as { skuId: string };
 
-    if (!skus.has(sku_id)) {
-      Logger.log(`Request for invalid SKU ${sku_id}! Please report this!`);
+    if (!skus.has(skuId)) {
+      Logger.log(`Request for invalid SKU ${skuId}! Please report this!`);
       res.sendStatus(404);
     } else {
-      res.json(skus.get(sku_id));
+      res.json(skus.get(skuId));
     }
   },
 };
