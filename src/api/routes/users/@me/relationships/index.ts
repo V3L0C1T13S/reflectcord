@@ -4,9 +4,10 @@
 import { Application } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
-import { UserRelationshipType } from "@reflectcord/common/sparkle";
+import { UserRelationshipType, DiscordErrorMessages, DiscordErrors } from "@reflectcord/common/sparkle";
 import { Relationship, User } from "@reflectcord/common/models";
-import { HTTPError } from "@reflectcord/common/utils";
+import { FieldError, HTTPError } from "@reflectcord/common/utils";
+import { AxiosError, isAxiosError } from "axios";
 
 export default (express: Application) => <Resource> {
   get: async (req, res) => {
@@ -40,10 +41,21 @@ export default (express: Application) => <Resource> {
   },
   post: async (req, res) => {
     const { username } = req.body;
-    if (!username) throw new HTTPError("Invalid username", 422);
+    if (!username) throw new HTTPError("Invalid username", 404);
 
     const rvRes = await res.rvAPI.post("/users/friend", {
       username,
+    }).catch((error) => {
+      if (isAxiosError(error)) {
+        if (error.response?.data.type === "AlreadyFriends") {
+          throw new FieldError(
+            DiscordErrors.AlreadyFriendsError,
+            DiscordErrorMessages.AlreadyFriendsError,
+          );
+        }
+      }
+
+      throw new HTTPError("Unknown");
     });
 
     res.json(await User.from_quark(rvRes));
