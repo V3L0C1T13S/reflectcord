@@ -7,6 +7,8 @@ import {
 } from "../util";
 
 export async function selectProtocol(this: WebSocket, payload: Payload) {
+  if (!this.client) return;
+
   const data = payload.d;
 
   const offer = SemanticSDP.SDPInfo.parse(`m=audio\n${data.sdp}`);

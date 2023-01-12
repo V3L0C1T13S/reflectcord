@@ -18,3 +18,7 @@ export enum VoiceOPCodes {
   Video = 12,
   VoiceBackendVersion = 16,
 }
+
+export enum VoiceCloseCodes {
+
+}

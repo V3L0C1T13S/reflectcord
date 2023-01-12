@@ -4,7 +4,6 @@ import ProxyAgent from "proxy-agent";
 import fs from "fs";
 import path from "path";
 import fetch, { Headers, Response as FetchResponse } from "node-fetch";
-import axios from "axios";
 import favicon from "serve-favicon";
 import { Logger } from "@reflectcord/common/utils";
 import { reflectcordWsURL, reflectcordCDNURL, discordBaseURL } from "@reflectcord/common/constants";
@@ -60,64 +59,6 @@ function stripHeaders(headers: Headers): Headers {
     headers.delete(headerName);
   });
   return headers;
-}
-
-export function ClientV2(app: Application) {
-  const agent = new ProxyAgent();
-
-  const html = applyEnv(fs.readFileSync(path.join(AssetsPath, "index.html"), { encoding: "utf8" }));
-
-  const cacheDir = path.join(AssetsPath, "cache");
-
-  if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir);
-
-  app.use("/assets", express.static(path.join(AssetsPath)));
-  app.get("/assets/:file", async (req: Request, res: Response) => {
-    if (!req.params.file) return;
-
-    delete req.headers.host;
-
-    const fullFilePath = path.join(AssetsPath, req.params.file);
-    const cachedFilePath = path.join(cacheDir, req.params.file);
-
-    if (req.params.file.endsWith(".map")) return res.sendStatus(404);
-
-    if (!fs.existsSync(fullFilePath) && !fs.existsSync(cachedFilePath)) {
-      const file = await axios.get(`${discordBaseURL}/assets/${req.params.file}`, {
-        httpAgent: agent,
-        headers: {
-          ...req.headers,
-        },
-      });
-
-      fs.writeFileSync(cachedFilePath, file.data);
-
-      return res.send(file.data);
-    }
-
-    const file = fs.readFileSync(cachedFilePath);
-
-    return res.send(file);
-  });
-  app.get("/developers*", (_req: Request, res: Response) => {
-    res.set("Cache-Control", `public, max-age=${60 * 60 * 24}`);
-    res.set("content-type", "text/html");
-
-    if (!useTestClient) return res.send("Test client is disabled on this instance. Use a stand-alone client to connect this instance.");
-
-    return res.send(fs.readFileSync(path.join(__dirname, "..", "..", "..", "assets", "developers.html"), { encoding: "utf8" }));
-  });
-  app.get("*", (req: Request, res: Response) => {
-    res.set("Cache-Control", `public, max-age=${60 * 60 * 24}`);
-    res.set("content-type", "text/html");
-
-    if (req.url.startsWith("/api") || req.url.startsWith("/__development")) return;
-
-    if (!useTestClient) return res.send("Test client is disabled on this instance. Use a stand-alone client to connect this instance.");
-    if (req.url.startsWith("/invite")) return res.send(html.replace("9b2b7f0632acd0c5e781", "9f24f709a3de09b67c49"));
-
-    return res.send(html);
-  });
 }
 
 export function Client(app: Application) {

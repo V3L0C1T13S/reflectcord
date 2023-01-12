@@ -29,7 +29,7 @@ export async function onConnect(this: ws.Server, socket: WebSocket, request: Inc
     await Send(socket, {
       op: VoiceOPCodes.Hello,
       d: {
-        v: 7,
+        // v: 7,
         heartbeat_interval: 1000 * 30,
       },
     });

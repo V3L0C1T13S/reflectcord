@@ -1,7 +1,7 @@
 import { GatewayDispatchEvents, GatewayOpcodes } from "discord.js";
 import { WebSocket } from "ws";
 import { TestingToken } from "@reflectcord/common/rvapi";
-import { GatewayDispatchCodes } from "@reflectcord/common/sparkle/schemas/Gateway/Dispatch";
+import { GatewayDispatchCodes } from "@reflectcord/common/sparkle";
 
 const socket = new WebSocket("ws://localhost:3002?v=9&encoding=json");
 

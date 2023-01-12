@@ -38,7 +38,11 @@ export async function onIdentify(this: WebSocket, data: Payload) {
   this.user_id = voiceState.user_id;
 
   const sdp = SemanticSDP.SDPInfo.expand(defaultsdp);
-  sdp.setDTLS(SemanticSDP.DTLSInfo.expand({ setup: "actpass", hash: "sha-256", fingerprint: endpoint.getDTLSFingerprint() }));
+  sdp.setDTLS(SemanticSDP.DTLSInfo.expand({
+    setup: "actpass",
+    hash: "sha-256",
+    fingerprint: endpoint.getDTLSFingerprint(),
+  }));
 
   this.client = {
     websocket: this,
