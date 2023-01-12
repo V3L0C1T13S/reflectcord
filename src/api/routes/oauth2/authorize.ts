@@ -57,7 +57,9 @@ export default () => <Resource> {
       const rvServer = await fromSnowflake(guild_id);
       await res.rvAPIWrapper.servers.inviteBot(rvServer, rvBotId);
 
-      res.sendStatus(200);
+      res.json({
+        location: "/oauth2/authorized",
+      });
     },
   },
 };
