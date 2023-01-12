@@ -44,7 +44,7 @@ import {
   Message,
   createCommonGatewayGuild,
 } from "@reflectcord/common/models";
-import { genSessionId, Logger, RabbitMQ } from "@reflectcord/common/utils";
+import { Logger, RabbitMQ } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
 import { GatewayUserChannelUpdateOptional, IdentifySchema } from "@reflectcord/common/sparkle";
 import { reflectcordWsURL } from "@reflectcord/common/constants";
@@ -115,12 +115,7 @@ async function internalConsumer(this: WebSocket, opts: eventOpts) {
       }
     }
 
-    await Send(this, {
-      op: GatewayOpcodes.Dispatch,
-      t: event,
-      d: data,
-      s: this.sequence++,
-    });
+    await Dispatch(this, event, data);
   } catch (e) {
     console.error("Error in consumer:", e);
   }
@@ -189,7 +184,6 @@ export async function startListener(
           this.user_id = await toSnowflake(currentUser._id);
           this.rv_user_id = currentUser._id;
 
-          this.session_id = genSessionId();
           this.is_deprecated = isDeprecatedClient.call(this);
 
           this.typingConsumer = await RabbitMQ.channel?.consume(userStartTyping, (msg) => {
@@ -339,15 +333,10 @@ export async function startListener(
           const sessions = [currentSession];
 
           setImmediate(async () => {
-            Send(this, {
-              op: GatewayOpcodes.Dispatch,
-              t: GatewayDispatchEvents.PresenceUpdate,
-              s: this.sequence++,
-              d: {
-                user: currentUserDiscord,
-                ...currentSession,
-                client_status: currentSession.status,
-              },
+            Dispatch(this, GatewayDispatchEvents.PresenceUpdate, {
+              user: currentUserDiscord,
+              ...currentSession,
+              client_status: currentSession.status,
             });
           });
 

@@ -45,6 +45,7 @@
     "express-async-errors": "^3.1.1",
     "express-automatic-routes": "^1.1.0",
     "express-fileupload": "^1.4.0",
+    "fast-zlib": "^2.0.1",
     "ffmpeg-static": "^5.1.0",
     "file-type": "^16.5.4",
     "fluent-ffmpeg": "^2.1.2",

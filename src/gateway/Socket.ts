@@ -4,9 +4,8 @@ import { Replies } from "amqplib";
 import { API } from "revolt-api";
 import { Client } from "revolt.js";
 import WS from "ws";
-import { Deflate } from "zlib";
+import { Deflate, Inflate } from "fast-zlib";
 import { APIWrapper } from "../common/rvapi";
-import { VoiceStateObject } from "./opcodes/VS";
 import { Payload } from "./util";
 
 export class SocketState {
@@ -41,6 +40,7 @@ export interface WebSocket extends WS {
   shard_count?: number;
   shard_id?: number;
   deflate?: Deflate;
+  inflate?: Inflate;
   heartbeatTimeout: NodeJS.Timeout;
   readyTimeout: NodeJS.Timeout;
   intents: any;

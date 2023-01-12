@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 /* eslint-disable no-console */
 import { GatewayCloseCodes, GatewayOpcodes } from "discord.js";
 import erlpack from "erlpack";
@@ -9,12 +10,29 @@ import { OPCodeHandlers } from "../opcodes";
 export async function Message(this: WebSocket, buffer: Buffer) {
   let data: Payload;
 
-  if (this.encoding === "etf" && buffer instanceof Buffer) data = erlpack.unpack(buffer);
-  else if (this.encoding === "json") {
+  if (
+    (buffer instanceof Buffer && buffer[0] === 123) // ASCII 123 = `{`. Bad check for JSON
+    || typeof buffer === "string"
+  ) {
+    data = JSON.parse(buffer.toString());
+  } else if (this.encoding === "etf" && buffer instanceof Buffer) {
+    try {
+      data = erlpack.unpack(buffer);
+    } catch {
+      return this.close(GatewayCloseCodes.DecodeError);
+    }
+  } else if (this.encoding === "json" && buffer instanceof Buffer) {
+    if (this.inflate) {
+      try {
+        buffer = this.inflate.process(buffer) as any;
+      } catch {
+        buffer = buffer.toString() as any;
+      }
+    }
     data = JSON.parse(buffer as unknown as string);
   } else {
-    Logger.log("Invalid gateway connection.");
-    return;
+    Logger.log(`Session ${this.session_id} sent an undecodable invalid payload.`);
+    return this.close(GatewayCloseCodes.DecodeError);
   }
 
   Logger.log(`Message: ${JSON.stringify(data)}`);

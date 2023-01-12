@@ -1,19 +1,20 @@
 /* eslint-disable no-plusplus */
 import { GatewayOpcodes } from "discord.js";
 import erlpack from "erlpack";
+import { Logger } from "@reflectcord/common/utils";
 import { WebSocket } from "../Socket";
 import { Payload } from "./Constants";
 
 export async function Send(socket: WebSocket, data: Payload) {
   if (socket.encoding !== "etf" && socket.encoding !== "json") return;
 
-  const buffer = socket.encoding === "etf" ? erlpack.pack(data) : JSON.stringify(data);
+  Logger.log(`Outgoing WS Message: ${JSON.stringify(data)}`);
+
+  let buffer = socket.encoding === "etf" ? erlpack.pack(data) : JSON.stringify(data);
 
   // FIXME: Compression is unsupported
   if (socket.deflate) {
-    socket.deflate.write(buffer);
-    socket.deflate.flush();
-    return;
+    buffer = socket.deflate.process(buffer) as Buffer;
   }
 
   return new Promise((res, rej) => {
