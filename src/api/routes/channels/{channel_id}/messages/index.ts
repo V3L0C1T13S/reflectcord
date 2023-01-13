@@ -80,7 +80,7 @@ export default (express: Application) => <Resource> {
         }),
       );
 
-      return res.json(msg.discord);
+      res.json(msg.discord);
     },
   },
 };

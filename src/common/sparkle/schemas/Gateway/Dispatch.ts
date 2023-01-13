@@ -69,6 +69,7 @@ export enum GatewayDispatchCodes {
   StreamServerUpdate = "STREAM_SERVER_UPDATE",
   StreamDelete = "STREAM_DELETE",
   StreamWatch = "STREAM_WATCH",
+  SessionsReplace = "SESSIONS_REPLACE",
   CallCreate = "CALL_CREATE",
   CallUpdate = "CALL_UPDATE",
   CallDelete = "CALL_DELETE",

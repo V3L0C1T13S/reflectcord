@@ -337,7 +337,10 @@ export async function startListener(
           const sessions = [currentSession];
 
           setImmediate(async () => {
-            await Dispatch(this, GatewayDispatchEvents.PresenceUpdate, {
+            Dispatch(this, GatewayDispatchCodes.SessionsReplace, {
+              ...currentSession,
+            }).catch(Logger.error);
+            Dispatch(this, GatewayDispatchEvents.PresenceUpdate, {
               user: currentUserDiscord,
               ...currentSession,
               client_status: currentSession.status,

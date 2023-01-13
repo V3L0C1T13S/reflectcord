@@ -31,6 +31,7 @@ socket.onmessage = (data) => {
         }
         case GatewayDispatchCodes.ReadySupplemental: {
           console.log("Supplemental received");
+          socket.close(1000);
           break;
         }
         default: {
@@ -42,4 +43,9 @@ socket.onmessage = (data) => {
     }
     default:
   }
+};
+
+socket.onclose = (data) => {
+  console.log("Session closed. Testing complete.");
+  process.exit(1);
 };
