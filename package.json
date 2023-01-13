@@ -22,7 +22,8 @@
     "start:monolith": "node ./dist/start.js",
     "clean": "rimraf dist",
     "lint": "eslint src/**/*.ts",
-    "test": "jest"
+    "test": "jest",
+    "typecheck": "tsc --noEmit"
   },
   "author": "",
   "license": "ISC",
