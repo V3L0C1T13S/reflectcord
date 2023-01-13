@@ -1,6 +1,5 @@
-import { Logger } from "../../common/utils";
+import { RabbitMQ, Logger } from "@reflectcord/common/utils";
 import { WebSocket } from "../Socket";
-import { RabbitMQ } from "../../common/utils/RabbitMQ";
 
 export async function Close(this: WebSocket, code: number, reason: string) {
   Logger.log(`WS Closed ${code} ${reason}`);

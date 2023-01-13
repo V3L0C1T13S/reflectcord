@@ -91,6 +91,8 @@ async function internalConsumer(this: WebSocket, opts: eventOpts) {
 
     const consumer = internalConsumer.bind(this);
 
+    opts.acknowledge?.();
+
     switch (event) {
       case GatewayDispatchCodes.VoiceChannelEffectSend: {
         // TODO: Compare against real Discord to see if this is correct
@@ -125,7 +127,7 @@ export async function createInternalListener(this: WebSocket) {
   const consumer = internalConsumer.bind(this);
 
   const opts: { acknowledge: boolean; channel?: any } = {
-    acknowledge: false,
+    acknowledge: true,
   };
   if (RabbitMQ.connection) {
     opts.channel = await RabbitMQ.connection.createChannel();
@@ -283,7 +285,7 @@ export async function startListener(
                     t: GatewayDispatchEvents.GuildCreate,
                     s: this.sequence++,
                     d: botGuild,
-                  });
+                  }).catch(Logger.error);
                 }, 500);
                 return { id: guild.id, unavailable: true };
               }
@@ -333,11 +335,11 @@ export async function startListener(
           const sessions = [currentSession];
 
           setImmediate(async () => {
-            Dispatch(this, GatewayDispatchEvents.PresenceUpdate, {
+            await Dispatch(this, GatewayDispatchEvents.PresenceUpdate, {
               user: currentUserDiscord,
               ...currentSession,
               client_status: currentSession.status,
-            });
+            }).catch(Logger.error);
           });
 
           const memberData = (await Promise.all(data.members.map(async (x) => {

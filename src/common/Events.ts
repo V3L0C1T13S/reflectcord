@@ -1,5 +1,6 @@
 import { Channel } from "amqplib";
 import EventEmitter from "events";
+import { Logger } from "@reflectcord/common/utils";
 import { RabbitMQ } from "./utils";
 
 export const events = new EventEmitter();
@@ -10,6 +11,7 @@ export interface eventOpts {
   guild_id?: string,
   event: string,
   data: any,
+  acknowledge?: Function,
 }
 
 export async function emitEvent(data: eventOpts) {
