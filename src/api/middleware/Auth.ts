@@ -8,6 +8,7 @@ export const NoAuthRoutes = [
   "/auth/register",
   "/auth/location-metadata",
   "/auth/mfa/totp",
+  "/auth/forgot",
   // Routes with a seperate auth system
   "/webhooks/",
   // Public information endpoints

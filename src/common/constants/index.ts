@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import { API } from "revolt.js";
 import { getNextData } from "../rvapi/discovery";
 
 dotenv.config();
@@ -57,8 +58,18 @@ export const TwitterAPIBearer = process.env["TWITTER_API_BEARER"] ?? null;
 export const discordBaseURL = process.env["DISCORD_BASE_URL"] ?? "https://discord.com";
 export const discordBaseAPIURL = `${discordBaseURL}/api/v9`;
 
+let revoltConfig: API.RevoltConfig;
+
 export async function getRevoltDiscoveryDataURL() {
   const discoveryBuildId = await getNextData();
 
   return `${revoltDiscoveryURL}/_next/data/${discoveryBuildId}`;
+}
+
+export async function getServerConfig() {
+  if (revoltConfig) return revoltConfig;
+
+  revoltConfig = await new API.API().get("/");
+
+  return revoltConfig;
 }

@@ -9,4 +9,5 @@ export namespace DbManager {
 
 export async function initDb() {
   await DbManager.client.connect();
+  await mongoose.connect(mongoURL);
 }

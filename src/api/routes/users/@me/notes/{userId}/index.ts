@@ -2,29 +2,15 @@
 import { Application, Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { HTTPError } from "@reflectcord/common/utils";
-import { DbManager } from "@reflectcord/common/db";
 import { fromSnowflake, toSnowflake } from "@reflectcord/common/models";
+import { INote, UserNote } from "@reflectcord/common/mongoose";
 import { fetchUser } from "../../../{id}";
 
 export type noteRequest = {
   note: string,
 };
 
-export type userNote = {
-  user_id: string,
-  note_user_id: string,
-  note: string,
-}
-
-export type noteResponse = userNote;
-
-export type noteStorage = {
-  owner_id: string,
-  note: userNote,
-}
-
-const notes = DbManager.client.db("reflectcord")
-  .collection<noteStorage>("notes");
+export type noteResponse = INote;
 
 export default (express: Application) => <Resource> {
   get: async (req, res: Response<noteResponse>) => {
@@ -33,7 +19,7 @@ export default (express: Application) => <Resource> {
 
     const selfUser = await res.rvAPI.get("/auth/account/");
 
-    const note = await notes.findOne({ owner_id: selfUser._id, "note.user_id": userId });
+    const note = await UserNote.findOne({ owner_id: selfUser._id, "note.user_id": userId });
     if (!note) throw new HTTPError("Unknown User", 10013);
 
     res.json(note.note);
@@ -50,7 +36,7 @@ export default (express: Application) => <Resource> {
     const user = await fetchUser(res.rvAPI, ulid);
 
     if (!note) {
-      await notes.deleteOne({ owner_id: selfUser._id, "note.user_id": user.id });
+      await UserNote.deleteOne({ owner_id: selfUser._id, "note.user_id": user.id });
 
       return res.json({
         user_id: user.id,
@@ -59,7 +45,7 @@ export default (express: Application) => <Resource> {
       });
     }
 
-    const newNote = await notes.findOneAndUpdate(
+    const newNote = await UserNote.findOneAndUpdate(
       { owner_id: selfUser._id, "note.user_id": user.id },
       {
         $setOnInsert: {
@@ -71,12 +57,9 @@ export default (express: Application) => <Resource> {
           "note.note": note,
         },
       },
-
       { upsert: true, returnDocument: "after" },
     );
 
-    if (!newNote.value) throw new HTTPError("Note failed to update", 500);
-
-    return res.json(newNote.value.note);
+    return res.json(newNote.note);
   },
 };
