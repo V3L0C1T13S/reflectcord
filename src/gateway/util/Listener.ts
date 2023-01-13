@@ -282,12 +282,7 @@ export async function startListener(
 
               if (currentUser.bot) {
                 setTimeout(() => {
-                  Send(this, {
-                    op: GatewayOpcodes.Dispatch,
-                    t: GatewayDispatchEvents.GuildCreate,
-                    s: this.sequence++,
-                    d: botGuild,
-                  }).catch(Logger.error);
+                  Dispatch(this, GatewayDispatchEvents.GuildCreate, botGuild).catch(Logger.error);
                 }, 500);
                 return { id: guild.id, unavailable: true };
               }
@@ -337,9 +332,8 @@ export async function startListener(
           const sessions = [currentSession];
 
           setImmediate(async () => {
-            Dispatch(this, GatewayDispatchCodes.SessionsReplace, {
-              ...currentSession,
-            }).catch(Logger.error);
+            Dispatch(this, GatewayDispatchCodes.SessionsReplace, [currentSession])
+              .catch(Logger.error);
             Dispatch(this, GatewayDispatchEvents.PresenceUpdate, {
               user: currentUserDiscord,
               ...currentSession,
