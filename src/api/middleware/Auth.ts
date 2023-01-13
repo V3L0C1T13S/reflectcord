@@ -16,7 +16,7 @@ export const NoAuthRoutes = [
   "/gateway",
   "/experiments",
   "/updates",
-  "/downloads/",
+  "/download",
   "/scheduled-maintenances/upcoming.json",
   // Client analytics
   // "/science",
