@@ -72,4 +72,6 @@ export enum GatewayDispatchCodes {
   CallCreate = "CALL_CREATE",
   CallUpdate = "CALL_UPDATE",
   CallDelete = "CALL_DELETE",
+  RelationshipAdd = "RELATIONSHIP_ADD",
+  RelationshipRemove = "RELATIONSHIP_REMOVE",
 }

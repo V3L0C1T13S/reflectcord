@@ -6,6 +6,8 @@ import {
   GatewayCloseCodes,
   GatewayDispatchEvents,
   GatewayGuildCreateDispatchData,
+  GatewayGuildDeleteDispatchData,
+  GatewayGuildMemberRemoveDispatchData,
   GatewayGuildRoleDeleteDispatchData,
   GatewayGuildRoleUpdateDispatchData,
   GatewayMessageCreateDispatchData,
@@ -859,53 +861,35 @@ export async function startListener(
             updatedMemberDiscord.discord,
           );
 
-          /*
-          await Send(this, {
-            op: GatewayOpcodes.Dispatch,
-            t: GatewayDispatchEvents.GuildMemberUpdate,
-            s: this.sequence++,
-            d: {
-              guild_id: await toSnowflake(data.id.server),
-              roles: data.data.roles?.map((x) => toSnowflake(x)) ?? [],
-              user: await User.from_quark({
-                ...data.data,
-                _id: data.id.user,
-                username: nickname ?? "fixme",
-              }),
-              nick: nickname,
-              joined_at: joined_at ? new Date(joined_at).toISOString() : undefined,
-              avatar: data.data.avatar?._id,
-              communication_disabled_until: timeout ? new Date(timeout).toISOString() : undefined,
-            },
-          });
-          */
-
           break;
         }
         case "ServerMemberLeave": {
+          const server = this.rvAPIWrapper.servers.get(data.id);
+
+          const guildId = server?.discord.id ?? await toSnowflake(data.id);
+
           // TODO: Validate if this is correct
           if (data.user === this.rv_user_id) {
-            await Send(this, {
-              op: GatewayOpcodes.Dispatch,
-              t: GatewayDispatchEvents.GuildDelete,
-              s: this.sequence++,
-              d: {
-                id: await toSnowflake(data.id),
-              },
-            });
+            const body: GatewayGuildDeleteDispatchData = {
+              id: guildId,
+              unavailable: false,
+            };
+
+            await this.rvAPIWrapper.servers.removeServer(data.id, false, true);
+
+            await Dispatch(this, GatewayDispatchEvents.GuildDelete, body);
 
             return;
           }
 
-          await Send(this, {
-            op: GatewayOpcodes.Dispatch,
-            t: GatewayDispatchEvents.GuildMemberRemove,
-            s: this.sequence++,
-            d: {
-              guild_id: await toSnowflake(data.id),
-              user: await toSnowflake(data.user),
-            },
-          });
+          const user = await this.rvAPIWrapper.users.fetch(data.user);
+
+          const body: GatewayGuildMemberRemoveDispatchData = {
+            guild_id: guildId,
+            user: user.discord,
+          };
+
+          await Dispatch(this, GatewayDispatchEvents.GuildMemberRemove, body);
 
           break;
         }
@@ -1065,28 +1049,18 @@ export async function startListener(
           const user = await User.from_quark(data.user);
 
           if (["Friend", "Outgoing", "Incoming", "Blocked"].includes(data.status)) {
-            await Send(this, {
-              op: GatewayOpcodes.Dispatch,
-              t: "RELATIONSHIP_ADD",
-              s: this.sequence++,
-              d: {
-                id,
-                type,
-                nickname,
-                user,
-              },
+            await Dispatch(this, GatewayDispatchCodes.RelationshipAdd, {
+              id,
+              type,
+              nickname,
+              user,
             });
           } else {
-            await Send(this, {
-              op: GatewayOpcodes.Dispatch,
-              t: "RELATIONSHIP_REMOVE",
-              s: this.sequence++,
-              d: {
-                id,
-                type,
-                nickname,
-                user,
-              },
+            await Dispatch(this, GatewayDispatchCodes.RelationshipRemove, {
+              id,
+              type,
+              nickname,
+              user,
             });
           }
           break;
