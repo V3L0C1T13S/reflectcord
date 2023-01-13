@@ -13,7 +13,9 @@ export default (express: Application) => <Resource> {
 
     const config = await getServerConfig();
 
-    const { email, password, captcha_key } = req.body;
+    const {
+      email, password, captcha_key, username,
+    } = req.body;
 
     if (!captcha_key && config.features.captcha.enabled) {
       res.status(400);
