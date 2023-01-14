@@ -26,8 +26,8 @@ To check if your framework of choice or client works with Reflectcord, refer to 
 
 ## Screenshots
 
-![image](https://user-images.githubusercontent.com/51764975/200136609-9d953fe8-2eb7-4f27-a2d3-f0f16a8c0ee4.png)
-![image](https://user-images.githubusercontent.com/51764975/200136653-3899a801-01a1-4ffc-9166-fac3fa46d711.png)
+![image](https://user-images.githubusercontent.com/51764975/212494409-017dd53d-a958-4a0e-bdfa-2af3f26bd62d.png)
+![image](https://user-images.githubusercontent.com/51764975/212494374-ce01cedb-31fd-4431-bb67-08ae6a70d2f9.png)
 
 ## Setup
 
