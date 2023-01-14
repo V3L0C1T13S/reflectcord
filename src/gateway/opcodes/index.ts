@@ -16,6 +16,7 @@ import { CallSync } from "./CallSync";
 import { StreamSetPaused } from "./StreamSetPaused";
 import { StreamDelete } from "./StreamDelete";
 import { StreamWatch } from "./StreamWatch";
+import { ActivityClose } from "./ActivityClose";
 
 export type OPCodeHandler = (this: WebSocket, data: Payload) => any;
 
@@ -35,4 +36,5 @@ export const OPCodeHandlers: { [key: number ]: OPCodeHandler } = {
   [GatewayOpcodes.StreamWatch]: StreamWatch,
   [GatewayOpcodes.StreamSetPaused]: StreamSetPaused,
   [GatewayOpcodes.QueryApplicationCommands]: QueryApplicationCommands,
+  [GatewayOpcodes.EmbeddedActivityClose]: ActivityClose,
 };

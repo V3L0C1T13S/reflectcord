@@ -1,10 +1,10 @@
 /* eslint-disable camelcase */
 import { Resource } from "express-automatic-routes";
 import { fromSnowflake, toSnowflake } from "@reflectcord/common/models";
-import { voiceStates } from "@reflectcord/gateway/opcodes/VS";
 import { emitEvent } from "@reflectcord/common/Events";
 import { ChannelType } from "discord.js";
 import { HTTPError } from "@reflectcord/common/utils";
+import { VoiceState } from "@reflectcord/common/mongoose";
 
 export default () => <Resource> {
   post: async (req, res) => {
@@ -23,7 +23,7 @@ export default () => <Resource> {
 
     const rvUserId = await res.rvAPIWrapper.users.getSelfId();
     const userId = await toSnowflake(rvUserId);
-    const existingStates = await voiceStates.find({ channel_id }).toArray();
+    const existingStates = await VoiceState.find({ channel_id });
 
     const msg = await res.rvAPIWrapper.messages.sendMessage(rvChannelId, {
       content: "You are getting called!",

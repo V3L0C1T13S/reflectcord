@@ -1,3 +1,5 @@
+import { Tuple } from "../../../utils/check";
+
 export const ActivitySchema = {
   afk: Boolean,
   status: String,
@@ -35,7 +37,7 @@ export const ActivitySchema = {
         $match: String,
       },
       $instance: Boolean,
-      $flags: String,
+      $flags: new Tuple(Number, String),
       // spotify and other rich presence data
       $id: String,
       $sync_id: String,

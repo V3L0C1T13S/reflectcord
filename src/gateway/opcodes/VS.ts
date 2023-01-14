@@ -16,6 +16,7 @@ import { GatewayDispatchCodes } from "@reflectcord/common/sparkle/schemas/Gatewa
 import { WebSocket } from "../Socket";
 import { Payload } from "../util";
 import { check } from "./instanceOf";
+import { VoiceState } from "../../common/mongoose/VoiceState";
 
 export interface VoiceStateObject {
   guild_id?: string,
@@ -33,11 +34,7 @@ export interface VoiceStateObject {
   request_to_speak_timestamp: string | null | undefined,
 }
 
-// FIXME: Implement with RPC instead
-export const voiceStates = DbManager.client.db("reflectcord")
-  .collection("voiceStates");
-
-const findExistingStates = (channel_id: string) => voiceStates.find({ channel_id }).toArray();
+const findExistingStates = (channel_id: string) => VoiceState.find({ channel_id });
 
 export async function VSUpdate(this: WebSocket, data: Payload) {
   check.call(this, VoiceStateSchema, data.d);
@@ -55,11 +52,10 @@ export async function VSUpdate(this: WebSocket, data: Payload) {
 
   let onlySettingsChanged = false;
 
-  const stateObjectV2 = await voiceStates.findOneAndUpdate({
-    user_id: this.user_id,
+  const stateData = await VoiceState.findOneAndUpdate({
+    _id: this.user_id,
   }, {
     $set: {
-      user_id: this.user_id,
       deaf: false,
       mute: false,
       self_mute,
@@ -68,9 +64,12 @@ export async function VSUpdate(this: WebSocket, data: Payload) {
       suppress: false,
       request_to_speak_timestamp: null,
     },
+    $setOnInsert: {
+      _id: this.user_id,
+      user_id: this.user_id,
+    },
   }, { upsert: true, returnDocument: "after" });
 
-  const stateData = stateObjectV2.value;
   if (!stateData) throw new Error("Invalid state");
 
   if (stateData.session_id !== this.session_id) {
@@ -82,7 +81,7 @@ export async function VSUpdate(this: WebSocket, data: Payload) {
     await emitEvent({
       event: GatewayDispatchEvents.VoiceStateUpdate,
       data: { ...stateData, channel_id: null },
-      guild_id: await tryFromSnowflake(stateData.guild_id),
+      guild_id: await tryFromSnowflake(stateData.guild_id!), // TODO: Types
     });
     // Tell DM/group chats we're leaving
   } else if (stateData.channel_id && !channel_id && stateData.session_id === this.session_id) {
@@ -121,16 +120,14 @@ export async function VSUpdate(this: WebSocket, data: Payload) {
     stateData.member = discordMember;
   } else delete stateData.member;
 
-  await voiceStates.updateOne({ user_id: this.user_id }, {
-    $set: stateData,
-  });
+  await stateData.save();
 
   if (stateData.guild_id || stateData.channel_id) {
     await emitEvent({
       event: GatewayDispatchEvents.VoiceStateUpdate,
       data: stateData,
-      guild_id: await tryFromSnowflake(stateData.guild_id),
-      channel_id: await tryFromSnowflake(stateData.channel_id),
+      guild_id: await tryFromSnowflake(stateData.guild_id!), // TODO: Types
+      channel_id: await tryFromSnowflake(stateData.channel_id!), // TODO: Types
     });
   } else {
     await emitEvent({

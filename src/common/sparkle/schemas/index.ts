@@ -13,3 +13,4 @@ export * from "./AppDirectory";
 export * from "./settings";
 export * from "./oauth2";
 export * from "./Errors";
+export * from "./Activities";

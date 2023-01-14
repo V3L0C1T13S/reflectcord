@@ -4,17 +4,13 @@ import { GatewayCloseCodes } from "discord.js";
 import { Logger } from "@reflectcord/common/utils";
 import { VoiceOPCodes } from "@reflectcord/common/sparkle";
 import { APIWrapper, createAPI } from "@reflectcord/common/rvapi";
-import { DbManager } from "@reflectcord/common/db";
 import { Payload } from "@reflectcord/gateway/util";
 import { PublicIP } from "@reflectcord/common/constants";
+import { VoiceState } from "@reflectcord/common/mongoose";
 import defaultsdp from "../util/sdp.json";
 import {
   endpoint, getClients, Send, WebSocket,
 } from "../util";
-
-// FIXME: Implement with RPC instead
-const voiceStates = DbManager.client.db("reflectcord")
-  .collection("voiceStates");
 
 export async function onIdentify(this: WebSocket, data: Payload) {
   clearTimeout(this.readyTimeout);
@@ -26,8 +22,8 @@ export async function onIdentify(this: WebSocket, data: Payload) {
     token, user_id, session_id, server_id, video, streams,
   } = identify;
 
-  const voiceState = await voiceStates.findOne({ user_id, session_id });
-  if (!voiceState) return this.close(GatewayCloseCodes.UnknownError);
+  const voiceState = await VoiceState.findOne({ user_id, session_id });
+  if (!voiceState || !voiceState?.channel_id) return this.close(GatewayCloseCodes.UnknownError);
 
   this.rvAPI = createAPI({
     token,

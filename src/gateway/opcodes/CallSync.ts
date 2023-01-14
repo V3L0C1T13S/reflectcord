@@ -1,10 +1,10 @@
 /* eslint-disable no-plusplus */
 /* eslint-disable camelcase */
-import { DbManager } from "@reflectcord/common/db";
 import { fromSnowflake } from "@reflectcord/common/models";
 import { Logger } from "@reflectcord/common/utils";
 import { ChannelType, GatewayDispatchEvents } from "discord.js";
-import { Dispatch, Send } from "../util";
+import { VoiceState } from "@reflectcord/common/mongoose";
+import { Dispatch } from "../util";
 import { WebSocket } from "../Socket";
 import { Payload } from "../util/Constants";
 import { check } from "./instanceOf";
@@ -13,8 +13,6 @@ const CallSyncSchema = {
   channel_id: String,
 };
 
-const voiceStates = DbManager.client.db("reflectcord")
-  .collection("voiceStates");
 export async function CallSync(this: WebSocket, data: Payload<{ channel_id: string }>) {
   check.call(this, CallSyncSchema, data.d);
 
@@ -29,7 +27,7 @@ export async function CallSync(this: WebSocket, data: Payload<{ channel_id: stri
     && rvChannel.discord.type !== ChannelType.GroupDM)
   ) return;
 
-  (await voiceStates.find({ channel_id }).toArray()).forEach(async (state) => {
+  (await VoiceState.find({ channel_id })).forEach(async (state) => {
     await Dispatch(this, GatewayDispatchEvents.VoiceStateUpdate, state);
   });
 }

@@ -53,6 +53,7 @@ import { reflectcordWsURL } from "@reflectcord/common/constants";
 import { listenEvent, eventOpts } from "@reflectcord/common/Events";
 import { GatewayDispatchCodes } from "@reflectcord/common/sparkle/schemas/Gateway/Dispatch";
 import { DbManager } from "@reflectcord/common/db";
+import { VoiceState } from "@reflectcord/common/mongoose";
 import { WebSocket } from "../Socket";
 import { Dispatch, Send } from "./send";
 import experiments from "./experiments.json";
@@ -80,9 +81,6 @@ function cacheServerCreateChannels(
     channelHandler.discord.parent_id = discordChannel.parent_id;
   });
 }
-
-const voiceStates = DbManager.client.db("reflectcord")
-  .collection("voiceStates");
 
 async function internalConsumer(this: WebSocket, opts: eventOpts) {
   try {
@@ -483,7 +481,7 @@ export async function startListener(
               guilds: await Promise.all(guilds.map(async (x) => ({
                 id: x.id,
                 embedded_activities: [],
-                voice_states: (await voiceStates.find({ guild_id: x.id }).toArray()),
+                voice_states: (await VoiceState.find({ guild_id: x.id })),
               }))),
               lazy_private_channels: [],
               merged_members: [],

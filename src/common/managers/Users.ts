@@ -61,6 +61,15 @@ export class UserManager extends BaseManager<string, UserContainer> {
     return user;
   }
 
+  async fetchSelf() {
+    const user = await this.rvAPI.get(`/users/${await this.getSelfId() as ""}`);
+
+    return this.createObj({
+      revolt: user,
+      discord: await User.from_quark(user),
+    });
+  }
+
   /**
    * @param foreign Get extra info about yourself
    * @returns

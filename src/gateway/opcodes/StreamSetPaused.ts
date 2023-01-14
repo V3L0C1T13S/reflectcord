@@ -5,9 +5,9 @@ import { fromSnowflake } from "@reflectcord/common/models";
 import { GatewayDispatchCodes } from "@reflectcord/common/sparkle/schemas/Gateway/Dispatch";
 import { reflectcordVoiceURL } from "@reflectcord/common/constants";
 import { genVoiceToken } from "@reflectcord/common/utils";
+import { VoiceState } from "@reflectcord/common/mongoose";
 import { Dispatch, Payload } from "../util";
 import { WebSocket } from "../Socket";
-import { voiceStates } from "./VS";
 import { check } from "./instanceOf";
 
 const StreamSetPausedSchema = {
@@ -26,7 +26,7 @@ export async function StreamSetPaused(this: WebSocket, data: Payload<StreamSetPa
   // Stream key looks like this: guild_id:channel_id:user_id
   const { stream_key, paused } = data.d!;
 
-  const state = await voiceStates.findOne({ user_id: this.user_id });
+  const state = await VoiceState.findOne({ user_id: this.user_id });
   if (!state) throw new Error("Invalid state");
 
   if (!state.channel_id) throw new Error("Not connected to a voice channel");
@@ -34,9 +34,7 @@ export async function StreamSetPaused(this: WebSocket, data: Payload<StreamSetPa
   this.voiceInfo.self_stream = true;
   state.self_stream = true;
 
-  await voiceStates.updateOne({ user_id: this.user_id }, {
-    $set: state,
-  });
+  await state.save();
 
   await emitEvent({
     event: GatewayDispatchEvents.VoiceStateUpdate,

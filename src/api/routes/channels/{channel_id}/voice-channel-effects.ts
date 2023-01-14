@@ -5,7 +5,7 @@ import { HTTPError } from "@reflectcord/common/utils";
 import { emitEvent } from "@reflectcord/common/Events";
 import { fromSnowflake, toSnowflake } from "@reflectcord/common/models";
 import { GatewayDispatchCodes } from "@reflectcord/common/sparkle/schemas/Gateway/Dispatch";
-import { voiceStates } from "@reflectcord/gateway/opcodes/VS";
+import { VoiceState } from "@reflectcord/common/mongoose";
 
 export default () => <Resource> {
   post: async (req, res) => {
@@ -14,7 +14,7 @@ export default () => <Resource> {
 
     const user_id = await toSnowflake(await res.rvAPIWrapper.users.getSelfId());
 
-    const state = await voiceStates.findOne({ user_id });
+    const state = await VoiceState.findOne({ user_id });
     if (state?.channel_id !== channel_id) throw new HTTPError("You are not in a voice call.", 404);
 
     await emitEvent({

@@ -4,7 +4,7 @@ import { fromSnowflake, toSnowflake } from "@reflectcord/common/models";
 import { ChannelType } from "discord.js";
 import { HTTPError } from "@reflectcord/common/utils";
 import { emitEvent } from "@reflectcord/common/Events";
-import { voiceStates } from "@reflectcord/gateway/opcodes/VS";
+import { VoiceState } from "@reflectcord/common/mongoose";
 
 export default () => <Resource> {
   post: async (req, res) => {
@@ -24,7 +24,7 @@ export default () => <Resource> {
     const rvUserId = await res.rvAPIWrapper.users.getSelfId();
     const userId = await toSnowflake(rvUserId);
 
-    const existingStates = await voiceStates.find({ channel_id }).toArray();
+    const existingStates = await VoiceState.find({ channel_id });
 
     const userIds = rvChannel.discord.recipients?.map((x) => x.id) ?? [];
 

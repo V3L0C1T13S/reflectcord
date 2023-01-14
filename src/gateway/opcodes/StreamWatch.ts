@@ -3,11 +3,11 @@ import { genVoiceToken } from "@reflectcord/common/utils";
 import { reflectcordVoiceURL } from "@reflectcord/common/constants";
 import { emitEvent } from "@reflectcord/common/Events";
 import { fromSnowflake } from "@reflectcord/common/models";
+import { VoiceState } from "@reflectcord/common/mongoose";
 import { WebSocket } from "../Socket";
 import { Payload, Dispatch } from "../util";
 import { check } from "./instanceOf";
 import { GatewayDispatchCodes } from "../../common/sparkle/schemas/Gateway/Dispatch";
-import { voiceStates } from "./VS";
 
 const StreamWatchSchema = {
   stream_key: String,
@@ -28,7 +28,7 @@ export async function StreamWatch(this: WebSocket, data: Payload<StreamWatchSche
 
   const { stream_key } = data.d!;
 
-  const state = await voiceStates.findOne({ user_id: this.user_id });
+  const state = await VoiceState.findOne({ user_id: this.user_id });
   if (!state?.channel_id) throw new Error("You aren't in a voice call.");
 
   const body = {

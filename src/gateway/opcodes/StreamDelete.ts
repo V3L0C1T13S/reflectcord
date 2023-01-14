@@ -3,10 +3,10 @@ import { GatewayDispatchCodes } from "@reflectcord/common/sparkle/schemas/Gatewa
 import { GatewayDispatchEvents } from "discord.js";
 import { emitEvent } from "@reflectcord/common/Events";
 import { fromSnowflake } from "@reflectcord/common/models";
+import { VoiceState } from "@reflectcord/common/mongoose";
 import { WebSocket } from "../Socket";
 import { Dispatch, Payload } from "../util";
 import { check } from "./instanceOf";
-import { voiceStates } from "./VS";
 
 const StreamDeleteSchema = {
   stream_key: String,
@@ -27,8 +27,8 @@ export async function StreamDelete(this: WebSocket, data: Payload) {
 
   const { stream_key } = data.d;
 
-  const state = await voiceStates.findOne({ user_id: this.user_id });
-  if (!state?.self_stream) throw new Error("Not streaming");
+  const state = await VoiceState.findOne({ user_id: this.user_id });
+  if (!state?.self_stream || !state.channel_id) throw new Error("Not streaming");
 
   this.voiceInfo.self_stream = false;
   state.self_stream = false;
@@ -40,9 +40,7 @@ export async function StreamDelete(this: WebSocket, data: Payload) {
 
   const rvChannelId = await fromSnowflake(state.channel_id);
 
-  await voiceStates.updateOne({ user_id: this.user_id }, {
-    $set: state,
-  });
+  await state.save();
 
   await emitEvent({
     event: GatewayDispatchCodes.StreamDelete,
