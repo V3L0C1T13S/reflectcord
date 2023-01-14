@@ -104,8 +104,8 @@ async function getMembers(
   }
 
   let discordMembers: extendMemberContainer[] = await Promise.all(members.members
-    .map(async (member) => {
-      const user = members.users.find((x) => x._id === member._id.user);
+    .map(async (member, i) => {
+      const user = members.users[i];
 
       const discordMember = await Member.from_quark(member, user);
 

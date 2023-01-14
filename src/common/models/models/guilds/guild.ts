@@ -134,6 +134,8 @@ export const Guild: QuarkConversion<Server, APIGuild, GuildATQ, GuildAFQ> = {
 
     const features = getServerFeatures(server);
 
+    const banner = server.banner ? `${server.banner?._id}/background/${server.banner?._id}` : null;
+
     return {
       id,
       name,
@@ -181,7 +183,7 @@ export const Guild: QuarkConversion<Server, APIGuild, GuildATQ, GuildAFQ> = {
       max_presences: null,
       max_members: 100000,
       vanity_url_code: server.discoverable ? server._id : null, // TODO: Verify this works
-      banner: server.banner ? `${server.banner?._id}/background/${server.banner?._id}` : null,
+      banner,
       premium_tier: GuildPremiumTier.None,
       premium_subscription_count: 0,
       preferred_locale: "en-US",
