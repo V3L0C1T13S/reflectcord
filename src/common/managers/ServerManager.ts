@@ -105,6 +105,32 @@ export class ServerManager extends BaseManager<string, ServerContainer> {
     });
   }
 
+  /**
+   * Add an array of roles to a member
+   * @returns The updated member
+  */
+  async addRolesToMember(serverId: string, memberId: string, roles: string[]) {
+    // TODO: Better caching
+    const server = this.get(serverId);
+    const member = server?.extra
+      ? (await server.extra.members.fetch(serverId, memberId)).revolt
+      : await this.rvAPI.get(`/servers/${serverId as ""}/members/${memberId as ""}`);
+
+    const res = await this.rvAPI.patch(`/servers/${serverId as ""}/members/${memberId as ""}`, {
+      roles: [...member.roles ?? [], ...roles],
+    });
+
+    return res;
+  }
+
+  /**
+   * Add a single role to a member
+   * @returns The updated member
+  */
+  addRoleToMember(serverId: string, memberId: string, role: string) {
+    return this.addRolesToMember(serverId, memberId, [role]);
+  }
+
   getInvite(id: string) {
     return this.rvAPI.get(`/invites/${id as ""}`);
   }

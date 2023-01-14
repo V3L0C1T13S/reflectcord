@@ -12,3 +12,7 @@ export type MemberIdsResponse = string[]
  * amount of members that have a given role.
  */
 export type MemberCountsResponse = Record<string, number>;
+
+export const APIGuildRoleMembersPATCHBody = {
+  member_ids: [String],
+};
