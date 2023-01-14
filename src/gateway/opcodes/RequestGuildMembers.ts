@@ -26,8 +26,10 @@ async function HandleRequest(
   nonce?: string,
   limit = 1000,
 ) {
-  members.members.splice(limit);
-  members.users.splice(limit);
+  if (limit) {
+    members.members.splice(limit);
+    members.users.splice(limit);
+  }
 
   const body: GuildMembersChunk = {
     guild_id: guildId,
@@ -35,7 +37,7 @@ async function HandleRequest(
   };
 
   const discordMembers = (await Promise.all(members.members
-    .map((x) => Member.from_quark(x, members.users.find((u) => u._id === x._id.user)))));
+    .map((x, i) => Member.from_quark(x, members.users[i]))));
 
   if (user_ids) {
     const nativeResults = rfcNative.processOP8({
@@ -93,10 +95,9 @@ export async function RequestGuildMembers(
 ) {
   check.call(this, ReqGuildMembersSchema, data.d);
 
-  const reqData = data.d!;
   const {
     guild_id, presences, nonce, user_ids, query, limit,
-  } = reqData;
+  } = data.d!;
 
   const maxMembers = limit ? clamp(limit, 1, 1000) : undefined;
 

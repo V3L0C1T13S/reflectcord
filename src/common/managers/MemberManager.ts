@@ -88,9 +88,9 @@ export class MemberManager extends BaseManager<string, MemberContainer> {
 
     const members = await this.fetchMembers(serverId, excludeOffline);
 
-    const memberHandlers = await Promise.all(members.members.map(async (x) => this.createObj({
+    const memberHandlers = await Promise.all(members.members.map(async (x, i) => this.createObj({
       revolt: x,
-      discord: await Member.from_quark(x, members.users.find((y) => y._id === x._id.user)),
+      discord: await Member.from_quark(x, members.users[i]),
     })));
 
     this.fullyCached.push(serverId);

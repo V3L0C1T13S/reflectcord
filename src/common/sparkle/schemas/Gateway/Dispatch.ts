@@ -61,6 +61,7 @@ export enum GatewayDispatchCodes {
   ReadySupplemental = "READY_SUPPLEMENTAL",
   PassiveUpdateV1 = "PASSIVE_UPDATE_V1",
   GuildIntegrationsUpdate = "GUILD_INTEGRATIONS_UPDATE",
+  GuildMemberListUpdate = "GUILD_MEMBER_LIST_UPDATE",
   GuildSync = "GUILD_SYNC",
   IntegrationUpdate = "INTEGRATION_UPDATE",
   VoiceChannelEffectSend = "VOICE_CHANNEL_EFFECT_SEND",
@@ -76,4 +77,5 @@ export enum GatewayDispatchCodes {
   RelationshipAdd = "RELATIONSHIP_ADD",
   RelationshipRemove = "RELATIONSHIP_REMOVE",
   EmbeddedActivityUpdate = "EMBEDDED_ACTIVITY_UPDATE",
+  ThreadListSync = "THREAD_LIST_SYNC",
 }

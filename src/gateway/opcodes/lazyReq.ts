@@ -6,9 +6,9 @@ import { API } from "revolt.js";
 import {
   internalStatus, Member, Status, fromSnowflake, toSnowflake,
 } from "@reflectcord/common/models";
-import { LazyRequest } from "@reflectcord/common/sparkle";
+import { LazyRequest, GatewayDispatchCodes } from "@reflectcord/common/sparkle";
 import { MemberContainer } from "@reflectcord/common/managers";
-import { Send, Payload } from "../util";
+import { Send, Payload, Dispatch } from "../util";
 import { WebSocket } from "../Socket";
 import { check } from "./instanceOf";
 import "missing-native-js-functions";
@@ -239,33 +239,23 @@ export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
 
   if (subscribedServer.threads) {
     // STUB
-    Send(this, {
-      op: GatewayOpcodes.Dispatch,
-      s: this.sequence++,
-      t: "THREAD_LIST_SYNC",
-      d: {
-        guild_id,
-        most_recent_messages: [],
-        threads: [],
-      },
+    await Dispatch(this, GatewayDispatchCodes.ThreadListSync, {
+      guild_id,
+      most_recent_messages: [],
+      threads: [],
     });
   }
 
-  await Send(this, {
-    op: GatewayOpcodes.Dispatch,
-    s: this.sequence++,
-    t: "GUILD_MEMBER_LIST_UPDATE",
-    d: {
-      ops: [{
-        items: ops.items,
-        op: "SYNC",
-        range: ops.range,
-      }],
-      online_count: member_count - (groups.find((x) => x.id === "offline")?.count ?? 0),
-      member_count,
-      id: "everyone",
-      guild_id,
-      groups,
-    },
+  await Dispatch(this, GatewayDispatchCodes.GuildMemberListUpdate, {
+    ops: [{
+      items: ops.items,
+      op: "SYNC",
+      range: ops.range,
+    }],
+    online_count: member_count - (groups.find((x) => x.id === "offline")?.count ?? 0),
+    member_count,
+    id: "everyone",
+    guild_id,
+    groups,
   });
 }

@@ -4,6 +4,7 @@ import { fromSnowflake } from "@reflectcord/common/models";
 import { Logger } from "@reflectcord/common/utils";
 import { ChannelType, GatewayDispatchEvents } from "discord.js";
 import { VoiceState } from "@reflectcord/common/mongoose";
+import { GatewayDispatchCodes } from "@reflectcord/common/sparkle";
 import { Dispatch } from "../util";
 import { WebSocket } from "../Socket";
 import { Payload } from "../util/Constants";
@@ -27,7 +28,15 @@ export async function CallSync(this: WebSocket, data: Payload<{ channel_id: stri
     && rvChannel.discord.type !== ChannelType.GroupDM)
   ) return;
 
-  (await VoiceState.find({ channel_id })).forEach(async (state) => {
-    await Dispatch(this, GatewayDispatchEvents.VoiceStateUpdate, state);
+  const states = await VoiceState.find({ channel_id });
+
+  if (states.length < 1) return;
+
+  await Dispatch(this, GatewayDispatchCodes.CallCreate, {
+    channel_id,
+    message_id: "",
+    region: "newark",
+    ringing: [],
+    voice_states: states.map((x) => x.toObject()),
   });
 }

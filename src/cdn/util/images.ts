@@ -31,7 +31,7 @@ export async function downloadImage(type: ImageType, id: string) {
 
   if (!existsSync(imgDir)) {
     Logger.log(`Downloading uncached ${type} ${id}`);
-    const res = await (await axios.get(rvURL, { responseType: "arraybuffer" })).data;
+    const res = (await axios.get(rvURL, { responseType: "arraybuffer" })).data;
     writeFileSync(imgDir, res);
     return res;
   }
