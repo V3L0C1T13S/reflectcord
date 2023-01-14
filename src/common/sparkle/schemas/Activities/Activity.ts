@@ -32,6 +32,6 @@ export const Activities: Record<string, APIActivity> = {
     created_at: null,
     assets: null,
     application_id: "880218394199220334",
-    activity_id: "9ee28ec4-cdef-4c2f-acce-9f84dd0d023b",
+    activity_id: "", // This causes some very unique problems for clients
   },
 };
