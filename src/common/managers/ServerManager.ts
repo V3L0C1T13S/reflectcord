@@ -175,7 +175,16 @@ export class ServerManager extends BaseManager<string, ServerContainer> {
     applyDiscord("icon_hash");
     applyDiscord("banner");
     applyDiscord("nsfw");
+    applyDiscord("nsfw_level");
     applyDiscord("flags");
     applyDiscord("discovery_splash");
+    applyDiscord("system_channel_id");
+    applyDiscord("system_channel_flags");
+    applyDiscord("rules_channel_id");
+    applyDiscord("afk_channel_id");
+    applyDiscord("public_updates_channel_id");
+    applyDiscord("afk_timeout");
+    applyDiscord("verification_level");
+    applyDiscord("vanity_url_code");
   }
 }
