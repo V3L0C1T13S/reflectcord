@@ -37,7 +37,7 @@ async function HandleRequest(
   };
 
   const discordMembers = (await Promise.all(members.members
-    .map((x, i) => Member.from_quark(x, members.users[i]))));
+    .map((x, i) => Member.from_quark(x, { user: members.users[i] }))));
 
   if (user_ids) {
     const nativeResults = rfcNative.processOP8({

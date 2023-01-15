@@ -1,6 +1,6 @@
 import { APIGuildMember } from "discord.js";
 import { API } from "revolt.js";
-import { Member } from "@reflectcord/common/models";
+import { Member, User } from "@reflectcord/common/models";
 import { Logger } from "@reflectcord/common/utils";
 import { isEqual } from "lodash";
 import { BaseManager } from "./BaseManager";
@@ -71,7 +71,7 @@ export class MemberManager extends BaseManager<string, MemberContainer> {
 
     return this.createObj({
       revolt: res,
-      discord: await Member.from_quark(res, user.revolt),
+      discord: await Member.from_quark(res, { discordUser: user.discord }),
     });
   }
 
@@ -88,10 +88,19 @@ export class MemberManager extends BaseManager<string, MemberContainer> {
 
     const members = await this.fetchMembers(serverId, excludeOffline);
 
-    const memberHandlers = await Promise.all(members.members.map(async (x, i) => this.createObj({
-      revolt: x,
-      discord: await Member.from_quark(x, members.users[i]),
-    })));
+    const memberHandlers = await Promise.all(members.members.map(async (x, i) => {
+      if (!members.users[i]) Logger.warn(`Incorrect mapping for ${x._id.user}! Please report this!`);
+
+      const user = this.apiWrapper.users.createObj({
+        revolt: members.users[i]!,
+        discord: await User.from_quark(members.users[i]!),
+      });
+
+      return this.createObj({
+        revolt: x,
+        discord: await Member.from_quark(x, { discordUser: user.discord }),
+      });
+    }));
 
     this.fullyCached.push(serverId);
 

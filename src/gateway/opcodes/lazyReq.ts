@@ -107,7 +107,7 @@ async function getMembers(
     .map(async (member, i) => {
       const user = members.users.find((x) => x._id === member._id.user);
 
-      const discordMember = await Member.from_quark(member, user);
+      const discordMember = await Member.from_quark(member, { user });
 
       if (discordMember.roles.length < 1 && user?.online) discordMember.roles.push(discordGuildId);
 

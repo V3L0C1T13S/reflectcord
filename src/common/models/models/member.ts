@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable camelcase */
 import { APIGuildMember, APIUser, RESTPatchAPIGuildMemberJSONBody } from "discord.js";
 import { Member as RevoltMember } from "revolt-api";
@@ -6,7 +7,16 @@ import { QuarkConversion } from "../QuarkConversion";
 import { fromSnowflake, toSnowflake } from "../util";
 import { User } from "./user";
 
-export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, API.User> = {
+export type MemberATQ = Partial<{
+  user: APIUser,
+}>;
+
+export type MemberAFQ = Partial<{
+  user: API.User | null | undefined,
+  discordUser: APIUser | null | undefined,
+}>;
+
+export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, MemberAFQ> = {
   async to_quark(member) {
     const {
       user, joined_at, nick, communication_disabled_until, roles,
@@ -24,7 +34,7 @@ export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, API.
     };
   },
 
-  async from_quark(member, user) {
+  async from_quark(member, extra) {
     const {
       _id, joined_at, nickname, timeout, roles,
     } = member;
@@ -42,11 +52,15 @@ export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, API.
       mute: false,
       nick: nickname ?? null,
       avatar: member.avatar?._id ?? null,
-      user: user ? await User.from_quark(user) : await User.from_quark({
-        _id: _id.user,
-        username: member.nickname ?? "fixme",
-        avatar: member.avatar ?? null,
-      }),
+      user: extra?.discordUser
+        ? extra.discordUser
+        : extra?.user
+          ? await User.from_quark(extra.user)
+          : await User.from_quark({
+            _id: _id.user,
+            username: member.nickname ?? "fixme",
+            avatar: member.avatar ?? null,
+          }),
     };
   },
 };

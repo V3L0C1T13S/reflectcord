@@ -1,6 +1,6 @@
 /* eslint-disable no-plusplus */
 /* eslint-disable camelcase */
-import { fromSnowflake, internalActivity } from "@reflectcord/common/models";
+import { fromSnowflake, internalActivity, Status } from "@reflectcord/common/models";
 import { GatewayDispatchCodes, GuildSyncSchema } from "@reflectcord/common/sparkle";
 import { Dispatch } from "../util";
 import { WebSocket } from "../Socket";
@@ -17,7 +17,21 @@ async function GuildSync(this: WebSocket, guild_id: string) {
   const discordMembers = members.map((x) => x.discord);
 
   // FIXME
-  const presences: internalActivity[] = [];
+  const presences = await Promise.all(members.map(async (member) => {
+    const rvUser = this.rvAPIWrapper.users.get(member.revolt._id.user);
+    const status = await Status.from_quark(rvUser?.revolt.status);
+    const { activities } = status;
+    return {
+      user: member.discord.user,
+      guild_id,
+      status: status.status,
+      activities: activities ?? [],
+      client_status: {
+        desktop: status.status,
+      },
+      shardId: 0,
+    };
+  }));
 
   await Dispatch(this, GatewayDispatchCodes.GuildSync, {
     id: guild_id,

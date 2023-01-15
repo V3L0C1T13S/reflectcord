@@ -95,6 +95,7 @@ export default () => <Resource> {
 
             let rvRole = await fromSnowflake(perm.id.toString());
             if (rvRole === rvChannel.server) rvRole = "default";
+
             const rvAllow = allow ? await Permissions.to_quark(allow) : null;
             const rvDeny = deny ? await Permissions.to_quark(deny) : null;
 

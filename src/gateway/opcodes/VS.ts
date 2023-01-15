@@ -115,7 +115,7 @@ export async function VSUpdate(this: WebSocket, data: Payload) {
     const member = await this.rvAPI.get(`/servers/${serverId as ""}/members/${this.rv_user_id as ""}`);
     const selfUser = await this.rvAPIWrapper.users.fetch(this.rv_user_id);
 
-    const discordMember = await Member.from_quark(member, selfUser.revolt);
+    const discordMember = await Member.from_quark(member, { discordUser: selfUser.discord });
 
     stateData.member = discordMember;
   } else delete stateData.member;

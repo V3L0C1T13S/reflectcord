@@ -14,6 +14,6 @@ export default () => <Resource> {
     const members = await res.rvAPI.get(`/servers/${serverId as ""}/members`);
 
     res.json(await Promise.all(members.members
-      .map((x, i) => Member.from_quark(x, members.users[i]))));
+      .map((x, i) => Member.from_quark(x, { user: members.users[i] }))));
   },
 };
