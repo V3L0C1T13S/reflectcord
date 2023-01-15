@@ -75,12 +75,10 @@ export default () => <Resource> {
           const rvServer = await res.rvAPI.get(`/servers/${rvId as ""}`);
           const categoryToPatch = rvServer.categories?.find((x) => x.id === rvCategory);
           if (!categoryToPatch) throw new HTTPError("Category doesn't exist");
+
+          categoryToPatch.channels.push(rvChannel._id);
           await res.rvAPI.patch(`/servers/${rvId as ""}`, {
-            categories: [...rvServer.categories ?? [], {
-              id: rvCategory,
-              title: categoryToPatch.title,
-              channels: [...categoryToPatch.channels, rvChannel._id],
-            }],
+            categories: rvServer.categories ?? [],
           });
           res.status(201).json(await Channel.from_quark(rvChannel, {
             categoryId: rvCategory,
