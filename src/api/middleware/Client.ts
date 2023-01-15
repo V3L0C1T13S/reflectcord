@@ -114,8 +114,25 @@ export function Client(app: Application) {
         // add to cache and save
         newAssetCache.set(req.params.file!, assetCacheItem);
         fs.writeFileSync(path.join(assetCacheDir, "index.json"), JSON.stringify(Object.fromEntries(newAssetCache), null, 4));
-        // download file
-        fs.writeFileSync(assetCacheItem.FilePath, await response.buffer());
+
+        const { INSTANCE_NAME } = process.env;
+        // Modify file to replace discord stuff
+        if (req.params.file?.endsWith(".js") && INSTANCE_NAME) {
+          const buff = await response.buffer();
+          let content = buff.toString();
+          content = content.replaceAll(/ Discord /g, ` ${INSTANCE_NAME} `);
+          content = content.replaceAll(/Discord /g, `${INSTANCE_NAME} `);
+          content = content.replaceAll(/ Discord/g, ` ${INSTANCE_NAME}`);
+          content = content.replaceAll(
+            /Discord Nitro/g,
+            `${INSTANCE_NAME} Nitro`,
+          );
+          content = content.replaceAll(/Discord Nitro/g, `${INSTANCE_NAME} Nitro`);
+          content = content.replaceAll(/Discord's/g, `${INSTANCE_NAME}'s`);
+          content = content.replaceAll(/\*Discord\*/g, `*${INSTANCE_NAME}*`);
+
+          fs.writeFileSync(assetCacheItem.FilePath, content);
+        } else fs.writeFileSync(assetCacheItem.FilePath, await response.buffer());
       }
 
       // eslint-disable-next-line no-restricted-syntax, guard-for-in
