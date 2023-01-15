@@ -61,6 +61,23 @@ function stripHeaders(headers: Headers): Headers {
   return headers;
 }
 
+function replaceBrand(text: string) {
+  const { INSTANCE_NAME } = process.env;
+  let content = text;
+  content = content.replaceAll(/ Discord /g, ` ${INSTANCE_NAME} `);
+  content = content.replaceAll(/Discord /g, `${INSTANCE_NAME} `);
+  content = content.replaceAll(/ Discord/g, ` ${INSTANCE_NAME}`);
+  content = content.replaceAll(
+    /Discord Nitro/g,
+    `${INSTANCE_NAME} Nitro`,
+  );
+  content = content.replaceAll(/Discord Nitro/g, `${INSTANCE_NAME} Nitro`);
+  content = content.replaceAll(/Discord's/g, `${INSTANCE_NAME}'s`);
+  content = content.replaceAll(/\*Discord\*/g, `*${INSTANCE_NAME}*`);
+
+  return content;
+}
+
 export function Client(app: Application) {
   const agent = new ProxyAgent();
 
@@ -119,17 +136,7 @@ export function Client(app: Application) {
         // Modify file to replace discord stuff
         if (req.params.file?.endsWith(".js") && INSTANCE_NAME) {
           const buff = await response.buffer();
-          let content = buff.toString();
-          content = content.replaceAll(/ Discord /g, ` ${INSTANCE_NAME} `);
-          content = content.replaceAll(/Discord /g, `${INSTANCE_NAME} `);
-          content = content.replaceAll(/ Discord/g, ` ${INSTANCE_NAME}`);
-          content = content.replaceAll(
-            /Discord Nitro/g,
-            `${INSTANCE_NAME} Nitro`,
-          );
-          content = content.replaceAll(/Discord Nitro/g, `${INSTANCE_NAME} Nitro`);
-          content = content.replaceAll(/Discord's/g, `${INSTANCE_NAME}'s`);
-          content = content.replaceAll(/\*Discord\*/g, `*${INSTANCE_NAME}*`);
+          const content = replaceBrand(buff.toString());
 
           fs.writeFileSync(assetCacheItem.FilePath, content);
         } else fs.writeFileSync(assetCacheItem.FilePath, await response.buffer());

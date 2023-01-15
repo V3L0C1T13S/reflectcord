@@ -6,9 +6,11 @@ import { ulid } from "ulid";
 import { HTTPError, validate } from "@reflectcord/common/utils";
 import {
   fromSnowflake, Channel, GuildCategory, tryFromSnowflake,
-  HandleChannelsAndCategories, ChannelCreateBody,
+  HandleChannelsAndCategories, ChannelCreateBody, Permissions,
+  toSnowflake,
 } from "@reflectcord/common/models";
 import { ChannelCreateBody as DiscordChannelCreate } from "@reflectcord/common/sparkle";
+import { API } from "revolt.js";
 
 const validTypes = [
   discordChannelType.GuildText,
@@ -40,7 +42,7 @@ export default () => <Resource> {
     ) => {
       const { body } = req;
       const {
-        name, type, parent_id,
+        name, type, parent_id, permission_overwrites,
       } = body;
       const { guild_id } = req.params;
 
@@ -68,9 +70,10 @@ export default () => <Resource> {
         }));
       } else {
         const rvChannel = await res.rvAPI.post(`/servers/${rvId as ""}/channels`, await ChannelCreateBody.to_quark(body));
+        let rvCategory: string | null = null;
         // FIXME: Should we throw an error here if not server or just passthrough?
         if (parent_id && ("server" in rvChannel && rvChannel.server)) {
-          const rvCategory = await tryFromSnowflake(parent_id.toString());
+          rvCategory = await tryFromSnowflake(parent_id.toString());
 
           const rvServer = await res.rvAPI.get(`/servers/${rvId as ""}`);
           const categoryToPatch = rvServer.categories?.find((x) => x.id === rvCategory);
@@ -80,14 +83,51 @@ export default () => <Resource> {
           await res.rvAPI.patch(`/servers/${rvId as ""}`, {
             categories: rvServer.categories ?? [],
           });
-          res.status(201).json(await Channel.from_quark(rvChannel, {
-            categoryId: rvCategory,
-          }));
-          return;
         }
 
-        res.status(201).json(await Channel.from_quark(rvChannel));
+        if (permission_overwrites && ("server" in rvChannel && rvChannel.server)) {
+          // TODO: Cleanup this garbage. Maybe an abstraction into RVAPI would help here.
+          await Promise.all(permission_overwrites.map(async (perm) => {
+            if (!perm.id) return;
+
+            const allow = perm.allow ? BigInt(perm.allow) : null;
+            const deny = perm.deny ? BigInt(perm.deny) : null;
+
+            let rvRole = await fromSnowflake(perm.id.toString());
+            if (rvRole === rvChannel.server) rvRole = "default";
+            const rvAllow = allow ? await Permissions.to_quark(allow) : null;
+            const rvDeny = deny ? await Permissions.to_quark(deny) : null;
+
+            await res.rvAPI.put(`/channels/${rvChannel._id as ""}/permissions/${rvRole as ""}`, {
+              permissions: {
+                allow: rvAllow?.a ?? 0,
+                deny: rvDeny?.a ?? 0,
+              },
+            });
+
+            if (!rvChannel.role_permissions) rvChannel.role_permissions = {};
+
+            if (rvRole === "default") {
+              rvChannel.default_permissions = {
+                a: rvAllow?.a ?? 0,
+                d: rvDeny?.a ?? 0,
+              };
+            } else {
+              rvChannel.role_permissions[rvRole] = {
+                a: rvAllow?.a ?? 0,
+                d: rvDeny?.a ?? 0,
+              };
+            }
+          }));
+        }
+
+        res.status(201).json(await Channel.from_quark(rvChannel, {
+          categoryId: rvCategory,
+        }));
       }
     },
+  },
+  patch: async (req, res) => {
+    res.sendStatus(500);
   },
 };
