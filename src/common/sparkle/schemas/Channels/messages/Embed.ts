@@ -1,3 +1,5 @@
+import { Tuple } from "../../../../utils/check";
+
 export const EmbedFooterSchema = {
   text: String,
   $icon_url: String,
@@ -39,7 +41,7 @@ export const EmbedSchema = {
   $description: String,
   $url: String,
   $timestamp: String,
-  $color: String,
+  $color: new Tuple(String, Number),
   $footer: EmbedFooterSchema,
   $image: EmbedImageSchema,
   $thumbnail: Object,

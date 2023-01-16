@@ -219,6 +219,8 @@ export async function startListener(
             .filter((x) => x.revolt.channel_type === "DirectMessage" || x.revolt.channel_type === "Group" || x.revolt.channel_type === "SavedMessages")
             .map((x) => x.discord);
 
+          const lazyGuilds: GatewayGuildCreateDispatchData[] = [];
+
           const guilds = await Promise.all(data.servers
             .map(async (server) => {
               const rvChannels: API.Channel[] = server.channels
@@ -279,9 +281,7 @@ export async function startListener(
               const legacyGuild = botGuild;
 
               if (currentUser.bot) {
-                setTimeout(() => {
-                  Dispatch(this, GatewayDispatchEvents.GuildCreate, botGuild).catch(Logger.error);
-                }, 500);
+                lazyGuilds.push(botGuild);
                 return { id: guild.id, unavailable: true };
               }
 
@@ -475,6 +475,9 @@ export async function startListener(
           await Dispatch(this, GatewayDispatchEvents.Ready, readyData);
 
           await createInternalListener.call(this);
+
+          await Promise.all(lazyGuilds
+            .map((x) => Dispatch(this, GatewayDispatchEvents.GuildCreate, x).catch(Logger.error)));
 
           if (!currentUserDiscord.bot) {
             const supplementalData = {
