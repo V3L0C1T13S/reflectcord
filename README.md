@@ -35,7 +35,7 @@ See docs/setup.md
 
 ## Credits
 
-[Fosscord](https://github.com/fosscord) - 99% of the work reverse engineering the gateway, some more obscure parts of Discords API, and also created the client downloader.
+[Fosscord](https://github.com/fosscord) - Server structure, larger utilities, 99% of the work reverse engineering the gateway, more obscure parts of Discords API, voicechat, and also created the client downloader. Seriously, check them out!
 
 [Litecord](https://gitlab.com/litecord/litecord) - Documented a bunch of undocumented OPCodes
 
