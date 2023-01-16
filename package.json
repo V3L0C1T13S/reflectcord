@@ -48,7 +48,7 @@
     "express-fileupload": "^1.4.0",
     "fast-zlib": "^2.0.1",
     "ffmpeg-static": "^5.1.0",
-    "file-type": "^16.5.4",
+    "file-type": "^18.2.0",
     "fluent-ffmpeg": "^2.1.2",
     "form-data": "^4.0.0",
     "gifbox.js": "^0.9.0",
