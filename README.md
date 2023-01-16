@@ -37,6 +37,6 @@ See docs/setup.md
 
 [Fosscord](https://github.com/fosscord) - Server structure, larger utilities, 99% of the work reverse engineering the gateway, more obscure parts of Discords API, voicechat, and also created the client downloader. Seriously, check them out!
 
-[Litecord](https://gitlab.com/litecord/litecord) - Documented a bunch of undocumented OPCodes
+[Litecord](https://gitlab.com/litecord/litecord) - Documented a bunch of undocumented OPCodes, reverse engineered OP8
 
 [ouwou - Discord Undocumented](https://github.com/ouwou/discord-undocumented) - Documented features such as search and slash commands
