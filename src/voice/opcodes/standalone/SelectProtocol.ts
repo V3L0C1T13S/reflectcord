@@ -4,7 +4,7 @@ import { Payload } from "@reflectcord/gateway/util";
 import { PublicIP } from "@reflectcord/common/constants";
 import {
   endpoint, Send, WebSocket,
-} from "../util";
+} from "../../util";
 
 export async function selectProtocol(this: WebSocket, payload: Payload) {
   if (!this.client) return;

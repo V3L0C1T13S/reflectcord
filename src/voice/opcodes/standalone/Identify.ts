@@ -7,10 +7,10 @@ import { APIWrapper, createAPI } from "@reflectcord/common/rvapi";
 import { Payload } from "@reflectcord/gateway/util";
 import { PublicIP } from "@reflectcord/common/constants";
 import { VoiceState } from "@reflectcord/common/mongoose";
-import defaultsdp from "../util/sdp.json";
+import defaultsdp from "../../util/sdp.json";
 import {
   endpoint, getClients, Send, WebSocket,
-} from "../util";
+} from "../../util";
 
 export async function onIdentify(this: WebSocket, data: Payload) {
   clearTimeout(this.readyTimeout);

@@ -3,8 +3,8 @@ import SemanticSDP from "semantic-sdp";
 import { IncomingStreamTrack, SSRCs } from "medooze-media-server";
 import { VoiceOPCodes } from "@reflectcord/common/sparkle";
 import { Logger } from "@reflectcord/common/utils";
-import { Send, WebSocket } from "../util";
-import { channels, getClients } from "../util/MediaServer";
+import { Send, WebSocket } from "../../util";
+import { channels, getClients } from "../../util/MediaServer";
 
 function attachTrack(this: WebSocket, track: IncomingStreamTrack, user_id: string) {
   if (!this.client) return;

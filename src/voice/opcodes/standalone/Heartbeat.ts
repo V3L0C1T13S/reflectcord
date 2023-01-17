@@ -1,6 +1,6 @@
 import { GatewayCloseCodes } from "discord.js";
 import { VoiceOPCodes } from "@reflectcord/common/sparkle";
-import { Send, setHeartbeat, WebSocket } from "../util";
+import { Send, setHeartbeat, WebSocket } from "../../util";
 
 export async function onHeartbeat(this: WebSocket, data: any) {
   const nonce = data.d;

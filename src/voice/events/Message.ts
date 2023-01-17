@@ -1,8 +1,12 @@
 import { Logger } from "@reflectcord/common/utils";
 import { VoiceOPCodes } from "@reflectcord/common/sparkle";
 import { GatewayCloseCodes } from "discord.js";
-import { voiceOPCodeHandlers } from "../opcodes";
+import { VoiceBackends } from "../opcodes";
 import { WebSocket } from "../util";
+
+const backend = process.env["VOICE_BACKEND"] ?? "vortex";
+const OPCodeBackend = VoiceBackends[backend];
+if (!OPCodeBackend) throw new Error("Invalid OPCode backend.");
 
 export async function onMessage(this: WebSocket, buffer: Buffer) {
   try {
@@ -12,10 +16,10 @@ export async function onMessage(this: WebSocket, buffer: Buffer) {
       return this.close(GatewayCloseCodes.NotAuthenticated);
     }
 
-    const OPCodeHandler = voiceOPCodeHandlers[data.op];
+    const OPCodeHandler = OPCodeBackend![data.op];
     if (!OPCodeHandler) {
-    // FIXME: Close connection if all opcodes are implemented
-      Logger.error(`Unknown opcode ${data.op}`);
+      // FIXME: Close connection if all opcodes are implemented
+      Logger.error(`Unknown opcode ${data.op} on backend ${backend}`);
       return;
     }
 

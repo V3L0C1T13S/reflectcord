@@ -17,4 +17,8 @@ export interface WebSocket extends ws {
   rvAPI: API,
   rvAPIWrapper: APIWrapper,
   bot: boolean,
+  vortex_ws: ws,
+  vortex_sequence: number,
+  vortex_channel_id: string,
+  vortex_token: string;
 }
