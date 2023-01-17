@@ -59,6 +59,7 @@ import { Dispatch, Send } from "./send";
 import experiments from "./experiments.json";
 import { isDeprecatedClient } from "../versioning";
 import { updateMessage } from "./messages";
+import { GatewayUserSettingsProtoUpdateDispatchData } from "../../common/sparkle/schemas/Gateway/GatewayEvents";
 
 // TODO: rework lol
 function cacheServerCreateChannels(
@@ -1083,6 +1084,32 @@ export async function startListener(
               user,
             });
           }
+          break;
+        }
+        case "UserSettingsUpdate": {
+          const user = this.rvAPIWrapper.users.get(this.rv_user_id);
+          if (!user) return;
+
+          const currentSettings = await this.rvAPI.post("/sync/settings/fetch", {
+            keys: SettingsKeys,
+          }) as RevoltSettings;
+
+          const discordSettings = await UserSettings.from_quark(currentSettings);
+
+          const settingsProto = await settingsToProtoBuf(discordSettings, {
+            customStatusText: user.revolt.status?.text,
+          });
+
+          const body: GatewayUserSettingsProtoUpdateDispatchData = {
+            partial: false,
+            settings: {
+              proto: Buffer.from(settingsProto).toString("base64"),
+              type: 1,
+            },
+          };
+
+          await Dispatch(this, GatewayDispatchCodes.UserSettingsProtoUpdate, body);
+
           break;
         }
         case "Pong": {

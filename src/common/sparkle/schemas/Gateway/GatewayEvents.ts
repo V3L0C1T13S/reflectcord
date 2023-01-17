@@ -23,3 +23,11 @@ export type GatewayUserChannelUpdateDispatchData = GatewayChannelUpdateDispatchD
 export type GatewayUserChannelUpdateOptional = PartialBy<
   GatewayUserChannelUpdateDispatchData, "guild_hashes" | "hashes" | "version"
 >
+
+export interface GatewayUserSettingsProtoUpdateDispatchData {
+  partial: boolean,
+  settings: {
+    proto: string,
+    type: number,
+  }
+}
