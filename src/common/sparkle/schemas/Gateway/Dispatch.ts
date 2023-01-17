@@ -78,4 +78,5 @@ export enum GatewayDispatchCodes {
   RelationshipRemove = "RELATIONSHIP_REMOVE",
   EmbeddedActivityUpdate = "EMBEDDED_ACTIVITY_UPDATE",
   ThreadListSync = "THREAD_LIST_SYNC",
+  MessageAck = "MESSAGE_ACK",
 }

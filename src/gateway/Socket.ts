@@ -27,9 +27,20 @@ interface subscribedServer {
   threads?: boolean;
 }
 
+/**
+ * A custom (but hacky) optimization to discords message events
+ * To put it simply: You only receive messages for things you've requested
+ * via OP14, OP8, and OP12.
+ */
+interface lazyChannel {
+  messages?: boolean;
+}
+
 export interface WebSocket extends WS {
   bot: boolean;
   subscribed_servers: Record<string, subscribedServer>;
+  lazy_channels: Record<string, lazyChannel>;
+  enable_lazy_channels: boolean;
   is_deprecated: boolean;
   version: number;
   user_id: string;

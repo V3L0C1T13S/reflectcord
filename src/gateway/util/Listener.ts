@@ -178,6 +178,7 @@ export async function startListener(
             this.rvAPI = createAPI({
               token,
             });
+            this.enable_lazy_channels = process.env["LAZY_MESSAGES"] as unknown as boolean ?? false;
           }
           // HACK! Fixes #10
           this.rvClient.api = this.rvAPI;
@@ -500,6 +501,10 @@ export async function startListener(
           break;
         }
         case "Message": {
+          if (this.enable_lazy_channels && !this.lazy_channels[data.channel]) {
+            return;
+          }
+
           const msgObj = await this.rvAPIWrapper.messages.convertMessageObj(
             data,
             { mentions: true },
@@ -540,10 +545,18 @@ export async function startListener(
           break;
         }
         case "MessageUpdate": {
+          if (this.enable_lazy_channels && !this.lazy_channels[data.channel]) {
+            return;
+          }
+
           await updateMessage.call(this, data);
           break;
         }
         case "MessageDelete": {
+          if (this.enable_lazy_channels && !this.lazy_channels[data.channel]) {
+            return;
+          }
+
           const channel = await this.rvAPIWrapper.channels.fetch(data.channel);
 
           const body: GatewayMessageDeleteDispatchData = {
@@ -558,6 +571,10 @@ export async function startListener(
           break;
         }
         case "MessageReact": {
+          if (this.enable_lazy_channels && !this.lazy_channels[data.channel_id]) {
+            return;
+          }
+
           const emoji = await this.rvAPIWrapper.emojis.fetch(data.emoji_id);
 
           const body: GatewayMessageReactionAddDispatchData = {
@@ -576,6 +593,10 @@ export async function startListener(
           break;
         }
         case "MessageUnreact": {
+          if (this.enable_lazy_channels && !this.lazy_channels[data.channel_id]) {
+            return;
+          }
+
           const emoji = await this.rvAPIWrapper.emojis.fetch(data.emoji_id);
 
           const body: GatewayMessageReactionRemoveDispatchData = {
@@ -594,6 +615,9 @@ export async function startListener(
           break;
         }
         case "MessageRemoveReaction": {
+          if (this.enable_lazy_channels && !this.lazy_channels[data.channel_id]) {
+            return;
+          }
           const emoji = await this.rvAPIWrapper.emojis.fetch(data.emoji_id);
 
           const body: GatewayMessageReactionRemoveEmojiDispatchData = {
@@ -611,10 +635,18 @@ export async function startListener(
           break;
         }
         case "MessageAppend": {
+          if (this.enable_lazy_channels && !this.lazy_channels[data.channel]) {
+            return;
+          }
+
           await updateMessage.call(this, data);
           break;
         }
         case "BulkMessageDelete": {
+          if (this.enable_lazy_channels && !this.lazy_channels[data.channel]) {
+            return;
+          }
+
           const channel = this.rvAPIWrapper.channels.$get(data.channel);
 
           const body: GatewayMessageDeleteBulkDispatchData = {
@@ -892,7 +924,7 @@ export async function startListener(
           break;
         }
         case "ChannelStopTyping": {
-        // Discord wont handle this no matter what
+          // Discord wont handle this no matter what
           break;
         }
         case "UserUpdate": {
@@ -955,15 +987,10 @@ export async function startListener(
           break;
         }
         case "ChannelAck": {
-          await Send(this, {
-            op: GatewayOpcodes.Dispatch,
-            t: "MESSAGE_ACK",
-            s: this.sequence++,
-            d: {
-              channel_id: await toSnowflake(data.id),
-              message_id: await toSnowflake(data.message_id),
-              version: 3763,
-            },
+          await Dispatch(this, GatewayDispatchCodes.MessageAck, {
+            channel_id: await toSnowflake(data.id),
+            message_id: await toSnowflake(data.message_id),
+            version: 3763,
           });
           break;
         }
@@ -975,14 +1002,9 @@ export async function startListener(
             discord: await Emoji.from_quark(data),
           });
 
-          await Send(this, {
-            op: GatewayOpcodes.Dispatch,
-            t: GatewayDispatchEvents.GuildEmojisUpdate,
-            s: this.sequence++,
-            d: {
-              guild_id: await toSnowflake(data.parent.id),
-              emojis: [emoji.discord],
-            },
+          await Dispatch(this, GatewayDispatchEvents.GuildEmojisUpdate, {
+            guild_id: await toSnowflake(data.parent.id),
+            emojis: [emoji.discord],
           });
 
           break;

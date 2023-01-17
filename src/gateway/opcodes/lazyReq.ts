@@ -27,7 +27,9 @@ type LazyOperatorRange = [number, number];
 type SyncItem = {
   group: LazyGroup,
 } | {
-  member: APIGuildMember,
+  member: APIGuildMember & {
+    presence: any,
+  },
 };
 
 type LazyOperator = {
@@ -72,9 +74,14 @@ async function getMembers(
   const discordGuildId = await toSnowflake(guild_id);
   const offlineItems: SyncItem[] = [];
 
-  const members = await this.rvAPI.get(`/servers/${guild_id as ""}/members`, {
-    exclude_offline: true,
+  let members = await this.rvAPI.get(`/servers/${guild_id as ""}/members`, {
+    exclude_offline: false,
   });
+  if (members.members.length > 1000) {
+    members = await this.rvAPI.get(`/servers/${guild_id as ""}/members`, {
+      exclude_offline: true,
+    });
+  }
 
   const server = this.rvAPIWrapper.servers.get(guild_id);
 
@@ -109,7 +116,7 @@ async function getMembers(
 
       const discordMember = await Member.from_quark(member, { user });
 
-      if (discordMember.roles.length < 1 && user?.online) discordMember.roles.push(discordGuildId);
+      if (discordMember.roles.length < 1) discordMember.roles.push(discordGuildId);
 
       return {
         revolt: member,
@@ -177,8 +184,10 @@ async function getMembers(
         },
       } as SyncItem;
 
-      if (member.status?.status === "invisible") {
+      if (member.status?.status === "invisible" || member.status?.status as string === "offline") {
+        if ("member" in item) item.member.presence.status = "offline";
         offlineItems.push(item);
+        group.count--;
       } else items.push(item);
     });
     discordMembers = other_members;
@@ -225,10 +234,13 @@ export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
 
   // eslint-disable-next-line no-multi-assign
   const subscribedServer = this.subscribed_servers[rvServerId] ??= {};
+  // eslint-disable-next-line no-multi-assign
+  const lazyChannel = this.lazy_channels[rvChannelId] ??= {};
 
   if (activities !== undefined) subscribedServer.activities = activities;
   if (typing !== undefined) subscribedServer.typing = typing;
   if (threads !== undefined) subscribedServer.threads = threads;
+  lazyChannel.messages = true;
 
   const results = await getMembers
     .call(this, rvServerId, [0, 99], this.subscribed_servers[rvServerId]?.activities);
