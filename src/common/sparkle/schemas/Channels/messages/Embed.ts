@@ -14,8 +14,8 @@ export const EmbedAuthorSchema = {
 };
 
 export const EmbedFieldSchema = {
-  name: String,
-  value: String,
+  name: new Tuple(String, Number),
+  value: new Tuple(String, Number),
   $inline: Boolean,
 };
 
