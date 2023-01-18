@@ -5,9 +5,13 @@ import SemanticSDP from "semantic-sdp";
 import { toSnowflake } from "@reflectcord/common/models";
 import { PublicIP } from "@reflectcord/common/constants";
 import { VoiceOPCodes } from "@reflectcord/common/sparkle";
+import { emitEvent } from "@reflectcord/common/Events";
+import { fromSnowflake } from "@reflectcord/common/models/util";
+import { GatewayDispatchEvents } from "discord.js";
 import { VortexPacketType } from "../types/vortex";
 import { endpoint, Send, WebSocket } from "../../../util";
 import defaultsdp from "../../../util/sdp.json";
+import { UserContainer } from "../../../../common/managers/Users";
 
 export interface GenericBody {
   type: VortexPacketType,
@@ -57,7 +61,7 @@ export type VortexDataPacket = InitializeTransportsBody
   | StopProduceBody
   | RoomInfoBody;
 
-function connectTransport(this: WebSocket, id: string, dtls: DtlsParameters) {
+export function connectTransport(this: WebSocket, id: string, dtls: DtlsParameters) {
   return new Promise<ConnectTransportBody["data"]>((res, rej) => {
     const request = {
       id: ++this.vortex_sequence,
@@ -81,8 +85,6 @@ function connectTransport(this: WebSocket, id: string, dtls: DtlsParameters) {
 export async function onVortexMessage(this: WebSocket, data: VortexDataPacket) {
   console.log(data);
 
-  // this.on("ConnectTransport", (id, dtls) => connectTransport.call(this, id, dtls));
-
   switch (data.type) {
     case "InitializeTransports": {
       this.vortex_ws.send(JSON.stringify({
@@ -92,6 +94,8 @@ export async function onVortexMessage(this: WebSocket, data: VortexDataPacket) {
       break;
     }
     case "Authenticate": {
+      this.vortex_device.device.load({ routerRtpCapabilities: data.data.rtpCapabilities });
+
       const req = {
         id: this.vortex_sequence++,
         type: "InitializeTransports",
@@ -149,15 +153,50 @@ export async function onVortexMessage(this: WebSocket, data: VortexDataPacket) {
       break;
     }
     case "ConnectTransport": {
-      connectTransport.call(this, data.id, data.data.dtlsParameters);
+      this.emit("ConnectTransport", data.id, data.data.dtlsParameters);
       break;
     }
     case "RoomInfo": {
       const { users } = data.data;
 
-      const rvUsers = await Promise.all(Object.entries(users)
-        .map(([id, user]) => this.rvAPIWrapper.users.fetch(id)));
+      const channel = await this.rvAPIWrapper.channels.fetch(this.vortex_channel_id);
+      const server = "server" in channel.revolt ? await this.rvAPIWrapper.servers.fetch(channel.revolt.server) : null;
 
+      const rvUsers = await Promise.all(Object.entries(users)
+        .map(async ([id, state]) => ({
+          ...await this.rvAPIWrapper.users.fetch(id).catch(console.error),
+          state,
+        })));
+
+      await Promise.all((rvUsers
+        .filter((x) => x.discord?.id !== this.user_id)
+        .map(async (user) => {
+          if (!user.discord || !user.revolt) return;
+
+          const member = await server?.extra?.members.fetch(server.revolt._id, user.revolt._id)
+            .catch(console.error);
+
+          await emitEvent({
+            user_id: await fromSnowflake(this.user_id),
+            event: GatewayDispatchEvents.VoiceStateUpdate,
+            data: {
+              channel_id: channel.discord.id,
+              guild_id: "guild_id" in channel.discord ? channel.discord.guild_id : null,
+              member: member?.discord,
+              mute: false,
+              deaf: false,
+              self_mute: user.state.audio,
+              self_deaf: false,
+              self_video: false,
+              suppress: false,
+              user_id: user.discord.id,
+            },
+          });
+        })));
+
+      break;
+    }
+    case "StartProduce": {
       break;
     }
     default: {

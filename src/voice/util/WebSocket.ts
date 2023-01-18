@@ -2,6 +2,7 @@
 import { API } from "revolt-api";
 import ws from "ws";
 import { APIWrapper } from "@reflectcord/common/rvapi";
+import { Device } from "msc-node";
 import { Client } from "./MediaServer";
 
 export interface WebSocket extends ws {
@@ -21,4 +22,7 @@ export interface WebSocket extends ws {
   vortex_sequence: number,
   vortex_channel_id: string,
   vortex_token: string;
+  vortex_device: {
+    device: Device,
+  }
 }
