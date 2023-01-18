@@ -43,23 +43,24 @@ import {
   ReadState,
   GatewayGuildEmoji,
   Role,
-  Message,
   createCommonGatewayGuild,
 } from "@reflectcord/common/models";
 import { Logger, RabbitMQ } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
-import { GatewayUserChannelUpdateOptional, IdentifySchema } from "@reflectcord/common/sparkle";
+import {
+  GatewayUserChannelUpdateOptional,
+  IdentifySchema,
+  GatewayUserSettingsProtoUpdateDispatchData,
+  GatewayDispatchCodes,
+} from "@reflectcord/common/sparkle";
 import { reflectcordWsURL } from "@reflectcord/common/constants";
-import { listenEvent, eventOpts } from "@reflectcord/common/Events";
-import { GatewayDispatchCodes } from "@reflectcord/common/sparkle/schemas/Gateway/Dispatch";
-import { DbManager } from "@reflectcord/common/db";
 import { VoiceState } from "@reflectcord/common/mongoose";
 import { WebSocket } from "../Socket";
 import { Dispatch, Send } from "./send";
 import experiments from "./experiments.json";
 import { isDeprecatedClient } from "../versioning";
 import { updateMessage } from "./messages";
-import { GatewayUserSettingsProtoUpdateDispatchData } from "../../common/sparkle/schemas/Gateway/GatewayEvents";
+import { createInternalListener } from "./InternalListener";
 
 // TODO: rework lol
 function cacheServerCreateChannels(
@@ -80,82 +81,6 @@ function cacheServerCreateChannels(
 
     if (!discordChannel || !("parent_id" in discordChannel && discordChannel.parent_id)) return;
     channelHandler.discord.parent_id = discordChannel.parent_id;
-  });
-}
-
-async function internalConsumer(this: WebSocket, opts: eventOpts) {
-  try {
-    const { data, event } = opts;
-    const id = data.id as string;
-
-    Logger.log(`got event ${event} with data ${JSON.stringify(data)}`);
-
-    const consumer = internalConsumer.bind(this);
-
-    opts.acknowledge?.();
-
-    switch (event) {
-      case GatewayDispatchCodes.VoiceChannelEffectSend: {
-        // TODO: Compare against real Discord to see if this is correct
-        if (!this.voiceInfo.channel_id === data.channel_id) return;
-
-        const channel = this.rvAPIWrapper.channels.get(await fromSnowflake(data.channel_id));
-        if (channel && ("server" in channel.revolt) && channel.revolt.server) {
-          data.guild_id = await toSnowflake(channel.revolt.server);
-        }
-
-        break;
-      }
-      case GatewayDispatchEvents.InviteCreate: {
-        const user = await this.rvAPIWrapper.users.fetch(await fromSnowflake(data.inviter.id));
-
-        data.inviter = user.discord;
-
-        break;
-      }
-      default: {
-        break;
-      }
-    }
-
-    await Dispatch(this, event, data);
-  } catch (e) {
-    console.error("Error in consumer:", e);
-  }
-}
-
-export async function createInternalListener(this: WebSocket) {
-  const consumer = internalConsumer.bind(this);
-
-  const opts: { acknowledge: boolean; channel?: any } = {
-    acknowledge: true,
-  };
-  if (RabbitMQ.connection) {
-    opts.channel = await RabbitMQ.connection.createChannel();
-    // @ts-ignore
-    opts.channel.queues = {};
-  }
-
-  this.events[this.rv_user_id] = await listenEvent(this.rv_user_id, consumer, opts);
-  this.rvAPIWrapper.servers.forEach(async (server) => {
-    this.events[server.revolt._id] = await listenEvent(server.revolt._id, consumer, opts);
-
-    server.revolt.channels.forEach(async (channel) => {
-      this.events[channel] = await listenEvent(channel, consumer, opts);
-    });
-  });
-  this.rvAPIWrapper.channels.forEach(async (channel) => {
-    if (this.events[channel.revolt._id]) return;
-
-    this.events[channel.revolt._id] = await listenEvent(channel.revolt._id, consumer, opts);
-  });
-
-  this.once("close", () => {
-    if (opts.channel) opts.channel.close();
-    else {
-      Object.values(this.events).forEach((x) => x());
-      Object.values(this.member_events).forEach((x) => x());
-    }
   });
 }
 

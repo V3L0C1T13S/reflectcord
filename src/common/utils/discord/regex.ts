@@ -1,3 +1,21 @@
+/*
+  Fosscord: A FOSS re-implementation and extension of the Discord.com backend.
+  Copyright (C) 2023 Fosscord and Fosscord Contributors
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published
+  by the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 export const DOUBLE_WHITE_SPACE = /\s\s+/g;
 export const SPECIAL_CHAR = /[@#`:\r\n\t\f\v\p{C}]/gu;
 export const CHANNEL_MENTION = /<#(\d+)>/g;
@@ -8,12 +26,3 @@ export const HERE_MENTION = /@here/g;
 export const EMOJI_REGEX = /(<a?)?:\w+:(.*>)?/g;
 export const REACTION_EXTRACT_ID = /(.*)(~(\d+))?(:|%)/gs;
 export const SNOWFLAKE = /^[\d+]$/;
-
-export const REVOLT_CHANNEL_MENTION = /<#(.*)>/gs;
-export const REVOLT_USER_MENTION = /<@!?(.*)>/g;
-export const REVOLT_EMOJI_REGEX = /:([a-zA-Z0-9_+]+):/g;
-export const REVOLT_ULID = /^[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{26}$/;
-
-export function isOnlyEmoji(text: string) {
-  return text.replaceAll(REVOLT_EMOJI_REGEX, "").trim().length === 0;
-}

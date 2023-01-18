@@ -22,11 +22,9 @@ import { Embed, SendableEmbed } from "./embed";
 import { Reactions } from "./emoji";
 import { User } from "./user";
 import {
-  CHANNEL_MENTION, Logger, REVOLT_CHANNEL_MENTION, REVOLT_USER_MENTION,
-} from "../../utils";
-import {
+  CHANNEL_MENTION, REVOLT_CHANNEL_MENTION, REVOLT_USER_MENTION,
   USER_MENTION, EMOJI_REGEX, REVOLT_EMOJI_REGEX, isOnlyEmoji, REVOLT_ULID, SNOWFLAKE,
-} from "../../utils/discord/regex";
+} from "../../utils";
 
 async function replaceAsync(
   str: string,

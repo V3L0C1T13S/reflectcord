@@ -50,6 +50,7 @@ export async function VortexIdentify(this: WebSocket, data: Payload) {
           new RTCRtpCodecParameters({
             mimeType: "audio/opus",
             clockRate: 48000,
+            // @ts-ignore
             preferredPayloadType: 100,
             channels: 2,
           }),
