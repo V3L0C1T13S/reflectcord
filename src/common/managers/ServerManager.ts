@@ -158,6 +158,7 @@ export class ServerManager extends BaseManager<string, ServerContainer> {
     applyRevolt("owner");
     applyRevolt("name");
     applyRevolt("description");
+    applyRevolt("categories");
     applyRevolt("categories", "channel_ids");
     applyRevolt("system_messages");
     applyRevolt("roles");

@@ -3,6 +3,7 @@
 /* eslint-disable no-plusplus */
 import {
   APIChannel,
+  GatewayChannelDeleteDispatchData,
   GatewayCloseCodes,
   GatewayDispatchEvents,
   GatewayGuildCreateDispatchData,
@@ -739,6 +740,10 @@ export async function startListener(
         case "ServerUpdate": {
           const server = this.rvAPIWrapper.servers.get(data.id);
           if (server) {
+            const deletedCategories = server.revolt.categories
+              ?.filter((category) => data.data.categories
+                ?.find((x) => x.id === category.id) === undefined);
+
             const rvEmojis = Array.from(this.rvAPIWrapper.emojis.values())
               .filter((x) => x.revolt.parent.type === "Server" && x.revolt.parent.id === server.revolt._id);
 
@@ -775,6 +780,15 @@ export async function startListener(
                   await Dispatch(this, GatewayDispatchEvents.ChannelUpdate, channel.discord);
                 }));
               }));
+            }
+
+            if (deletedCategories) {
+              await Promise.all(deletedCategories
+                .map(async (category) => Dispatch(
+                  this,
+                  GatewayDispatchEvents.ChannelDelete,
+                  await GuildCategory.from_quark(category),
+                )));
             }
 
             await Dispatch(this, GatewayDispatchEvents.GuildUpdate, server.discord);
