@@ -35,8 +35,14 @@ See docs/setup.md
 
 ## Credits
 
-[Fosscord](https://github.com/fosscord) - Server structure, larger utilities, 99% of the work reverse engineering the gateway, more obscure parts of Discords API, voicechat, and also created the client downloader. Seriously, check them out!
+### [Fosscord](https://github.com/fosscord)
+Server structure, larger utilities, 99% of the work reverse engineering the gateway, more obscure parts of Discords API, the entire WebRTC stack, API middlewares, the client downloader, and more is thanks to the work of Fosscord and its contributors. Seriously, check them out!
 
-[Litecord](https://gitlab.com/litecord/litecord) - Documented a bunch of undocumented OPCodes, reverse engineered OP8
+### [Litecord](https://gitlab.com/litecord/litecord)
+Documented a bunch of undocumented OPCodes, reverse engineered OP8
 
-[ouwou - Discord Undocumented](https://github.com/ouwou/discord-undocumented) - Documented features such as search and slash commands
+### [Luna's Unofficial Discord Docs](https://luna.gitlab.io/discord-unofficial-docs)
+Mainly responsible for documenting settings protobufs, along with tons of OPCodes.
+
+### [ouwou - Discord Undocumented](https://github.com/ouwou/discord-undocumented)
+Documented features such as search and slash commands
