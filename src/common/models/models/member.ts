@@ -6,6 +6,7 @@ import { API } from "revolt.js";
 import { QuarkConversion } from "../QuarkConversion";
 import { fromSnowflake, toSnowflake } from "../util";
 import { User } from "./user";
+import { toCompatibleISO } from "../../utils/date";
 
 export type MemberATQ = Partial<{
   user: APIUser,
@@ -45,8 +46,10 @@ export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, Memb
 
     return {
       id: await toSnowflake(_id.user),
-      joined_at: new Date(joined_at).toISOString(),
-      communication_disabled_until: timeout ? new Date(timeout).toISOString() : null,
+      joined_at: toCompatibleISO(new Date(joined_at).toISOString()),
+      communication_disabled_until: timeout
+        ? toCompatibleISO(new Date(timeout).toISOString())
+        : null,
       roles: convRoles,
       deaf: false,
       mute: false,

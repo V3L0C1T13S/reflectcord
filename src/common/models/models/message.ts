@@ -23,7 +23,13 @@ import { Reactions } from "./emoji";
 import { User } from "./user";
 import {
   CHANNEL_MENTION, REVOLT_CHANNEL_MENTION, REVOLT_USER_MENTION,
-  USER_MENTION, EMOJI_REGEX, REVOLT_EMOJI_REGEX, isOnlyEmoji, REVOLT_ULID, SNOWFLAKE,
+  USER_MENTION,
+  EMOJI_REGEX,
+  REVOLT_EMOJI_REGEX,
+  isOnlyEmoji,
+  REVOLT_ULID,
+  SNOWFLAKE,
+  toCompatibleISO,
 } from "../../utils";
 
 async function replaceAsync(
@@ -164,8 +170,8 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
 
         return authorUser;
       })(),
-      timestamp: new Date(decodeTime(_id)).toISOString(),
-      edited_timestamp: message.edited ?? null,
+      timestamp: toCompatibleISO(new Date(decodeTime(_id)).toISOString()),
+      edited_timestamp: message.edited ? toCompatibleISO(message.edited) : null,
       tts: false,
       mention_everyone: false,
       mentions: mentions ? await Promise.all(

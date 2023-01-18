@@ -8,6 +8,7 @@ import { PartialChannel } from "./channel";
 import { User } from "./user";
 import { systemUserID } from "../../rvapi";
 import { Guild } from "./guilds";
+import { toCompatibleISO } from "../../utils/date";
 
 export const Invite: QuarkConversion<API.InviteResponse, APIInvite> = {
   async to_quark(invite) {
@@ -72,7 +73,7 @@ export const InviteFull: QuarkConversion<API.InviteResponse, APIExtendedInvite> 
       max_uses: 0,
       max_age: 0,
       temporary: false,
-      created_at: new Date().toISOString(),
+      created_at: toCompatibleISO(new Date().toISOString()),
     };
   },
 };

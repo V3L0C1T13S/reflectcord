@@ -8,10 +8,10 @@ import { VoiceOPCodes } from "@reflectcord/common/sparkle";
 import { emitEvent } from "@reflectcord/common/Events";
 import { fromSnowflake } from "@reflectcord/common/models/util";
 import { GatewayDispatchEvents } from "discord.js";
+import { UserContainer } from "@reflectcord/common/managers";
 import { VortexPacketType } from "../types/vortex";
 import { endpoint, Send, WebSocket } from "../../../util";
 import defaultsdp from "../../../util/sdp.json";
-import { UserContainer } from "../../../../common/managers/Users";
 
 export interface GenericBody {
   type: VortexPacketType,

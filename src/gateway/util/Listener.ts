@@ -46,7 +46,7 @@ import {
   Role,
   createCommonGatewayGuild,
 } from "@reflectcord/common/models";
-import { Logger, RabbitMQ } from "@reflectcord/common/utils";
+import { Logger, RabbitMQ, toCompatibleISO } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
 import {
   GatewayUserChannelUpdateOptional,
@@ -54,7 +54,7 @@ import {
   GatewayUserSettingsProtoUpdateDispatchData,
   GatewayDispatchCodes,
 } from "@reflectcord/common/sparkle";
-import { reflectcordWsURL } from "@reflectcord/common/constants";
+import { discordEpoch, reflectcordWsURL } from "@reflectcord/common/constants";
 import { VoiceState } from "@reflectcord/common/mongoose";
 import { WebSocket } from "../Socket";
 import { Dispatch, Send } from "./send";
@@ -595,7 +595,7 @@ export async function startListener(
           const body: GatewayTypingStartDispatchData = {
             channel_id: channel.discord.id,
             user_id: await toSnowflake(data.user),
-            timestamp: Date.now(),
+            timestamp: Date.nowSeconds(),
           };
 
           if ("guild_id" in channel.discord && channel.discord.guild_id && "server" in channel.revolt) {
@@ -692,7 +692,7 @@ export async function startListener(
           const member = await this.rvAPIWrapper.members.fetch(data.server._id, this.rv_user_id);
 
           const commonGuild = {
-            joined_at: new Date().toISOString(),
+            joined_at: toCompatibleISO(new Date().toISOString()),
             large: false,
             voice_states: [],
             presences: [],

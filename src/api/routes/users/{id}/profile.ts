@@ -12,6 +12,7 @@ import { PatchCurrentUserBody, ProfileThemesExperimentBucket } from "@reflectcor
 import { UserPremiumType } from "discord.js";
 import { fetchUser } from ".";
 import { enableProfileThemes } from "../../../../common/constants/features";
+import { toCompatibleISO } from "../../../../common/utils/date";
 
 export async function getProfile(api: API.API, id: string) {
   // why cant it just be /users/@me/profile ???
@@ -70,7 +71,7 @@ export default (express: Application) => <Resource> {
       connected_accounts: [],
       user,
       user_profile: await UserProfile.from_quark(rvProfile),
-      premium_since: new Date(decodeTime(rvId)).toISOString(),
+      premium_since: toCompatibleISO(new Date(decodeTime(rvId)).toISOString()),
       premium_type: UserPremiumType.Nitro,
       mutual_friends_count,
       mutual_guilds,

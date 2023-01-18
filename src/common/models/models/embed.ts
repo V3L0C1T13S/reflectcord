@@ -8,7 +8,9 @@ import axios from "axios";
 import { uploadFile } from "@reflectcord/cdn/util";
 import fileType from "file-type";
 import { TwitterApi } from "twitter-api-v2";
-import { Logger, hexToRgbCode, rgbToHex } from "../../utils";
+import {
+  Logger, hexToRgbCode, rgbToHex, toCompatibleISO,
+} from "../../utils";
 import { proxyFile } from "../../rvapi";
 import { QuarkConversion } from "../QuarkConversion";
 import {
@@ -340,6 +342,7 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
           }
 
           discordEmbed.timestamp = tweet.data.created_at ?? new Date().toISOString();
+          discordEmbed.timestamp = toCompatibleISO(discordEmbed.timestamp);
 
           discordEmbed.color = 1942002;
 

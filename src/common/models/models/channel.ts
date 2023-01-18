@@ -268,7 +268,9 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
     const commonProperties: {
       guild_id?: string,
       owner_id?: string,
-      recipients?: APIUser[]
+      recipients?: APIUser[],
+      bitrate?: number,
+      user_limit?: number,
     } = {};
 
     if ("server" in channel && typeof channel.server === "string") {
@@ -292,11 +294,13 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
         _id: channel.user,
         username: "Saved Messages",
       })];
+    } else if (channel.channel_type === "VoiceChannel") {
+      commonProperties.bitrate = 0;
+      commonProperties.user_limit = 0;
     }
 
     return {
       ...commonProperties,
-      bitrate: undefined,
       id,
       invitable: undefined,
       type: channelType,

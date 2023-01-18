@@ -26,6 +26,7 @@ import { fromSnowflake, toSnowflake } from "../../util";
 import { convertPermNumber, Permissions } from "../permissions";
 import { Role } from "../role";
 import { discordGatewayGuildEmoji, Emoji, GatewayGuildEmoji } from "../emoji";
+import { toCompatibleISO } from "../../../utils/date";
 
 export type DiscordPartialGuild = {
   id: string,
@@ -294,7 +295,7 @@ export function createCommonGatewayGuild(
 ) {
   return {
     channels: data.channels,
-    joined_at: data.member?.joined_at ?? new Date().toISOString(),
+    joined_at: data.member?.joined_at ?? toCompatibleISO(new Date().toISOString()),
     large: false,
     member_count: guild.approximate_member_count ?? 0,
     members: data.members,

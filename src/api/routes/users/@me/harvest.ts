@@ -1,10 +1,11 @@
 import { Resource } from "express-automatic-routes";
 import { toSnowflake } from "@reflectcord/common/models";
+import { toCompatibleISO } from "@reflectcord/common/utils";
 
 // STUB
 export default () => <Resource> {
   get: async (req, res) => {
-    const dateStub = new Date().toISOString();
+    const dateStub = toCompatibleISO(new Date().toISOString());
     const userId = await res.rvAPIWrapper.users.getSelfId();
 
     res.json({

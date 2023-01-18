@@ -6,6 +6,7 @@ import {
 import { decodeTime } from "ulid";
 import { QuarkConversion } from "../../QuarkConversion";
 import { LoginSchema, MFALoginSchema, UserSession } from "../../../sparkle";
+import { toCompatibleISO } from "../../../utils/date";
 
 export type APILoginResponse = {
   token: string | null,
@@ -104,7 +105,7 @@ export const Session: QuarkConversion<SessionInfo, UserSession> = {
 
     return {
       id_hash: _id,
-      approx_last_used_time: new Date(decodeTime(_id)).toISOString(),
+      approx_last_used_time: toCompatibleISO(new Date(decodeTime(_id)).toISOString()),
       client_info: {
         os: session.name,
         platform: "web",
