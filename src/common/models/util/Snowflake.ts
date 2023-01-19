@@ -35,9 +35,9 @@ export async function toSnowflake(id: string) {
 /**
  * @returns A snowflake from the DB or null if not found.
 */
-export async function fromSnowflake(id: string) {
+export async function fromSnowflake(id: string | number) {
   const existing = await snowflakes.findOne({
-    snowflake: id,
+    snowflake: id.toString(),
   });
 
   if (!existing) throw new Error("Non-existent ID");

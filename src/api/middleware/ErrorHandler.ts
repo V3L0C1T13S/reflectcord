@@ -21,6 +21,7 @@ import { NextFunction, Request, Response } from "express";
 import {
   ApiError, HTTPError, FieldError, Logger,
 } from "@reflectcord/common/utils";
+import { isAxiosError } from "axios";
 
 const EntityNotFoundErrorRegex = /"(\w+)"/;
 
@@ -51,9 +52,8 @@ export function ErrorHandler(error: Error, req: Request, res: Response, next: Ne
 
       code = httpcode = 500;
       // TODO: Make this better
-      const err: any = error;
-      if (err?.response) {
-        const { data, headers, status } = err.response;
+      if (isAxiosError(error) && error.response) {
+        const { data, headers, status } = error.response;
 
         const errCode = status;
         if (errCode === 429) {
@@ -67,6 +67,13 @@ export function ErrorHandler(error: Error, req: Request, res: Response, next: Ne
           code = httpcode = errCode;
 
           return res.status(httpcode).json({ message, retry_after: retryAfter, global: null });
+        }
+
+        if (errCode === 401) {
+          return res.status(401).json({
+            message: "401: Unauthorized",
+            code: 0,
+          });
         }
       }
     }
