@@ -302,6 +302,8 @@ export function createCommonGatewayGuild(
     threads: [],
     stage_instances: [],
     guild_scheduled_events: [],
+    presences: [],
+    voice_states: [],
   };
 }
 

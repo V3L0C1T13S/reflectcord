@@ -201,8 +201,6 @@ export async function startListener(
               const botGuild = {
                 ...discordGuild,
                 ...commonGuild,
-                presences: [],
-                voice_states: [],
                 unavailable: false,
               };
 
@@ -691,18 +689,11 @@ export async function startListener(
 
           const member = await this.rvAPIWrapper.members.fetch(data.server._id, this.rv_user_id);
 
-          const commonGuild = {
-            joined_at: toCompatibleISO(new Date().toISOString()),
-            large: false,
-            voice_states: [],
-            presences: [],
-            members: [member.discord],
-            member_count: guild.discord.approximate_member_count ?? 0,
+          const commonGuild = createCommonGatewayGuild(guild.discord, {
             channels,
-            threads: [],
-            stage_instances: [],
-            guild_scheduled_events: [],
-          };
+            members: member ? [member.discord] : [],
+            member: member ? member.discord : null,
+          });
 
           const userGuild = {
             ...commonGuild,
@@ -715,9 +706,10 @@ export async function startListener(
             embedded_activities: [],
           };
 
-          const botGuild: GatewayGuildCreateDispatchData = {
+          const botGuild = {
             ...commonGuild,
             ...guild.discord,
+            unavailable: false,
           };
 
           await Dispatch(this, GatewayDispatchEvents.GuildCreate, this.bot ? botGuild : userGuild);
