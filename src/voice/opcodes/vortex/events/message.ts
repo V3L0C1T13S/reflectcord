@@ -1,5 +1,5 @@
 /* eslint-disable no-plusplus */
-import { RtpCapabilities } from "msc-node/lib/RtpParameters";
+import { RtpCapabilities, RtpParameters } from "msc-node/lib/RtpParameters";
 import { DtlsParameters } from "msc-node/lib/Transport";
 import SemanticSDP from "semantic-sdp";
 import { toSnowflake } from "@reflectcord/common/models";
@@ -14,6 +14,7 @@ import { endpoint, Send, WebSocket } from "../../../util";
 import defaultsdp from "../../../util/sdp.json";
 
 export interface GenericBody {
+  id: number,
   type: VortexPacketType,
   data?: any,
 }
@@ -33,7 +34,6 @@ export interface RoomInfoBody extends GenericBody {
 
 export interface ConnectTransportBody extends GenericBody {
   type: "ConnectTransport",
-  id: string,
   data: {
     dtlsParameters: DtlsParameters,
   }
@@ -54,11 +54,40 @@ export interface AuthenticateBody extends GenericBody {
   },
 }
 
+export interface UserStartProduceBody extends GenericBody {
+  type: "UserStartProduce",
+  data: {
+    id: string,
+    type: "audio",
+  }
+}
+
+export interface UserStopProduceBody extends GenericBody {
+  type: "UserStopProduce",
+  data: {
+    id: string,
+    type: "audio",
+  }
+}
+
+export interface StartConsumeBody extends GenericBody {
+  type: "StartConsume",
+  data: {
+    id: string,
+    producerId: string,
+    kind: "audio",
+    rtpParameters: RtpParameters,
+  }
+}
+
 export type VortexDataPacket = InitializeTransportsBody
   | AuthenticateBody
   | ConnectTransportBody
   | StartProduceBody
   | StopProduceBody
+  | UserStartProduceBody
+  | UserStopProduceBody
+  | StartConsumeBody
   | RoomInfoBody;
 
 export function connectTransport(this: WebSocket, id: string, dtls: DtlsParameters) {
@@ -185,7 +214,7 @@ export async function onVortexMessage(this: WebSocket, data: VortexDataPacket) {
               member: member?.discord,
               mute: false,
               deaf: false,
-              self_mute: user.state.audio,
+              self_mute: !user.state.audio,
               self_deaf: false,
               self_video: false,
               suppress: false,
@@ -197,6 +226,60 @@ export async function onVortexMessage(this: WebSocket, data: VortexDataPacket) {
       break;
     }
     case "StartProduce": {
+      break;
+    }
+    case "UserStartProduce": {
+      const user = await this.rvAPIWrapper.users.fetch(data.data.id);
+      const channel = await this.rvAPIWrapper.channels.fetch(this.vortex_channel_id);
+      const server = "server" in channel.revolt ? await this.rvAPIWrapper.servers.fetch(channel.revolt.server) : null;
+
+      const member = await server?.extra?.members.fetch(server.revolt._id, user.revolt._id)
+        .catch(console.error);
+
+      await emitEvent({
+        user_id: await fromSnowflake(this.user_id),
+        event: GatewayDispatchEvents.VoiceStateUpdate,
+        data: {
+          channel_id: channel.discord.id,
+          guild_id: "guild_id" in channel.discord ? channel.discord.guild_id : null,
+          member: member?.discord,
+          mute: false,
+          deaf: false,
+          self_mute: false,
+          self_deaf: false,
+          self_video: false,
+          suppress: false,
+          user_id: user.discord.id,
+        },
+      });
+
+      break;
+    }
+    case "UserStopProduce": {
+      const user = await this.rvAPIWrapper.users.fetch(data.data.id);
+      const channel = await this.rvAPIWrapper.channels.fetch(this.vortex_channel_id);
+      const server = "server" in channel.revolt ? await this.rvAPIWrapper.servers.fetch(channel.revolt.server) : null;
+
+      const member = await server?.extra?.members.fetch(server.revolt._id, user.revolt._id)
+        .catch(console.error);
+
+      await emitEvent({
+        user_id: await fromSnowflake(this.user_id),
+        event: GatewayDispatchEvents.VoiceStateUpdate,
+        data: {
+          channel_id: channel.discord.id,
+          guild_id: "guild_id" in channel.discord ? channel.discord.guild_id : null,
+          member: member?.discord,
+          mute: false,
+          deaf: false,
+          self_mute: true,
+          self_deaf: false,
+          self_video: false,
+          suppress: false,
+          user_id: user.discord.id,
+        },
+      });
+
       break;
     }
     default: {

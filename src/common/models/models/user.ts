@@ -1,12 +1,17 @@
 /* eslint-disable no-bitwise */
 /* eslint-disable camelcase */
 import {
-  AccountInfo, Message, RelationshipStatus, User as RevoltUser, UserProfile as RevoltUserProfile,
+  AccountInfo,
+  Message,
+  RelationshipStatus,
+  User as RevoltUser,
+  UserProfile as RevoltUserProfile,
 } from "revolt-api";
 import {
   ActivitiesOptions,
   ActivityType,
   APIUser,
+  GatewayPresenceUpdateDispatchData,
   PresenceData, UserFlags,
   UserFlagsBitField,
   UserPremiumType,
@@ -17,6 +22,7 @@ import { QuarkConversion } from "../QuarkConversion";
 import { fromSnowflake, toSnowflake } from "../util";
 import { priviligedUsers } from "../../constants/admin";
 import { genSessionId } from "../../utils/discord";
+import { Omit } from "../../utils";
 
 export type APIUserProfile = {
   bio: string | null,
@@ -367,3 +373,36 @@ export const Relationship: QuarkConversion<RelationshipStatus, UserRelationshipT
     }
   },
 };
+
+export interface RevoltPresenceData {
+  user: RevoltUser,
+  discordUser?: APIUser,
+  server?: string,
+}
+
+export async function createUserPresence(
+  data: RevoltPresenceData,
+) {
+  const status = await Status.from_quark(data.user.status, {
+    online: data.user.online,
+  });
+
+  const realStatus = status.status === "invisible" ? "offline" : status.status ?? "offline";
+
+  const presence: Omit<GatewayPresenceUpdateDispatchData, "guild_id"> & {
+    guild_id?: string,
+    last_modified?: number,
+  } = {
+    user: data.discordUser ?? await User.from_quark(data.user),
+    status: realStatus as any,
+    client_status: {
+      web: realStatus as any,
+    },
+    last_modified: Date.now(),
+  };
+
+  if (data.server) presence.guild_id = await toSnowflake(data.server);
+  if (status.activities) presence.activities = status.activities as any;
+
+  return presence;
+}

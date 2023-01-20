@@ -6,6 +6,10 @@ export type VortexPacketType =
   | "ConnectTransport"
   | "StartProduce"
   | "StopProduce"
+  | "UserStartProduce"
+  | "UserStopProduce"
+  | "StartConsume"
+  | "StopConsume"
   | "UserJoined"
   | "RoomInfo"
   | "UserLeft";

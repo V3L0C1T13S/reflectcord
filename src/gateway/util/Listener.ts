@@ -45,6 +45,7 @@ import {
   GatewayGuildEmoji,
   Role,
   createCommonGatewayGuild,
+  createUserPresence,
 } from "@reflectcord/common/models";
 import { Logger, RabbitMQ, toCompatibleISO } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
@@ -135,7 +136,9 @@ export async function startListener(
             .map(async (user) => this.rvAPIWrapper.users.createObj({
               revolt: user,
               discord: await User.from_quark(user),
-            }).discord));
+            })));
+
+          const discordUsers = users.map((user) => user.discord);
 
           const channels = await Promise.all(data.channels
             .map(async (channel) => this.rvAPIWrapper.channels.createObj({
@@ -291,37 +294,21 @@ export async function startListener(
             return body;
           });
 
-          const relationships = await Promise.all(data.users
-            .filter((u) => u.relationship !== "None" && u.relationship !== "User")
+          const relationships = await Promise.all(users
+            .filter((u) => u.revolt.relationship !== "None" && u.revolt.relationship !== "User")
             .map(async (u) => ({
               discord: {
-                type: await Relationship.from_quark(u.relationship ?? "Friend"),
-                user: await User.from_quark(u),
+                type: await Relationship.from_quark(u.revolt.relationship ?? "Friend"),
+                user: u.discord,
               },
-              revolt: u,
+              revolt: u.revolt,
             })));
 
-          const friendPresences = await Promise.all(relationships.map(async (relationship) => {
-            const rvUser = relationship.revolt;
-
-            const status = await Status.from_quark(rvUser.status, {
-              online: rvUser.online,
-            });
-
-            const presence = status.status === "invisible" ? "offline" : status.status ?? "offline";
-
-            return {
-              user: {
-                id: relationship.discord.user.id,
-              },
-              activities: status.activities,
-              client_status: {
-                desktop: presence,
-              },
-              status: presence,
-              last_modified: Date.now(),
-            };
-          }));
+          const friendPresences = await Promise.all(relationships
+            .map((relationship) => createUserPresence({
+              user: relationship.revolt,
+              discordUser: relationship.discord.user,
+            })));
 
           const rvSettings = !currentUser.bot ? await this.rvAPI.post("/sync/settings/fetch", {
             keys: SettingsKeys,
@@ -372,7 +359,7 @@ export async function startListener(
               partial: false,
               version: 642,
             } : user_settings?.user_guild_settings ?? [],
-            users,
+            users: discordUsers,
             experiments, // ily fosscord
             private_channels,
             resume_gateway_url: reflectcordWsURL,
@@ -871,8 +858,6 @@ export async function startListener(
           break;
         }
         case "UserUpdate": {
-          // Just incase we don't have them cached yet
-
           const user = await this.rvAPIWrapper.users.fetch(data.id);
 
           this.rvAPIWrapper.users.update(data.id, {
@@ -990,26 +975,24 @@ export async function startListener(
           break;
         }
         case "UserRelationship": {
-          const id = await toSnowflake(data.user._id);
+          const user = await User.from_quark(data.user);
+          const { id } = user;
           const type = await Relationship.from_quark(data.status);
           const nickname = data.user.username;
-          const user = await User.from_quark(data.user);
+
+          const body = {
+            id,
+            type,
+            nickname,
+            user,
+          };
 
           if (["Friend", "Outgoing", "Incoming", "Blocked"].includes(data.status)) {
-            await Dispatch(this, GatewayDispatchCodes.RelationshipAdd, {
-              id,
-              type,
-              nickname,
-              user,
-            });
+            await Dispatch(this, GatewayDispatchCodes.RelationshipAdd, body);
           } else {
-            await Dispatch(this, GatewayDispatchCodes.RelationshipRemove, {
-              id,
-              type,
-              nickname,
-              user,
-            });
+            await Dispatch(this, GatewayDispatchCodes.RelationshipRemove, body);
           }
+
           break;
         }
         case "UserSettingsUpdate": {
