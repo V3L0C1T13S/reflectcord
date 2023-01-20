@@ -18,8 +18,21 @@ import { convertPermNumber } from "./permissions";
 export type ChannelATQ = {};
 
 export type ChannelAFQ = Partial<{
+  /**
+   * Direct category ID for this channel.
+   * Giving it here directly is faster, but having it sort
+   * itself with allCategories gives higher accuracy, since
+   * we can find things like the channel position.
+  */
   categoryId: string | null | undefined,
+  /**
+   * User to exclude from DM/Group recipients.
+  */
   excludedUser: string | null | undefined,
+  /**
+   * If supplied, from_quark will search for the category this
+   * channel is in, and also find the position automatically.
+  */
   allCategories: API.Category[] | null | undefined,
 }>;
 
@@ -262,6 +275,10 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
       }
     })();
 
+    const position = extra?.allCategories
+      ? extra.allCategories.findIndex((x) => x.channels.includes(channel._id))
+      : 0;
+
     const channelType = await ChannelType.from_quark(channel.channel_type) as any;
 
     // Workaround for weird typechecking bug
@@ -364,7 +381,7 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
       })(),
       topic: ("description" in channel) ? channel.description : null,
       parent_id: categoryId,
-      position: 0,
+      position,
       icon: ("icon" in channel && channel.icon) ? channel.icon._id : null,
     };
   },

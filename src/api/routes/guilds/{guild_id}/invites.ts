@@ -14,7 +14,7 @@ export default () => <Resource> {
     const rvInvites = await res.rvAPIWrapper.servers.getInvites(serverId);
 
     res.json(await Promise.all(rvInvites.map(async (x) => InviteCreate.from_quark(x, {
-      inviter: (await res.rvAPIWrapper.users.fetch(x.creator)).revolt,
+      discordInviter: (await res.rvAPIWrapper.users.fetch(x.creator)).discord,
       channel: (await res.rvAPIWrapper.channels.fetch(x.channel)).revolt,
     }))));
   },

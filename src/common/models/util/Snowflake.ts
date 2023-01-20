@@ -1,5 +1,5 @@
 import { Snowflake } from "nodejs-snowflake";
-import ulid, { decodeTime } from "ulid";
+import { decodeTime } from "ulid";
 import { discordEpoch } from "../../constants";
 import { DbManager } from "../../db";
 
@@ -8,8 +8,7 @@ export type snowflakeConversionData = {
   _id: string;
 }
 
-export const snowflakes = DbManager.client.db("reflectcord")
-  .collection<snowflakeConversionData>("converted_snowflakes");
+const { snowflakes } = DbManager;
 
 /**
  * Converts a ULID to snowflake and stores the original ULID in a db

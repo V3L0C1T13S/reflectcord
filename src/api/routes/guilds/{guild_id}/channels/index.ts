@@ -71,6 +71,7 @@ export default () => <Resource> {
       } else {
         const rvChannel = await res.rvAPI.post(`/servers/${rvId as ""}/channels`, await ChannelCreateBody.to_quark(body));
         let rvCategory: string | null = null;
+        let patchedCategory: API.Category | null = null;
         // FIXME: Should we throw an error here if not server or just passthrough?
         if (parent_id && ("server" in rvChannel && rvChannel.server)) {
           rvCategory = await tryFromSnowflake(parent_id.toString());
@@ -83,6 +84,8 @@ export default () => <Resource> {
           await res.rvAPI.patch(`/servers/${rvId as ""}`, {
             categories: rvServer.categories ?? [],
           });
+
+          patchedCategory = categoryToPatch;
         }
 
         if (permission_overwrites && ("server" in rvChannel && rvChannel.server)) {
@@ -123,7 +126,7 @@ export default () => <Resource> {
         }
 
         res.status(201).json(await Channel.from_quark(rvChannel, {
-          categoryId: rvCategory,
+          allCategories: patchedCategory ? [patchedCategory] : null,
         }));
       }
     },

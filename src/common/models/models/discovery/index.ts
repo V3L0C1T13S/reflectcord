@@ -3,10 +3,9 @@ import { GuildFeature } from "discord.js";
 import { QuarkConversion } from "../../../models/QuarkConversion";
 import { toSnowflake } from "../../../models/util";
 import { DiscoveryServer, DiscoveryBot } from "../../../rvapi";
-import { App, GuildDiscoveryInfo } from "../../../sparkle";
+import { App, GuildDiscoveryInfo, FullDiscoveryBot } from "../../../sparkle";
 import { getServerFeatures } from "../guilds";
 import { UserProfile } from "../user";
-import { FullDiscoveryBot } from "../../../sparkle/schemas/AppDirectory/bots";
 import { stubFlags } from "../application";
 
 export const DiscoverableGuild: QuarkConversion<DiscoveryServer, GuildDiscoveryInfo> = {

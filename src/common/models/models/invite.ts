@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 import {
   APIChannel,
   APIExtendedInvite, APIInvite, APIUser,
@@ -114,12 +115,14 @@ API.Invite, APIInvite, InviteCreateATQ, InviteCreateAFQ
         ...partialChannel,
         name: partialChannel.name ?? "fixme",
       },
-      inviter: extra?.discordInviter ?? extra?.inviter
-        ? await User.from_quark(extra.inviter!)
-        : await User.from_quark({
-          username: "fixme",
-          _id: invite.creator,
-        }),
+      inviter: extra?.discordInviter
+        ? extra.discordInviter
+        : extra?.inviter
+          ? await User.from_quark(extra.inviter)
+          : await User.from_quark({
+            username: "fixme",
+            _id: invite.creator,
+          }),
     };
 
     if (invite.type === "Server") {
