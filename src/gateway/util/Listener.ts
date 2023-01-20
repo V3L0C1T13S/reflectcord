@@ -493,6 +493,8 @@ export async function startListener(
 
           await Dispatch(this, GatewayDispatchEvents.MessageDelete, body);
 
+          this.rvAPIWrapper.messages.delete(data.id);
+
           break;
         }
         case "MessageReact": {
@@ -572,11 +574,11 @@ export async function startListener(
             return;
           }
 
-          const channel = this.rvAPIWrapper.channels.$get(data.channel);
+          const channel = await this.rvAPIWrapper.channels.fetch(data.channel);
 
           const body: GatewayMessageDeleteBulkDispatchData = {
             ids: await Promise.all(data.ids.map((x) => toSnowflake(x))),
-            channel_id: await toSnowflake(data.channel),
+            channel_id: channel.discord.id,
           };
 
           if ("guild_id" in channel.discord && channel.discord.guild_id) {
@@ -584,6 +586,8 @@ export async function startListener(
           }
 
           await Dispatch(this, GatewayDispatchEvents.MessageDeleteBulk, body);
+
+          data.ids.forEach((msg) => this.rvAPIWrapper.messages.delete(msg));
 
           break;
         }
@@ -616,6 +620,11 @@ export async function startListener(
             revolt: data,
             discord: await Channel.from_quark(data),
           });
+
+          if (channel.revolt.channel_type === "TextChannel" || channel.revolt.channel_type === "VoiceChannel") {
+            const server = await this.rvAPIWrapper.servers.fetch(channel.revolt.server);
+            server.revolt.channels.push(channel.revolt._id);
+          }
 
           await Dispatch(this, GatewayDispatchEvents.ChannelCreate, channel.discord);
 
@@ -853,6 +862,8 @@ export async function startListener(
 
           await Dispatch(this, GatewayDispatchEvents.GuildMemberRemove, body);
 
+          server?.extra?.members.delete(data.user);
+
           break;
         }
         case "ChannelStopTyping": {
@@ -861,19 +872,13 @@ export async function startListener(
         }
         case "UserUpdate": {
           // Just incase we don't have them cached yet
-          await this.rvAPIWrapper.users.fetch(data.id);
 
-          const currentUser = this.rvAPIWrapper.users.$get(data.id, {
+          const user = await this.rvAPIWrapper.users.fetch(data.id);
+
+          this.rvAPIWrapper.users.update(data.id, {
             revolt: data.data ?? {},
-            discord: {},
-          });
-
-          if (!currentUser?.revolt) return;
-
-          const updatedUser = this.rvAPIWrapper.users.$get(data.id, {
-            revolt: {},
             discord: await User.from_quark({
-              ...currentUser.revolt,
+              ...user.revolt,
               ...data.data,
             }),
           });
@@ -881,7 +886,7 @@ export async function startListener(
           if (data.id !== this.rv_user_id) {
             if (data.data.status || data.data.online !== null || data.data.online !== undefined) {
               const status = await Status.from_quark(
-                data.data.status ?? updatedUser.revolt.status,
+                data.data.status ?? user.revolt.status,
                 {
                   online: data.data.online,
                 },
@@ -889,32 +894,22 @@ export async function startListener(
 
               const presence = status.status === "invisible" ? "offline" : status.status;
 
-              await Send(this, {
-                op: GatewayOpcodes.Dispatch,
-                t: GatewayDispatchEvents.PresenceUpdate,
-                s: this.sequence++,
-                d: {
-                  activities: status.activities ?? [],
-                  client_status: {
-                    desktop: presence,
-                  },
-                  status: presence,
-                  last_modified: Date.now(),
-                  // FIXME: Discord has inconsistent behaviour with the user object
-                  user: updatedUser.discord,
+              await Dispatch(this, GatewayDispatchEvents.PresenceUpdate, {
+                activities: status.activities ?? [],
+                client_status: {
+                  desktop: presence,
                 },
+                status: presence,
+                last_modified: Date.now(),
+                // FIXME: Discord has inconsistent behaviour with the user object
+                user: user.discord,
               });
             }
 
             return;
           }
 
-          await Send(this, {
-            op: GatewayOpcodes.Dispatch,
-            t: GatewayDispatchEvents.UserUpdate,
-            s: this.sequence++,
-            d: updatedUser.discord,
-          });
+          await Dispatch(this, GatewayDispatchEvents.UserUpdate, user.discord);
 
           break;
         }
