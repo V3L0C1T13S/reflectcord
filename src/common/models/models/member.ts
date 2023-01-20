@@ -46,7 +46,7 @@ export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, Memb
 
     return {
       id: await toSnowflake(_id.user),
-      joined_at: toCompatibleISO(new Date(joined_at).toISOString()),
+      joined_at: toCompatibleISO(joined_at),
       communication_disabled_until: timeout
         ? toCompatibleISO(new Date(timeout).toISOString())
         : null,

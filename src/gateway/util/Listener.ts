@@ -8,7 +8,9 @@ import {
   GatewayDispatchEvents,
   GatewayGuildCreateDispatchData,
   GatewayGuildDeleteDispatchData,
+  GatewayGuildMemberAddDispatchData,
   GatewayGuildMemberRemoveDispatchData,
+  GatewayGuildMemberUpdateDispatchData,
   GatewayGuildRoleDeleteDispatchData,
   GatewayGuildRoleUpdateDispatchData,
   GatewayMessageCreateDispatchData,
@@ -785,38 +787,41 @@ export async function startListener(
           break;
         }
         case "ServerMemberJoin": {
-          const member = await this.rvAPI.get(`/servers/${data.id as ""}/members/${data.user as ""}`);
+          const member = await this.rvAPIWrapper.members.fetch(data.id, data.user);
 
-          await Send(this, {
-            op: GatewayOpcodes.Dispatch,
-            t: GatewayDispatchEvents.GuildMemberAdd,
-            s: this.sequence++,
-            d: {
-              ...await Member.from_quark(member),
-              guild_id: await toSnowflake(data.id),
-            },
-          });
+          const body: GatewayGuildMemberAddDispatchData = {
+            ...member.discord,
+            guild_id: await toSnowflake(data.id),
+          };
+
+          await Dispatch(this, GatewayDispatchEvents.GuildMemberAdd, body);
 
           break;
         }
         case "ServerMemberUpdate": {
-          await this.rvAPIWrapper.members.fetch(data.id.server, data.id.user);
-
-          const updatedMember = this.rvAPIWrapper.members.$get(data.id.user, {
+          const member = await this.rvAPIWrapper.members.fetch(data.id.server, data.id.user);
+          this.rvAPIWrapper.members.update(data.id.user, {
             revolt: data.data,
-            discord: {},
+            discord: await Member.from_quark({
+              ...member.revolt,
+              ...data.data,
+            }, {
+              discordUser: member.discord.user,
+            }),
           });
 
-          const updatedMemberDiscord = this.rvAPIWrapper.members.$get(data.id.user, {
-            revolt: {},
-            discord: await Member.from_quark(updatedMember.revolt),
-          });
+          const body: GatewayGuildMemberUpdateDispatchData = {
+            ...member.discord,
+            user: member.discord.user ?? (await this.rvAPIWrapper.users
+              .fetch(data.id.user)).discord,
+            guild_id: await toSnowflake(data.id.server),
+          };
 
           // TODO: Update the member list if subscribed
           await Dispatch(
             this,
             GatewayDispatchEvents.GuildMemberUpdate,
-            updatedMemberDiscord.discord,
+            body,
           );
 
           break;

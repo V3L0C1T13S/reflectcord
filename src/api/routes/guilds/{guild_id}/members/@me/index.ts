@@ -2,6 +2,7 @@
 import { Resource } from "express-automatic-routes";
 import { HTTPError } from "@reflectcord/common/utils";
 import { fromSnowflake, Guild } from "@reflectcord/common/models";
+import { patchSelfMember } from "../../profile/@me";
 
 // Public server join route
 export default () => <Resource> {
@@ -16,4 +17,5 @@ export default () => <Resource> {
 
     res.json(await Guild.from_quark(rvServer.server));
   },
+  patch: patchSelfMember,
 };
