@@ -3,9 +3,10 @@ import { Application } from "express";
 import { Resource } from "express-automatic-routes";
 import protobuf from "protobufjs";
 import {
+  createSettingsSyncPOST,
   SettingsKeys, settingsProtoToJSON, settingsToProtoBuf, UserSettings,
 } from "@reflectcord/common/models";
-import { HTTPError } from "@reflectcord/common/utils";
+import { HTTPError, Logger } from "@reflectcord/common/utils";
 
 // FIXME
 export default (express: Application) => <Resource> {
@@ -32,6 +33,7 @@ export default (express: Application) => <Resource> {
   },
   patch: async (req, res) => {
     const { settings } = req.body;
+    const { protoId } = req.params;
 
     if (!settings) throw new HTTPError("Invalid settings");
 
@@ -39,8 +41,25 @@ export default (express: Application) => <Resource> {
 
     const settingsJSON = await settingsProtoToJSON(settingsData);
 
-    console.log(settingsJSON);
+    switch (protoId) {
+      case "1": {
+        const revoltSettings = await UserSettings.to_quark(settingsJSON);
 
-    res.sendStatus(500);
+        const discordSettings = await UserSettings.from_quark(revoltSettings);
+        const updatedProto = await settingsToProtoBuf(discordSettings);
+        const settingsPOST = createSettingsSyncPOST(revoltSettings);
+
+        await res.rvAPI.post("/sync/settings/set", settingsPOST);
+
+        res.json({
+          settings: Buffer.from(updatedProto).toString("base64"),
+        });
+        break;
+      }
+      default: {
+        Logger.warn(`unhandled proto ${protoId}`);
+        res.sendStatus(500);
+      }
+    }
   },
 };

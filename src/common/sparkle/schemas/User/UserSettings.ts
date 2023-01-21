@@ -34,7 +34,6 @@ export interface GuildFolder {
 }
 
 export interface UserSettings {
-  id: string;
   afk_timeout?: number;
   allow_accessibility_detection?: boolean;
   animate_emoji?: boolean;
@@ -72,10 +71,19 @@ export interface UserSettings {
   timezone_offset?: number;
   view_nsfw_guilds?: boolean;
   user_guild_settings: UserGuildSetting[];
+  // Reflectcord extension to make data storage easier
+  user_content?: {
+    dismissedContents?: string,
+    lastDismissedOutboundPromotionStartDate?: {
+      value: string,
+    },
+    premiumTier0ModalDismissedAt?: {
+      timestamp: string,
+    }
+  } | null,
 }
 
 export const DefaultUserSettings: UserSettings = {
-  id: "0",
   afk_timeout: 3600,
   allow_accessibility_detection: true,
   animate_emoji: true,

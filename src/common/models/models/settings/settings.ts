@@ -1,10 +1,12 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable no-bitwise */
 import { DefaultUserSettings, UserSettings as DiscordUserSettings } from "@reflectcord/common/sparkle";
 import protobuf from "protobufjs";
 import { join } from "path";
 import { Logger } from "@reflectcord/common/utils";
+import { invert } from "lodash";
 import { QuarkConversion } from "../../QuarkConversion";
-import { toSnowflake } from "../../util";
+import { fromSnowflake, toSnowflake } from "../../util";
 
 const protoDir = join(__dirname, "../../../../../resources");
 
@@ -46,9 +48,10 @@ export interface RevoltSettings {
   notifications?: RevoltSetting,
   ordering?: RevoltSetting,
   folders?: RevoltSetting,
+  user_content?: RevoltSetting,
 }
 
-export const SettingsKeys = ["appearance", "theme", "locale", "notifications", "ordering", "folders"];
+export const SettingsKeys = ["appearance", "theme", "locale", "notifications", "ordering", "folders", "user_content"];
 
 const LocaleMap: Record<string, string> = {
   bg: "bg",
@@ -83,11 +86,33 @@ const LocaleMap: Record<string, string> = {
   zh_Hant: "zh-TW",
 };
 
+function objectFlip(obj: any) {
+  const ret = {};
+  Object.keys(obj).forEach((key) => {
+    // @ts-ignore
+    ret[obj[key]] = key;
+  });
+  return ret;
+}
+
+const discordLocaleMap: Record<string, string> = invert(LocaleMap);
+
 export type UserSettingsATQ = {}
 
 export type UserSettingsAFQ = Partial<{
   status: string | null,
 }>
+
+export function createSettingsSyncPOST(settings: RevoltSettings) {
+  const settingsObject: Record<string, string> = {};
+
+  Object.entries(settings).forEach(([setting, value]) => {
+    // eslint-disable-next-line prefer-destructuring
+    settingsObject[setting] = value[1]!;
+  });
+
+  return settingsObject;
+}
 
 export const UserSettings: QuarkConversion<
 RevoltSettings,
@@ -96,19 +121,29 @@ UserSettingsATQ,
 UserSettingsAFQ
 > = {
   async to_quark(settings) {
-    const locale: RevoltLocaleSetting = {
-      lang: "en_US",
-    };
-    const theme: RevoltThemeSetting = {
+    const locale: RevoltLocaleSetting | null = settings.locale ? {
+      lang: discordLocaleMap[settings.locale] ?? "en_US",
+    } : null;
+    const theme: RevoltThemeSetting | null = settings.theme ? {
       "appearance:theme:base": settings.theme ?? "dark",
-      "appearance:theme:font": "",
-      "appearance:theme:monoFont": "",
-    };
-    return {
-      appearance: [Date.now(), ""],
-      theme: [Date.now(), JSON.stringify(theme)],
-      locale: [Date.now(), JSON.stringify(locale)],
-    };
+      "appearance:theme:font": "Ubuntu",
+      "appearance:theme:monoFont": "Ubuntu Mono",
+    } : null;
+    const ordering: RevoltOrderingSetting | null = settings.guild_positions
+      ? {
+        servers: await Promise.all(settings.guild_positions.map((id) => fromSnowflake(id))),
+      }
+      : null;
+    const userContent: DiscordUserSettings["user_content"] = settings.user_content;
+
+    const rvSettings: RevoltSettings = {};
+
+    if (locale) rvSettings.locale = [Date.now(), JSON.stringify(locale)];
+    if (theme) rvSettings.theme = [Date.now(), JSON.stringify(theme)];
+    if (ordering) rvSettings.ordering = [Date.now(), JSON.stringify(ordering)];
+    if (userContent) rvSettings.user_content = [Date.now(), JSON.stringify(userContent)];
+
+    return rvSettings;
   },
 
   async from_quark(settings, extra) {
@@ -117,6 +152,7 @@ UserSettingsAFQ
     const orderingSettings: RevoltOrderingSetting = JSON.parse(settings.ordering?.[1] ?? "{}");
     const notificationSettings: Partial<RevoltNotificationSetting> = JSON.parse(settings.notifications?.[1] ?? "{}");
     const folderSettings: Partial<RevoltFolderSetting> = JSON.parse(settings.folders?.[1] ?? "{}");
+    const userContentSettings: Partial<DiscordUserSettings["user_content"]> = JSON.parse(settings.user_content?.[1] ?? "{}");
 
     return {
       ...DefaultUserSettings,
@@ -151,6 +187,7 @@ UserSettingsAFQ
           id: i,
           name: x.name,
         }))) : [],
+      user_content: userContentSettings ?? null,
     };
   },
 };
@@ -180,7 +217,7 @@ export async function settingsToProtoBuf(settings: DiscordUserSettings, extra?: 
       guildOnboardingProgress: 1,
     },
     userContent: {
-      // dismissed_contents: 0,
+      dismissedContents: settings.user_content?.dismissedContents ?? "",
       lastDismissedOutboundPromotionStartDate: {
         value: new Date().toISOString(),
       },
@@ -296,7 +333,25 @@ export async function settingsProtoToJSON(settings: Uint8Array) {
 
   PreloadedSettings.verify(settings);
 
-  return PreloadedSettings.decode(settings).toJSON();
+  const protoSettings = PreloadedSettings.decode(settings).toJSON();
+
+  const jsonSettings: DiscordUserSettings = {
+    ...DefaultUserSettings,
+    locale: protoSettings.localization?.locale?.localeCode ?? DefaultUserSettings.locale,
+    guild_positions: protoSettings.guildFolders?.guildPositions,
+  };
+
+  if (protoSettings.appearance?.theme) {
+    jsonSettings.theme = protoSettings.appearance.theme === "LIGHT" ? "light" : "dark";
+  }
+  if (protoSettings.userContent?.dismissedContents) {
+    jsonSettings.user_content = {
+      ...protoSettings.userContent,
+      dismissed_contents: protoSettings.userContent.dismissedContents,
+    };
+  }
+
+  return jsonSettings;
 }
 
 export async function settingsProtoJSONToObject(settings: any) {

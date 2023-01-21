@@ -319,7 +319,6 @@ export async function startListener(
           const user_settings = rvSettings ? await UserSettings.from_quark(rvSettings, {
             status: sessionStatus.status?.toString() || null,
           }) : null;
-          if (user_settings) user_settings.id = currentUserDiscord.id;
 
           const user_settings_proto = rvSettings
             ? await settingsToProtoBuf(user_settings as any, {
