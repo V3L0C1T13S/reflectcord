@@ -216,15 +216,7 @@ export async function settingsToProtoBuf(settings: DiscordUserSettings, extra?: 
       // hub_progess: 1,
       guildOnboardingProgress: 1,
     },
-    userContent: {
-      dismissedContents: settings.user_content?.dismissedContents ?? "",
-      lastDismissedOutboundPromotionStartDate: {
-        value: new Date().toISOString(),
-      },
-      premiumTier0ModalDismissedAt: {
-        timestamp: Date.now(),
-      },
-    },
+    userContent: settings.user_content ?? {},
     voiceAndVideo: {
       alwaysPreviewVideo: {
         value: true,
@@ -337,18 +329,18 @@ export async function settingsProtoToJSON(settings: Uint8Array) {
 
   const jsonSettings: DiscordUserSettings = {
     ...DefaultUserSettings,
+    developer_mode: protoSettings.appearance?.developerMode ?? DefaultUserSettings.developer_mode,
     locale: protoSettings.localization?.locale?.localeCode ?? DefaultUserSettings.locale,
     guild_positions: protoSettings.guildFolders?.guildPositions,
+    stream_notifications_enabled: protoSettings?.notifications?.notifyFriendsOnGoLive
+      ?? DefaultUserSettings.stream_notifications_enabled,
   };
 
   if (protoSettings.appearance?.theme) {
     jsonSettings.theme = protoSettings.appearance.theme === "LIGHT" ? "light" : "dark";
   }
   if (protoSettings.userContent?.dismissedContents) {
-    jsonSettings.user_content = {
-      ...protoSettings.userContent,
-      dismissed_contents: protoSettings.userContent.dismissedContents,
-    };
+    jsonSettings.user_content = protoSettings.userContent;
   }
 
   return jsonSettings;

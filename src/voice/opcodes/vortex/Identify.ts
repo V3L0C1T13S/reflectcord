@@ -27,6 +27,7 @@ export async function VortexIdentify(this: WebSocket, data: Payload) {
   this.rvAPIWrapper = new APIWrapper(this.rvAPI);
 
   const user = await this.rvAPIWrapper.users.fetchSelf();
+  this.rv_user_id = user.revolt._id;
   this.user_id = user.discord.id;
 
   const voiceState = await VoiceState.findOne({ user_id: user.discord.id, session_id });

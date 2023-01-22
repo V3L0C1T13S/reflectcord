@@ -12,6 +12,7 @@ import { UserContainer } from "@reflectcord/common/managers";
 import { VortexPacketType } from "../types/vortex";
 import { endpoint, Send, WebSocket } from "../../../util";
 import defaultsdp from "../../../util/sdp.json";
+import { updateVoiceState } from "../util";
 
 export interface GenericBody {
   id: number,
@@ -187,41 +188,12 @@ export async function onVortexMessage(this: WebSocket, data: VortexDataPacket) {
     }
     case "RoomInfo": {
       const { users } = data.data;
-
       const channel = await this.rvAPIWrapper.channels.fetch(this.vortex_channel_id);
       const server = "server" in channel.revolt ? await this.rvAPIWrapper.servers.fetch(channel.revolt.server) : null;
 
-      const rvUsers = await Promise.all(Object.entries(users)
-        .map(async ([id, state]) => ({
-          ...await this.rvAPIWrapper.users.fetch(id).catch(console.error),
-          state,
-        })));
-
-      await Promise.all((rvUsers
-        .filter((x) => x.discord?.id !== this.user_id)
-        .map(async (user) => {
-          if (!user.discord || !user.revolt) return;
-
-          const member = await server?.extra?.members.fetch(server.revolt._id, user.revolt._id)
-            .catch(console.error);
-
-          await emitEvent({
-            user_id: await fromSnowflake(this.user_id),
-            event: GatewayDispatchEvents.VoiceStateUpdate,
-            data: {
-              channel_id: channel.discord.id,
-              guild_id: "guild_id" in channel.discord ? channel.discord.guild_id : null,
-              member: member?.discord,
-              mute: false,
-              deaf: false,
-              self_mute: !user.state.audio,
-              self_deaf: false,
-              self_video: false,
-              suppress: false,
-              user_id: user.discord.id,
-            },
-          });
-        })));
+      await Promise.all(Object.entries(users)
+        .filter(([id]) => id !== this.rv_user_id)
+        .map(([id, state]) => updateVoiceState.call(this, id, channel, state, server)));
 
       break;
     }
@@ -229,56 +201,22 @@ export async function onVortexMessage(this: WebSocket, data: VortexDataPacket) {
       break;
     }
     case "UserStartProduce": {
-      const user = await this.rvAPIWrapper.users.fetch(data.data.id);
       const channel = await this.rvAPIWrapper.channels.fetch(this.vortex_channel_id);
       const server = "server" in channel.revolt ? await this.rvAPIWrapper.servers.fetch(channel.revolt.server) : null;
 
-      const member = await server?.extra?.members.fetch(server.revolt._id, user.revolt._id)
-        .catch(console.error);
-
-      await emitEvent({
-        user_id: await fromSnowflake(this.user_id),
-        event: GatewayDispatchEvents.VoiceStateUpdate,
-        data: {
-          channel_id: channel.discord.id,
-          guild_id: "guild_id" in channel.discord ? channel.discord.guild_id : null,
-          member: member?.discord,
-          mute: false,
-          deaf: false,
-          self_mute: false,
-          self_deaf: false,
-          self_video: false,
-          suppress: false,
-          user_id: user.discord.id,
-        },
-      });
+      await updateVoiceState.call(this, data.data.id, channel, {
+        audio: true,
+      }, server);
 
       break;
     }
     case "UserStopProduce": {
-      const user = await this.rvAPIWrapper.users.fetch(data.data.id);
       const channel = await this.rvAPIWrapper.channels.fetch(this.vortex_channel_id);
       const server = "server" in channel.revolt ? await this.rvAPIWrapper.servers.fetch(channel.revolt.server) : null;
 
-      const member = await server?.extra?.members.fetch(server.revolt._id, user.revolt._id)
-        .catch(console.error);
-
-      await emitEvent({
-        user_id: await fromSnowflake(this.user_id),
-        event: GatewayDispatchEvents.VoiceStateUpdate,
-        data: {
-          channel_id: channel.discord.id,
-          guild_id: "guild_id" in channel.discord ? channel.discord.guild_id : null,
-          member: member?.discord,
-          mute: false,
-          deaf: false,
-          self_mute: true,
-          self_deaf: false,
-          self_video: false,
-          suppress: false,
-          user_id: user.discord.id,
-        },
-      });
+      await updateVoiceState.call(this, data.data.id, channel, {
+        audio: true,
+      }, server);
 
       break;
     }

@@ -49,7 +49,9 @@ export async function onIdentify(this: WebSocket, data: Payload) {
   this.rvAPIWrapper = new APIWrapper(this.rvAPI);
   this.sessionId = session_id;
   this.token = token;
-  this.user_id = voiceState.user_id;
+  const user = await this.rvAPIWrapper.users.fetchSelf();
+  this.rv_user_id = user.revolt._id;
+  this.user_id = user.discord.id;
 
   const sdp = SemanticSDP.SDPInfo.expand(defaultsdp);
   sdp.setDTLS(SemanticSDP.DTLSInfo.expand({

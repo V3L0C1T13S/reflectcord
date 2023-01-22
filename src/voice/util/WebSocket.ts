@@ -33,6 +33,7 @@ export interface WebSocket extends ws {
   sessionId: string,
   token: string,
   user_id: string,
+  rv_user_id: string,
   rvAPI: API,
   rvAPIWrapper: APIWrapper,
   bot: boolean,
