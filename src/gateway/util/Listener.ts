@@ -96,6 +96,11 @@ export async function startListener(
   this.rvClient.on("packet", async (data) => {
     try {
       switch (data.type) {
+        // @ts-ignore
+        case "NotFound": {
+          this.close(GatewayCloseCodes.AuthenticationFailed);
+          break;
+        }
         case "Ready": {
           const currentUser = data.users.find((x) => x.relationship === "User");
           if (!currentUser) return this.close(GatewayCloseCodes.AuthenticationFailed);
