@@ -329,17 +329,21 @@ export async function settingsProtoToJSON(settings: Uint8Array) {
 
   const jsonSettings: DiscordUserSettings = {
     ...DefaultUserSettings,
+    afk_timeout: protoSettings.voiceAndVideo.afkTimeout.value ?? DefaultUserSettings.afk_timeout,
     developer_mode: protoSettings.appearance?.developerMode ?? DefaultUserSettings.developer_mode,
     locale: protoSettings.localization?.locale?.localeCode ?? DefaultUserSettings.locale,
+    timezone_offset: protoSettings.localization?.locale?.timezoneOffset
+      ?? DefaultUserSettings.timezone_offset,
     guild_positions: protoSettings.guildFolders?.guildPositions,
-    stream_notifications_enabled: protoSettings?.notifications?.notifyFriendsOnGoLive
+    status: protoSettings.status.status.status ?? DefaultUserSettings.status,
+    stream_notifications_enabled: protoSettings?.notifications?.notifyFriendsOnGoLive?.value
       ?? DefaultUserSettings.stream_notifications_enabled,
   };
 
   if (protoSettings.appearance?.theme) {
     jsonSettings.theme = protoSettings.appearance.theme === "LIGHT" ? "light" : "dark";
   }
-  if (protoSettings.userContent?.dismissedContents) {
+  if (protoSettings.userContent) {
     jsonSettings.user_content = protoSettings.userContent;
   }
 
