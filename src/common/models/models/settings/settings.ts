@@ -129,18 +129,20 @@ UserSettingsAFQ
       "appearance:theme:font": "Ubuntu",
       "appearance:theme:monoFont": "Ubuntu Mono",
     } : null;
+    /*
     const ordering: RevoltOrderingSetting | null = settings.guild_positions
       ? {
         servers: await Promise.all(settings.guild_positions.map((id) => fromSnowflake(id))),
       }
       : null;
+    */
     const userContent: DiscordUserSettings["user_content"] = settings.user_content;
 
     const rvSettings: RevoltSettings = {};
 
     if (locale) rvSettings.locale = [Date.now(), JSON.stringify(locale)];
     if (theme) rvSettings.theme = [Date.now(), JSON.stringify(theme)];
-    if (ordering) rvSettings.ordering = [Date.now(), JSON.stringify(ordering)];
+    // if (ordering) rvSettings.ordering = [Date.now(), JSON.stringify(ordering)];
     if (userContent) rvSettings.user_content = [Date.now(), JSON.stringify(userContent)];
 
     return rvSettings;
@@ -329,13 +331,14 @@ export async function settingsProtoToJSON(settings: Uint8Array) {
 
   const jsonSettings: DiscordUserSettings = {
     ...DefaultUserSettings,
-    afk_timeout: protoSettings.voiceAndVideo.afkTimeout.value ?? DefaultUserSettings.afk_timeout,
+    afk_timeout: protoSettings.voiceAndVideo?.afkTimeout?.value ?? DefaultUserSettings.afk_timeout,
     developer_mode: protoSettings.appearance?.developerMode ?? DefaultUserSettings.developer_mode,
     locale: protoSettings.localization?.locale?.localeCode ?? DefaultUserSettings.locale,
     timezone_offset: protoSettings.localization?.locale?.timezoneOffset
       ?? DefaultUserSettings.timezone_offset,
-    guild_positions: protoSettings.guildFolders?.guildPositions,
-    status: protoSettings.status.status.status ?? DefaultUserSettings.status,
+    guild_positions: protoSettings.guildFolders?.guildPositions
+      ?? DefaultUserSettings.guild_positions,
+    status: protoSettings.status?.status?.status ?? DefaultUserSettings.status,
     stream_notifications_enabled: protoSettings?.notifications?.notifyFriendsOnGoLive?.value
       ?? DefaultUserSettings.stream_notifications_enabled,
   };

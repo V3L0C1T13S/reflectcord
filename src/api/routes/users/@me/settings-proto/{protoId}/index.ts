@@ -2,7 +2,7 @@
 import { Resource } from "express-automatic-routes";
 import {
   createSettingsSyncPOST,
-  SettingsKeys, settingsProtoToJSON, settingsToProtoBuf, UserSettings,
+  SettingsKeys, settingsProtoToJSON, settingsToProtoBuf, Status, UserSettings,
 } from "@reflectcord/common/models";
 import { HTTPError, Logger } from "@reflectcord/common/utils";
 
@@ -37,13 +37,18 @@ export default () => <Resource> {
     const settingsData = Buffer.from(settings, "base64");
 
     const settingsJSON = await settingsProtoToJSON(settingsData);
+    const user = await res.rvAPIWrapper.users.getSelf(true);
 
     switch (protoId) {
       case "1": {
         const revoltSettings = await UserSettings.to_quark(settingsJSON);
 
-        const discordSettings = await UserSettings.from_quark(revoltSettings);
-        const updatedProto = await settingsToProtoBuf(discordSettings);
+        const discordSettings = await UserSettings.from_quark(revoltSettings, {
+          status: user.status ? (await Status.from_quark(user.status)).status ?? null : null,
+        });
+        const updatedProto = await settingsToProtoBuf(discordSettings, {
+          customStatusText: user.status?.text,
+        });
         const settingsPOST = createSettingsSyncPOST(revoltSettings);
 
         await res.rvAPI.post("/sync/settings/set", settingsPOST);
