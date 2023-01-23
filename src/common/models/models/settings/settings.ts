@@ -349,10 +349,3 @@ export async function settingsProtoToJSON(settings: Uint8Array) {
 
   return jsonSettings;
 }
-
-export async function settingsProtoJSONToObject(settings: any) {
-  return {
-    ...DefaultUserSettings,
-    theme: settings.appearance.theme,
-  };
-}

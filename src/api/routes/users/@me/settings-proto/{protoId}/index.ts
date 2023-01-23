@@ -1,15 +1,12 @@
 /* eslint-disable camelcase */
-import { Application } from "express";
 import { Resource } from "express-automatic-routes";
-import protobuf from "protobufjs";
 import {
   createSettingsSyncPOST,
   SettingsKeys, settingsProtoToJSON, settingsToProtoBuf, UserSettings,
 } from "@reflectcord/common/models";
 import { HTTPError, Logger } from "@reflectcord/common/utils";
 
-// FIXME
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   get: async (req, res) => {
     switch (req.params.protoId!) {
       case "1": {
