@@ -347,7 +347,8 @@ export async function settingsProtoToJSON(settings: Uint8Array) {
 
   const jsonSettings: DiscordUserSettings = {
     ...DefaultUserSettings,
-    animate_emoji: !!protoSettings.textAndImages?.animateEmoji?.value,
+    animate_emoji: protoSettings.textAndImages?.animateEmoji?.value
+      ?? DefaultUserSettings.animate_emoji,
     afk_timeout: protoSettings.voiceAndVideo?.afkTimeout?.value ?? DefaultUserSettings.afk_timeout,
     developer_mode: protoSettings.appearance?.developerMode ?? DefaultUserSettings.developer_mode,
     locale: protoSettings.localization?.locale?.localeCode ?? DefaultUserSettings.locale,
@@ -356,9 +357,12 @@ export async function settingsProtoToJSON(settings: Uint8Array) {
     guild_positions: protoSettings.guildFolders?.guildPositions
       ?? DefaultUserSettings.guild_positions,
     status: protoSettings.status?.status?.status ?? DefaultUserSettings.status,
-    stream_notifications_enabled: !!protoSettings?.notifications?.notifyFriendsOnGoLive?.value,
-    render_embeds: !!protoSettings.textAndImages?.renderEmbeds?.value,
-    gif_auto_play: !!protoSettings.textAndImages?.gifAutoPlay?.value,
+    stream_notifications_enabled: protoSettings?.notifications?.notifyFriendsOnGoLive?.value
+      ?? DefaultUserSettings.stream_notifications_enabled,
+    render_embeds: protoSettings.textAndImages?.renderEmbeds?.value
+      ?? DefaultUserSettings.render_embeds,
+    gif_auto_play: protoSettings.textAndImages?.gifAutoPlay?.value
+      ?? DefaultUserSettings.gif_auto_play,
   };
 
   if (protoSettings.appearance?.theme) {

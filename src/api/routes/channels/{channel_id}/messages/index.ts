@@ -5,7 +5,7 @@ import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
 import {
   fromSnowflake,
-  Message, MessageSendData,
+  Message, MessageSendData, User,
 } from "@reflectcord/common/models";
 import {
   Logger, validateBody,
@@ -51,12 +51,21 @@ export default (express: Application) => <Resource> {
       const user = msgs.users.find((u) => x.author === u._id);
       // FIXME: Implementing with fetch can cause 404's if the user is deleted
       const mentions = x.mentions?.map((id) => msgs.users.find((u) => u._id === id)!)
-        .filter((u) => u);
+        .filter((u) => !!u);
 
-      return Message.from_quark(x, {
-        user: user ?? null,
+      if (user) {
+        res.rvAPIWrapper.users.createObj({
+          revolt: user,
+          discord: await User.from_quark(user),
+        });
+      }
+
+      return (await res.rvAPIWrapper.messages.convertMessageObj(x, {
+        mentions: false,
+      }, {
+        // user,
         mentions,
-      });
+      })).discord;
     }));
 
     return res.json(convMessages);

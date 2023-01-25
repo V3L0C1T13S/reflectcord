@@ -250,7 +250,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
         }
         case "user_added": {
           discordMessage.mentions.push(await User.from_quark({
-            _id: message.system.by,
+            _id: message.system.id,
             username: "fixme",
           }));
 

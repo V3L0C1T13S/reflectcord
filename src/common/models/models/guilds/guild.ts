@@ -27,6 +27,7 @@ import { convertPermNumber, Permissions } from "../permissions";
 import { Role } from "../role";
 import { discordGatewayGuildEmoji, Emoji, GatewayGuildEmoji } from "../emoji";
 import { toCompatibleISO } from "../../../utils/date";
+import { PartialFile } from "../attachment";
 
 export type DiscordPartialGuild = {
   id: string,
@@ -90,15 +91,17 @@ export function getServerFeatures(server: revoltPartialServer) {
   return features;
 }
 
-export type GuildATQ = {};
+export type GuildATQ = {
+  channels: string[],
+};
 export type GuildAFQ = Partial<{
   emojis: API.Emoji[] | undefined | null,
 }>
 
 export const Guild: QuarkConversion<Server, APIGuild, GuildATQ, GuildAFQ> = {
-  async to_quark(guild) {
+  async to_quark(guild, extra) {
     const {
-      id, name, owner_id: ownerId, description, nsfw_level,
+      id, name, owner_id, description, nsfw_level, icon, banner, system_channel_id,
     } = guild;
 
     const _id = await fromSnowflake(id);
@@ -107,18 +110,22 @@ export const Guild: QuarkConversion<Server, APIGuild, GuildATQ, GuildAFQ> = {
 
     return {
       _id,
-      owner: await fromSnowflake(ownerId),
+      owner: await fromSnowflake(owner_id),
       name,
       description,
-      channels: [],
+      channels: extra?.channels
+        ? await Promise.all(extra.channels.map((x) => fromSnowflake(x)))
+        : [],
       categories: null,
-      system_messages: null,
+      system_messages: system_channel_id ? {
+        user_joined: await fromSnowflake(system_channel_id),
+      } : null,
       roles: {},
       default_permissions: defaultRole
         ? (await Permissions.to_quark(BigInt(defaultRole.permissions))).a
         : 0,
-      icon: null,
-      banner: null,
+      icon: icon ? await PartialFile.to_quark(icon) : null,
+      banner: banner ? await PartialFile.to_quark(banner) : null,
       flags: null,
       nsfw: !!(nsfw_level & GuildNSFWLevel.AgeRestricted),
       analytics: false,
@@ -218,6 +225,7 @@ export const PartialGuild: QuarkConversion<revoltPartialServer, DiscordPartialGu
       _id: await fromSnowflake(id),
       name,
       owner: "0",
+      icon: icon ? await PartialFile.to_quark(icon) : null,
     };
   },
 

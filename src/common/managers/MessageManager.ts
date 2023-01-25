@@ -36,7 +36,7 @@ export class MessageManager extends BaseManager<string, MessageContainer> {
               return this.apiWrapper.users.fetch(rvMessage.system.by);
             }
             case "user_added": {
-              return this.apiWrapper.users.fetch(rvMessage.system.id);
+              return this.apiWrapper.users.fetch(rvMessage.system.by);
             }
             case "user_joined": {
               return this.apiWrapper.users.fetch(rvMessage.system.id);
@@ -61,6 +61,11 @@ export class MessageManager extends BaseManager<string, MessageContainer> {
         .map((x) => x.revolt) : null,
       ...extra,
       user: extra?.user ?? authorInfo?.revolt,
+    });
+
+    this.createObj({
+      revolt: rvMessage,
+      discord: discordMessage,
     });
 
     return {

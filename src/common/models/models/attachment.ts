@@ -67,3 +67,22 @@ export const Attachment: QuarkConversion<API.File, APIAttachment> = {
     };
   },
 };
+
+export const PartialFile: QuarkConversion<API.File, string> = {
+  async to_quark(file) {
+    return {
+      _id: file,
+      filename: "file",
+      size: 0,
+      metadata: {
+        type: "File",
+      },
+      content_type: "application/octet-stream",
+      tag: "Attachments",
+    };
+  },
+
+  async from_quark(file) {
+    return file._id;
+  },
+};
