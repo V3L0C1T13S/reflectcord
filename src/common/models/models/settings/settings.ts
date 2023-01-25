@@ -41,6 +41,7 @@ export interface RevoltFolderSetting {
 }
 
 export interface RevoltTextAndImagesSetting {
+  animate_emoji?: boolean,
   gif_auto_play?: boolean,
   render_embeds?: boolean,
 }
@@ -142,10 +143,11 @@ UserSettingsAFQ
       : null;
     */
     const userContent: DiscordUserSettings["user_content"] = settings.user_content;
-    const textAndImages: RevoltTextAndImagesSetting = {};
-
-    if (settings.gif_auto_play) textAndImages.gif_auto_play = settings.gif_auto_play;
-    if (settings.render_embeds) textAndImages.render_embeds = settings.render_embeds;
+    const textAndImages: RevoltTextAndImagesSetting = {
+      animate_emoji: !!settings.animate_emoji,
+      gif_auto_play: !!settings.gif_auto_play,
+      render_embeds: !!settings.render_embeds,
+    };
 
     const rvSettings: RevoltSettings = {
       text_and_images: [Date.now(), JSON.stringify(textAndImages)],
@@ -170,6 +172,7 @@ UserSettingsAFQ
 
     const discordSettings: DiscordUserSettings = {
       ...DefaultUserSettings,
+      animate_emoji: textAndImages.animate_emoji ?? !!DefaultUserSettings.animate_emoji,
       theme: themeSettings["appearance:theme:base"] === "light" ? "light" : "dark",
       locale: LocaleMap[localeSettings["lang"]] ?? "en-US",
       guild_positions: orderingSettings?.servers
@@ -344,6 +347,7 @@ export async function settingsProtoToJSON(settings: Uint8Array) {
 
   const jsonSettings: DiscordUserSettings = {
     ...DefaultUserSettings,
+    animate_emoji: !!protoSettings.textAndImages?.animateEmoji?.value,
     afk_timeout: protoSettings.voiceAndVideo?.afkTimeout?.value ?? DefaultUserSettings.afk_timeout,
     developer_mode: protoSettings.appearance?.developerMode ?? DefaultUserSettings.developer_mode,
     locale: protoSettings.localization?.locale?.localeCode ?? DefaultUserSettings.locale,
@@ -352,12 +356,9 @@ export async function settingsProtoToJSON(settings: Uint8Array) {
     guild_positions: protoSettings.guildFolders?.guildPositions
       ?? DefaultUserSettings.guild_positions,
     status: protoSettings.status?.status?.status ?? DefaultUserSettings.status,
-    stream_notifications_enabled: protoSettings?.notifications?.notifyFriendsOnGoLive?.value
-      ?? DefaultUserSettings.stream_notifications_enabled,
-    render_embeds: protoSettings.textAndImages?.renderEmbeds?.value
-      ?? DefaultUserSettings.render_embeds,
-    gif_auto_play: protoSettings.textAndImages?.gifAutoPlay?.value
-      ?? DefaultUserSettings.gif_auto_play,
+    stream_notifications_enabled: !!protoSettings?.notifications?.notifyFriendsOnGoLive?.value,
+    render_embeds: !!protoSettings.textAndImages?.renderEmbeds?.value,
+    gif_auto_play: !!protoSettings.textAndImages?.gifAutoPlay?.value,
   };
 
   if (protoSettings.appearance?.theme) {
