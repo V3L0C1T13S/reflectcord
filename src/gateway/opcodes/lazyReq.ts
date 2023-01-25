@@ -24,51 +24,14 @@ import { API } from "revolt.js";
 import {
   internalStatus, Member, Status, fromSnowflake, toSnowflake,
 } from "@reflectcord/common/models";
-import { LazyRequest, GatewayDispatchCodes } from "@reflectcord/common/sparkle";
+import {
+  LazyRequest, GatewayDispatchCodes, LazyRange, SyncItem, LazyGroup, LazyOpMember,
+} from "@reflectcord/common/sparkle";
 import { MemberContainer } from "@reflectcord/common/managers";
 import { Send, Payload, Dispatch } from "../util";
 import { WebSocket } from "../Socket";
 import { check } from "./instanceOf";
 import "missing-native-js-functions";
-
-type LazyGroup = {
-  /** Group ID */
-  id: string,
-  /** Amount of members in this group */
-  count: number,
-};
-
-type OperatorType = "SYNC" | "INVALIDATE" | "DELETE" | "UPDATE";
-
-type LazyOperatorRange = [number, number];
-
-type SyncItem = {
-  group: LazyGroup,
-} | {
-  member: APIGuildMember & {
-    presence: any,
-  },
-};
-
-type LazyOperator = {
-  op: OperatorType,
-  range?: LazyOperatorRange,
-  items: SyncItem[],
-  index: number,
-  item: SyncItem,
-};
-
-type SyncLazyOperator = Omit<LazyOperator, "range, index"> & {
-  op: "SYNC",
-};
-
-type LazyRequestEvent = {
-  /** The list being updated */
-  id: string,
-  guild_id: string,
-  ops: LazyOperator[],
-  groups: LazyGroup[];
-};
 
 function partition<T>(array: T[], isValid: Function) {
   // @ts-ignore
@@ -82,15 +45,15 @@ function partition<T>(array: T[], isValid: Function) {
 async function getMembers(
   this: WebSocket,
   guild_id: string,
-  range: LazyOperatorRange,
+  range: LazyRange,
   activities?: boolean,
 ) {
   if (!Array.isArray(range) || range.length !== 2) throw new Error("invalid range");
 
   const groups: LazyGroup[] = [];
-  const items: SyncItem[] = [];
+  const items: { group?: LazyGroup, member?: LazyOpMember }[] = [];
   const discordGuildId = await toSnowflake(guild_id);
-  const offlineItems: SyncItem[] = [];
+  const offlineItems: { group?: LazyGroup, member?: LazyOpMember }[] = [];
 
   let members = await this.rvAPI.get(`/servers/${guild_id as ""}/members`, {
     exclude_offline: false,
@@ -165,7 +128,7 @@ async function getMembers(
       (m: extendMemberContainer) => m.discord.roles
         .find((r) => r === role),
     );
-    const group = {
+    const group: SyncItem = {
       count: role_members.length,
       id: role === discordGuildId ? "online" : role,
     };
@@ -190,20 +153,19 @@ async function getMembers(
         member: {
           ...member.discord,
           roles: userRoles,
-          user: member.discord.user,
           presence: {
-            activities: activities ? member.status?.activities : [],
+            activities: activities ? member.status?.activities as any : [],
             client_status: {
               web: status,
             },
-            status,
-            user: { id: member.discord.user?.id },
+            status: status as any,
+            user: { id: member.discord.user!.id },
           },
         },
-      } as SyncItem;
+      };
 
       if (member.status?.status === "invisible" || member.status?.status as string === "offline") {
-        if ("member" in item) item.member.presence.status = "offline";
+        item.member.presence.status = "offline";
         offlineItems.push(item);
         group.count--;
       } else items.push(item);

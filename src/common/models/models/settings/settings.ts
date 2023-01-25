@@ -3,10 +3,9 @@
 import { DefaultUserSettings, UserSettings as DiscordUserSettings } from "@reflectcord/common/sparkle";
 import protobuf from "protobufjs";
 import { join } from "path";
-import { Logger } from "@reflectcord/common/utils";
 import { invert } from "lodash";
 import { QuarkConversion } from "../../QuarkConversion";
-import { fromSnowflake, toSnowflake } from "../../util";
+import { toSnowflake } from "../../util";
 
 const protoDir = join(__dirname, "../../../../../resources");
 
@@ -41,6 +40,11 @@ export interface RevoltFolderSetting {
   }[];
 }
 
+export interface RevoltTextAndImagesSetting {
+  gif_auto_play?: boolean,
+  render_embeds?: boolean,
+}
+
 export interface RevoltSettings {
   appearance?: RevoltSetting,
   theme?: RevoltSetting,
@@ -49,9 +53,19 @@ export interface RevoltSettings {
   ordering?: RevoltSetting,
   folders?: RevoltSetting,
   user_content?: RevoltSetting,
+  text_and_images?: RevoltSetting,
 }
 
-export const SettingsKeys = ["appearance", "theme", "locale", "notifications", "ordering", "folders", "user_content"];
+export const SettingsKeys = [
+  "appearance",
+  "theme",
+  "locale",
+  "notifications",
+  "ordering",
+  "folders",
+  "user_content",
+  "text_and_images",
+];
 
 const LocaleMap: Record<string, string> = {
   bg: "bg",
@@ -85,15 +99,6 @@ const LocaleMap: Record<string, string> = {
   zh_Hans: "zh-CN",
   zh_Hant: "zh-TW",
 };
-
-function objectFlip(obj: any) {
-  const ret = {};
-  Object.keys(obj).forEach((key) => {
-    // @ts-ignore
-    ret[obj[key]] = key;
-  });
-  return ret;
-}
 
 const discordLocaleMap: Record<string, string> = invert(LocaleMap);
 
@@ -137,8 +142,14 @@ UserSettingsAFQ
       : null;
     */
     const userContent: DiscordUserSettings["user_content"] = settings.user_content;
+    const textAndImages: RevoltTextAndImagesSetting = {};
 
-    const rvSettings: RevoltSettings = {};
+    if (settings.gif_auto_play) textAndImages.gif_auto_play = settings.gif_auto_play;
+    if (settings.render_embeds) textAndImages.render_embeds = settings.render_embeds;
+
+    const rvSettings: RevoltSettings = {
+      text_and_images: [Date.now(), JSON.stringify(textAndImages)],
+    };
 
     if (locale) rvSettings.locale = [Date.now(), JSON.stringify(locale)];
     if (theme) rvSettings.theme = [Date.now(), JSON.stringify(theme)];
@@ -155,8 +166,9 @@ UserSettingsAFQ
     const notificationSettings: Partial<RevoltNotificationSetting> = JSON.parse(settings.notifications?.[1] ?? "{}");
     const folderSettings: Partial<RevoltFolderSetting> = JSON.parse(settings.folders?.[1] ?? "{}");
     const userContentSettings: Partial<DiscordUserSettings["user_content"]> = JSON.parse(settings.user_content?.[1] ?? "{}");
+    const textAndImages: RevoltTextAndImagesSetting = JSON.parse(settings.text_and_images?.[1] ?? "{}");
 
-    return {
+    const discordSettings: DiscordUserSettings = {
       ...DefaultUserSettings,
       theme: themeSettings["appearance:theme:base"] === "light" ? "light" : "dark",
       locale: LocaleMap[localeSettings["lang"]] ?? "en-US",
@@ -190,7 +202,11 @@ UserSettingsAFQ
           name: x.name,
         }))) : [],
       user_content: userContentSettings ?? null,
+      gif_auto_play: textAndImages.gif_auto_play ?? DefaultUserSettings.gif_auto_play!,
+      render_embeds: textAndImages.render_embeds ?? DefaultUserSettings.render_embeds!,
     };
+
+    return discordSettings;
   },
 };
 
@@ -257,9 +273,6 @@ export async function settingsToProtoBuf(settings: DiscordUserSettings, extra?: 
       },
       messageDisplayCompact: {
         value: settings.message_display_compact,
-      },
-      explicit_content_filter: {
-        value: settings.explicit_content_filter,
       },
       viewNsfwGuilds: {
         value: settings.view_nsfw_guilds,
@@ -341,6 +354,10 @@ export async function settingsProtoToJSON(settings: Uint8Array) {
     status: protoSettings.status?.status?.status ?? DefaultUserSettings.status,
     stream_notifications_enabled: protoSettings?.notifications?.notifyFriendsOnGoLive?.value
       ?? DefaultUserSettings.stream_notifications_enabled,
+    render_embeds: protoSettings.textAndImages?.renderEmbeds?.value
+      ?? DefaultUserSettings.render_embeds,
+    gif_auto_play: protoSettings.textAndImages?.gifAutoPlay?.value
+      ?? DefaultUserSettings.gif_auto_play,
   };
 
   if (protoSettings.appearance?.theme) {

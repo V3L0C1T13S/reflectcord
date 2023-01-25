@@ -1012,7 +1012,11 @@ export async function startListener(
             keys: SettingsKeys,
           }) as RevoltSettings;
 
-          const discordSettings = await UserSettings.from_quark(currentSettings);
+          const discordSettings = await UserSettings.from_quark(currentSettings, {
+            status: user.revolt.status
+              ? (await Status.from_quark(user.revolt.status)).status ?? null
+              : null,
+          });
 
           const settingsProto = await settingsToProtoBuf(discordSettings, {
             customStatusText: user.revolt.status?.text,
@@ -1027,6 +1031,7 @@ export async function startListener(
           };
 
           await Dispatch(this, GatewayDispatchCodes.UserSettingsProtoUpdate, body);
+          await Dispatch(this, GatewayDispatchCodes.UserSettingsUpdate, discordSettings);
 
           break;
         }

@@ -79,6 +79,7 @@ export enum GatewayDispatchCodes {
   EmbeddedActivityUpdate = "EMBEDDED_ACTIVITY_UPDATE",
   ThreadListSync = "THREAD_LIST_SYNC",
   MessageAck = "MESSAGE_ACK",
+  UserSettingsUpdate = "USER_SETTINGS_UPDATE",
   UserSettingsProtoUpdate = "USER_SETTINGS_PROTO_UPDATE",
   UserNonChannelAck = "USER_NON_CHANNEL_ACK",
 }

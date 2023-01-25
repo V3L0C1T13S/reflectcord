@@ -24,10 +24,10 @@ import { API } from "revolt.js";
 import {
   internalStatus, Member, Status, fromSnowflake, toSnowflake,
 } from "@reflectcord/common/models";
-import { LazyRequest } from "@reflectcord/common/sparkle";
+import { GatewayDispatchCodes, LazyRequest } from "@reflectcord/common/sparkle";
 import { MemberContainer } from "@reflectcord/common/managers";
 import { AllMemberResponse } from "revolt-api";
-import { Send, Payload } from "../util";
+import { Send, Payload, Dispatch } from "../util";
 import { WebSocket } from "../Socket";
 import { check } from "./instanceOf";
 import "missing-native-js-functions";
@@ -46,7 +46,9 @@ type LazyOperatorRange = [number, number];
 type SyncItem = {
   group: LazyGroup,
 } | {
-  member: APIGuildMember,
+  member: APIGuildMember & {
+    presence: any,
+  },
 };
 
 type LazyOperator = {
@@ -83,6 +85,8 @@ async function getMembersV2(
   guild_id: string,
   range: LazyOperatorRange,
   rvMembers: AllMemberResponse,
+  activities: boolean,
+  onlineMembers: number,
 ) {
   const groups: LazyGroup[] = [];
   const items: SyncItem[] = [];
@@ -104,11 +108,11 @@ async function getMembersV2(
 
   let discordMembers: extendMemberContainer[] = await Promise.all(members.members
     .map(async (member, i) => {
-      const user = members.users[i];
+      const user = members.users.find((x) => x._id === member._id.user);
 
       const discordMember = await Member.from_quark(member, { user });
 
-      if (discordMember.roles.length < 1 && user?.online) discordMember.roles.push(discordGuildId);
+      if (discordMember.roles.length < 1) discordMember.roles.push(discordGuildId);
 
       return {
         revolt: member,
@@ -138,7 +142,7 @@ async function getMembersV2(
         .find((r) => r === role),
     );
     const group = {
-      count: role_members.length,
+      count: role === discordGuildId ? onlineMembers : role_members.length,
       id: role === discordGuildId ? "online" : role,
     };
 
@@ -164,7 +168,7 @@ async function getMembersV2(
           roles: userRoles,
           user: member.discord.user,
           presence: {
-            activities: member.status?.activities,
+            activities: activities ? member.status?.activities : [],
             client_status: {
               web: status,
             },
@@ -172,14 +176,13 @@ async function getMembersV2(
             user: { id: member.discord.user?.id },
           },
         },
-      };
+      } as SyncItem;
 
-      if (member.status?.status === "invisible") {
-        item.member.presence.status = "offline";
-        item.member.presence.activities = [];
-        offlineItems.push(item as SyncItem);
+      if (member.status?.status === "invisible" || member.status?.status as string === "offline") {
+        if ("member" in item) item.member.presence.status = "offline";
+        offlineItems.push(item);
         group.count--;
-      } else items.push(item as SyncItem);
+      } else items.push(item);
     });
     discordMembers = other_members;
   });
@@ -204,7 +207,7 @@ async function getMembersV2(
 }
 
 // FIXME: Partially implemented
-export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
+export async function lazyReqV2(this: WebSocket, data: Payload<LazyRequest>) {
   check.call(this, LazyRequest, data.d);
 
   const {
@@ -220,13 +223,27 @@ export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
   const ranges = channels![channel_id];
   if (!Array.isArray(ranges)) throw new Error("Not a valid Array");
 
+  // eslint-disable-next-line no-multi-assign
+  const subscribedServer = this.subscribed_servers[rvServerId] ??= {};
+  // eslint-disable-next-line no-multi-assign
+  const lazyChannel = this.lazy_channels[rvChannelId] ??= {};
+
+  if (activities !== undefined) subscribedServer.activities = activities;
+  if (typing !== undefined) subscribedServer.typing = typing;
+  if (threads !== undefined) subscribedServer.threads = threads;
+  lazyChannel.messages = true;
+
   const members = await this.rvAPI.get(`/servers/${rvServerId as ""}/members`, {
     exclude_offline: true,
   });
 
   const server = this.rvAPIWrapper.servers.get(rvServerId);
+  const onlineCount = members.users.filter((x) => x.online).length;
 
   members.members.sort((x, y) => {
+    const userA = members.users.find((user) => x._id.user === user._id);
+    if (!userA?.online) return 1;
+
     const extractRoles = (r: string) => server?.revolt.roles?.[r];
 
     const userRoles = x.roles?.map(extractRoles);
@@ -246,8 +263,16 @@ export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
   });
 
   const ops = await Promise.all(ranges
-    .map((x) => getMembersV2.call(this, rvServerId, x, members)));
+    .map((x) => getMembersV2.call(this, rvServerId, x, members, !!activities, onlineCount)));
 
+  ops.forEach((op) => {
+    op.members.forEach((member) => {
+      if (!member?.user) return;
+
+      if (this.events[member.user.id]) return;
+      if (this.member_events[member.user.id]) return;
+    });
+  });
   const member_count = members.members.length;
 
   const groups = ops
@@ -255,35 +280,25 @@ export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
     .flat()
     .unique();
 
-  if (threads) {
+  if (subscribedServer.threads) {
     // STUB
-    Send(this, {
-      op: GatewayOpcodes.Dispatch,
-      s: this.sequence++,
-      t: "THREAD_LIST_SYNC",
-      d: {
-        guild_id,
-        most_recent_messages: [],
-        threads: [],
-      },
+    await Dispatch(this, GatewayDispatchCodes.ThreadListSync, {
+      guild_id,
+      most_recent_messages: [],
+      threads: [],
     });
   }
 
-  Send(this, {
-    op: GatewayOpcodes.Dispatch,
-    s: this.sequence++,
-    t: "GUILD_MEMBER_LIST_UPDATE",
-    d: {
-      ops: ops.map((x) => ({
-        items: x.items,
-        op: "SYNC",
-        range: x.range,
-      })),
-      online_count: member_count - (groups.find((x) => x.id === "offline")?.count ?? 0),
-      member_count,
-      id: "everyone",
-      guild_id,
-      groups,
-    },
+  await Dispatch(this, GatewayDispatchCodes.GuildMemberListUpdate, {
+    ops: ops.map((x) => ({
+      items: x.items,
+      op: "SYNC",
+      range: x.range,
+    })),
+    online_count: onlineCount,
+    member_count,
+    id: "everyone",
+    guild_id,
+    groups,
   });
 }

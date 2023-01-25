@@ -44,7 +44,9 @@ export default () => <Resource> {
         const revoltSettings = await UserSettings.to_quark(settingsJSON);
 
         const discordSettings = await UserSettings.from_quark(revoltSettings, {
-          status: user.status ? (await Status.from_quark(user.status)).status ?? null : null,
+          status: user.status ? (await Status.from_quark(user.status, {
+            online: user.online,
+          })).status ?? null : null,
         });
         const updatedProto = await settingsToProtoBuf(discordSettings, {
           customStatusText: user.status?.text,

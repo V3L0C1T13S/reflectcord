@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import { APIChannel } from "discord.js";
-import { Application, Request, Response } from "express";
+import { Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
 import { fromSnowflake } from "../../../../common/models/util";
@@ -13,7 +13,7 @@ export type dmChannelReq = {
   recipient_id?: string,
 }
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   get: async (req, res: Response<APIChannel[]>) => {
     const rvDms = await res.rvAPI.get("/users/dms") as API.Channel[];
 
