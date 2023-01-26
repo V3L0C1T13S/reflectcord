@@ -63,6 +63,7 @@ export enum GatewayDispatchCodes {
   GuildIntegrationsUpdate = "GUILD_INTEGRATIONS_UPDATE",
   GuildMemberListUpdate = "GUILD_MEMBER_LIST_UPDATE",
   GuildSync = "GUILD_SYNC",
+  GuildApplicationCommandsUpdate = "GUILD_APPLICATION_COMMANDS_UPDATE",
   IntegrationUpdate = "INTEGRATION_UPDATE",
   VoiceChannelEffectSend = "VOICE_CHANNEL_EFFECT_SEND",
   StreamCreate = "STREAM_CREATE",

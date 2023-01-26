@@ -45,7 +45,7 @@ export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, Memb
       : [];
 
     return {
-      id: await toSnowflake(_id.user),
+      // id: await toSnowflake(_id.user),
       joined_at: toCompatibleISO(joined_at),
       communication_disabled_until: timeout
         ? toCompatibleISO(new Date(timeout).toISOString())
@@ -55,6 +55,7 @@ export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, Memb
       mute: false,
       nick: nickname ?? null,
       avatar: member.avatar?._id ?? null,
+      pending: false,
       user: extra?.discordUser
         ? extra.discordUser
         : extra?.user

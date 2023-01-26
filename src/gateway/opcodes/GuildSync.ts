@@ -1,18 +1,19 @@
 /* eslint-disable no-plusplus */
 /* eslint-disable camelcase */
-import { fromSnowflake, internalActivity, Status } from "@reflectcord/common/models";
+import { fromSnowflake, Status } from "@reflectcord/common/models";
 import { GatewayDispatchCodes, GuildSyncSchema } from "@reflectcord/common/sparkle";
 import { Dispatch } from "../util";
 import { WebSocket } from "../Socket";
 import { Payload } from "../util/Constants";
+import { check } from "./instanceOf";
 
 async function GuildSync(this: WebSocket, guild_id: string) {
   const rvServerId = await fromSnowflake(guild_id);
 
   const server = this.rvAPIWrapper.servers.get(rvServerId);
-  if (!server) return;
+  if (!server || !server.extra?.members) return;
 
-  const members = await server.extra!.members.fetchAll(rvServerId, false);
+  const members = await server.extra.members.fetchAll(rvServerId, false);
 
   const discordMembers = members.map((x) => x.discord);
 
@@ -41,9 +42,9 @@ async function GuildSync(this: WebSocket, guild_id: string) {
 }
 
 export async function HandleGuildSync(this: WebSocket, data: Payload<GuildSyncSchema>) {
-  if (!data.d) return;
+  check.call(this, GuildSyncSchema, data.d);
 
-  const reqData = data.d;
+  const reqData = data.d!;
 
   await Promise.all((reqData.map((x) => GuildSync.call(this, x))));
 }

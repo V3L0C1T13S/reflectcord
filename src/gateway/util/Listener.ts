@@ -266,6 +266,8 @@ export async function startListener(
           const sessions = [currentSession];
 
           setImmediate(async () => {
+            if (this.bot) return;
+
             Dispatch(this, GatewayDispatchCodes.SessionsReplace, [currentSession])
               .catch(Logger.error);
             Dispatch(this, GatewayDispatchEvents.PresenceUpdate, {
@@ -616,7 +618,9 @@ export async function startListener(
 
           if (channel.revolt.channel_type === "TextChannel" || channel.revolt.channel_type === "VoiceChannel") {
             const server = await this.rvAPIWrapper.servers.fetch(channel.revolt.server);
-            server.revolt.channels.push(channel.revolt._id);
+            if (!server.revolt.channels.includes(channel.revolt._id)) {
+              server.revolt.channels.push(channel.revolt._id);
+            }
           }
 
           await Dispatch(this, GatewayDispatchEvents.ChannelCreate, channel.discord);

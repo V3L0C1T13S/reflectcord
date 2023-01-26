@@ -37,7 +37,13 @@ async function HandleRequest(
   };
 
   const discordMembers = (await Promise.all(members.members
-    .map((x, i) => Member.from_quark(x, { user: members.users[i] }))));
+    .map(async (x, i) => {
+      const member = await Member.from_quark(x, { user: members.users[i] });
+      // @ts-ignore - Refcord native uses a special member.id property
+      member.id = member.user?.id ?? "0";
+
+      return member;
+    })));
 
   if (user_ids) {
     const nativeResults = rfcNative.processOP8({

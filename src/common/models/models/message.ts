@@ -227,9 +227,12 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
     };
 
     if (masquerade?.name) {
-      discordMessage.webhook_id = "0";
+      discordMessage.webhook_id = discordMessage.author.id;
       discordMessage.application_id = discordMessage.author.id;
-      discordMessage.author.discriminator = "0000";
+      discordMessage.author = {
+        ...discordMessage.author,
+        discriminator: "0000",
+      };
     }
 
     if (reply) {
