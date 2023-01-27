@@ -19,10 +19,11 @@ import {
 import { Badges } from "../../rvapi";
 import { UserRelationshipType } from "../../sparkle";
 import { QuarkConversion } from "../QuarkConversion";
-import { fromSnowflake, toSnowflake } from "../util";
+import { fromSnowflake, hashToSnowflake, toSnowflake } from "../util";
 import { priviligedUsers } from "../../constants/admin";
 import { genSessionId } from "../../utils/discord";
 import { Omit } from "../../utils";
+import { PartialFile } from "./attachment";
 
 export type APIUserProfile = {
   bio: string | null,
@@ -108,14 +109,17 @@ export const User: QuarkConversion<RevoltUser, APIUser, UserATQ, UserAFQ> = {
     return {
       id: await toSnowflake(_id),
       accent_color: null,
-      avatar: user.avatar?._id ?? null,
+      avatar: user.avatar
+        ? await PartialFile.from_quark(user.avatar)
+        : null,
       avatar_decoration: null,
       bot: !!user.bot,
-      banner: user.profile?.background?._id ?? null,
+      banner: user.profile?.background
+        ? await PartialFile.from_quark(user.profile.background)
+        : null,
       banner_color: null,
       discriminator: "0001",
       flags,
-      locale: "en-US",
       username: extra?.masquerade?.name ?? username,
       public_flags: flags,
       verified: true, // all accounts on revolt are implicitly verified
@@ -149,7 +153,7 @@ export const UserProfile: QuarkConversion<RevoltUserProfile, APIUserProfile> = {
     return {
       bio: profile.content ?? null,
       accent_color: null,
-      banner: profile.background?._id ?? null,
+      banner: profile.background ? await PartialFile.from_quark(profile.background) : null,
     };
   },
 };
@@ -194,7 +198,9 @@ export const selfUser: QuarkConversion<revoltUserInfo, APIUser, selfUserATQ, sel
       nsfw_allowed: true,
       // This doesn't seem to be required but it exists in actual discord so
       premium: true,
+      locale: "en-US",
       analytics_token: extra?.genAnalyticsToken ? genSessionId() : null,
+      verified: true,
     };
   },
 };

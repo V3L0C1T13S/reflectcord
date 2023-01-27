@@ -4,9 +4,10 @@ import { APIGuildMember, APIUser, RESTPatchAPIGuildMemberJSONBody } from "discor
 import { Member as RevoltMember } from "revolt-api";
 import { API } from "revolt.js";
 import { QuarkConversion } from "../QuarkConversion";
-import { fromSnowflake, toSnowflake } from "../util";
+import { fromSnowflake, hashToSnowflake, toSnowflake } from "../util";
 import { User } from "./user";
 import { toCompatibleISO } from "../../utils/date";
+import { PartialFile } from "./attachment";
 
 export type MemberATQ = Partial<{
   user: APIUser,
@@ -44,9 +45,11 @@ export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, Memb
       ? await Promise.all(roles.map((x) => toSnowflake(x)))
       : [];
 
+    const discordAvatar = member.avatar ? await PartialFile.from_quark(member.avatar) : null;
+
     return {
       // id: await toSnowflake(_id.user),
-      joined_at: toCompatibleISO(joined_at),
+      joined_at: toCompatibleISO(new Date(joined_at).toISOString()),
       communication_disabled_until: timeout
         ? toCompatibleISO(new Date(timeout).toISOString())
         : null,
@@ -54,7 +57,7 @@ export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, Memb
       deaf: false,
       mute: false,
       nick: nickname ?? null,
-      avatar: member.avatar?._id ?? null,
+      avatar: discordAvatar,
       pending: false,
       user: extra?.discordUser
         ? extra.discordUser

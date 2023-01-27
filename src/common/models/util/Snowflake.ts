@@ -8,7 +8,7 @@ export type snowflakeConversionData = {
   _id: string;
 }
 
-const { snowflakes } = DbManager;
+const { snowflakes, hashes } = DbManager;
 
 /**
  * Converts a ULID to snowflake and stores the original ULID in a db
@@ -28,7 +28,7 @@ export async function toSnowflake(id: string) {
 
   if (!sfData.value) throw new Error("SF Conversion failed");
 
-  return sfData.value?.snowflake;
+  return sfData.value.snowflake;
 }
 
 /**
@@ -65,4 +65,31 @@ export async function tryFromSnowflake(id: string) {
   } catch {
     return id;
   }
+}
+
+export async function hashToSnowflake(id: string) {
+  const sfData = await hashes.findOneAndUpdate({
+    _id: id,
+  }, {
+    $setOnInsert: {
+      _id: id,
+      snowflake: new Snowflake({
+        custom_epoch: parseInt(discordEpoch, 10),
+      }).getUniqueID().toString(),
+    },
+  }, { upsert: true, returnDocument: "after" });
+
+  if (!sfData.value) throw new Error("SF Conversion failed");
+
+  return sfData.value.snowflake as string;
+}
+
+export async function hashFromSnowflake(id: string | number) {
+  const existing = await hashes.findOne({
+    snowflake: id.toString(),
+  });
+
+  if (!existing) throw new Error("Non-existent ID");
+
+  return existing._id as unknown as string;
 }

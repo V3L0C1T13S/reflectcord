@@ -1,12 +1,13 @@
 /* eslint-disable camelcase */
 import { GuildFeature } from "discord.js";
 import { QuarkConversion } from "../../../models/QuarkConversion";
-import { toSnowflake } from "../../../models/util";
+import { fromSnowflake, toSnowflake } from "../../../models/util";
 import { DiscoveryServer, DiscoveryBot } from "../../../rvapi";
 import { App, GuildDiscoveryInfo, FullDiscoveryBot } from "../../../sparkle";
 import { getServerFeatures } from "../guilds";
 import { UserProfile } from "../user";
 import { stubFlags } from "../application";
+import { PartialFile } from "../attachment";
 
 export const DiscoverableGuild: QuarkConversion<DiscoveryServer, GuildDiscoveryInfo> = {
   async to_quark(data) {
@@ -38,15 +39,17 @@ export const DiscoverableGuild: QuarkConversion<DiscoveryServer, GuildDiscoveryI
 
     features.push(GuildFeature.InviteSplash, GuildFeature.Discoverable);
 
+    const discordBanner = banner ? await PartialFile.from_quark(banner) : null;
+
     return {
       id: await toSnowflake(_id),
       name,
       description,
       keywords: tags,
-      icon: icon?._id,
-      splash: banner?._id,
-      discovery_splash: banner?._id,
-      banner: banner?._id,
+      icon: icon ? await PartialFile.from_quark(icon) : null,
+      splash: discordBanner,
+      discovery_splash: discordBanner,
+      banner: discordBanner,
       approximate_presence_count: 0,
       approximate_member_count: members,
       premium_subscription_count: 966,
@@ -79,7 +82,7 @@ export const DiscoverableBot: QuarkConversion<DiscoveryBot, App> = {
         background: null,
       },
       usage: "high",
-      _id: bot.id,
+      _id: await fromSnowflake(bot.id),
       avatar: null,
       tags: tags?.map((x) => x!) ?? [],
       servers: 0,
@@ -91,6 +94,8 @@ export const DiscoverableBot: QuarkConversion<DiscoveryBot, App> = {
 
     const id = await toSnowflake(_id);
 
+    const icon = app.avatar ? await PartialFile.from_quark(app.avatar) : null;
+
     return {
       type: 1,
       id,
@@ -98,7 +103,7 @@ export const DiscoverableBot: QuarkConversion<DiscoveryBot, App> = {
       slug: username,
       description: profile?.content ?? "fixme",
       name: username,
-      icon: app.avatar?._id ?? null,
+      icon,
       bot_public: true,
       bot_require_code_grant: false,
       summary: "",
@@ -109,7 +114,7 @@ export const DiscoverableBot: QuarkConversion<DiscoveryBot, App> = {
       bot: {
         id,
         username,
-        avatar: app.avatar?._id ?? null,
+        avatar: icon,
         discriminator: "1",
         public_flags: 0,
         bot: true,

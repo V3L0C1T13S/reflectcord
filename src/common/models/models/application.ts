@@ -5,6 +5,7 @@ import { Bot, BotResponse } from "revolt-api";
 import { API } from "revolt.js";
 import { QuarkConversion } from "../QuarkConversion";
 import { fromSnowflake, toSnowflake } from "../util";
+import { PartialFile } from "./attachment";
 import { User } from "./user";
 
 export const stubFlags = new ApplicationFlagsBitField();
@@ -50,16 +51,16 @@ export const Application: QuarkConversion<Bot, APIApplication, ApplicationATQ, A
       verify_key: "fixme",
       flags: stubFlags.bitfield.toInt(),
       name: extra?.user?.username ?? "fixme",
-      icon: extra?.user?.avatar?._id ?? null,
+      icon: extra?.user?.avatar ? await PartialFile.from_quark(extra.user.avatar) : null,
       bot_require_code_grant: false,
       summary: "",
       team: null,
-      owner: extra?.owner ? await User.from_quark(extra.owner) : {
-        id: await toSnowflake(owner),
-        username: "fixme",
-        discriminator: "1",
-        avatar: null,
-      },
+      owner: extra?.owner
+        ? await User.from_quark(extra.owner)
+        : await User.from_quark({
+          _id: owner,
+          username: "fixme",
+        }),
       rpc_application_state: 0,
       redirect_uris: [],
       hook: true,
@@ -95,16 +96,17 @@ export const OwnedApplication: QuarkConversion<
   async from_quark(data, extra) {
     const { bot, user } = data;
 
-    const discordUser = await User.from_quark(user);
-
-    const { username } = discordUser;
+    const discordApplication = await Application.from_quark(bot, {
+      ...extra,
+      user,
+    });
 
     const app: OwnedAPIApplication = {
-      ...await Application.from_quark(bot, extra),
-      name: username,
-      description: user.profile?.content ?? "",
-      icon: user.avatar?._id ?? null,
-      summary: user.profile?.content ?? "",
+      ...discordApplication,
+      // name: username,
+      // description: user.profile?.content ?? "",
+      // icon: user.avatar?._id ?? null,
+      // summary: user.profile?.content ?? "",
       bot: await User.from_quark(user),
     };
 

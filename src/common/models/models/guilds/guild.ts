@@ -22,7 +22,7 @@ import { DataEditServer, Server } from "revolt-api";
 import { uploadBase64File } from "@reflectcord/cdn/util";
 import { API } from "revolt.js";
 import { QuarkConversion } from "../../QuarkConversion";
-import { fromSnowflake, toSnowflake } from "../../util";
+import { fromSnowflake, hashToSnowflake, toSnowflake } from "../../util";
 import { convertPermNumber, Permissions } from "../permissions";
 import { Role } from "../role";
 import { discordGatewayGuildEmoji, Emoji, GatewayGuildEmoji } from "../emoji";
@@ -142,7 +142,7 @@ export const Guild: QuarkConversion<Server, APIGuild, GuildATQ, GuildAFQ> = {
 
     const features = getServerFeatures(server);
 
-    const banner = server.banner ? `${server.banner?._id}/background/${server.banner?._id}` : null;
+    const banner = server.banner ? `${await hashToSnowflake(server.banner._id)}/background/${await hashToSnowflake(server.banner._id)}` : null;
 
     return {
       id,
@@ -204,7 +204,7 @@ export const Guild: QuarkConversion<Server, APIGuild, GuildATQ, GuildAFQ> = {
       hub_type: null,
       discovery_splash: null,
       icon_hash: icon?._id ?? null,
-      icon: icon?._id ?? null,
+      icon: icon ? await hashToSnowflake(icon._id) : null,
       splash: null,
       guild_scheduled_events: [],
       joined_at: Date.now().toString(),

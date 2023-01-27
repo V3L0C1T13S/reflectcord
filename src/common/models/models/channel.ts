@@ -1,7 +1,10 @@
 import { Category, Channel as rvChannel, DataCreateChannel } from "revolt-api";
 import {
   APIChannel,
+  APIDMChannel,
+  APIGroupDMChannel,
   APIGuildCategoryChannel,
+  APIGuildTextChannel,
   APIOverwrite,
   APIPartialChannel,
   APIUser,
@@ -11,7 +14,9 @@ import {
 } from "discord.js";
 import { API } from "revolt.js";
 import { QuarkConversion } from "../QuarkConversion";
-import { fromSnowflake, toSnowflake, tryToSnowflake } from "../util";
+import {
+  fromSnowflake, hashToSnowflake, toSnowflake, tryToSnowflake,
+} from "../util";
 import { User } from "./user";
 import { convertPermNumber } from "./permissions";
 
@@ -114,6 +119,7 @@ export const ChannelType: QuarkConversion<rvChannel["channel_type"], discordChan
 export type GuildCategoryATQ = {};
 export type GuildCategoryAFQ = Partial<{
   server: string | null | undefined,
+  allCategories: API.Server["categories"] | null | undefined,
 }>;
 
 export const GuildCategory: QuarkConversion<
@@ -142,12 +148,16 @@ export const GuildCategory: QuarkConversion<
   async from_quark(category, extra) {
     // Workaround for legacy format ("a", "b", "c") - insert pls migrate
     const id = await tryToSnowflake(category.id);
+    const position = extra?.allCategories?.findIndex((x) => x.id === category.id) ?? 0;
 
     const discordCategory: APIGuildCategoryChannel = {
-      id,
+      permission_overwrites: [],
       name: category.title,
+      parent_id: null,
+      nsfw: false,
+      position,
       type: discordChannelType.GuildCategory,
-      position: 0,
+      id,
     };
 
     if (extra?.server) discordCategory.guild_id = await toSnowflake(extra.server);
@@ -319,6 +329,7 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
     return {
       ...commonProperties,
       id,
+      default_auto_archive_duration: 60,
       invitable: undefined,
       type: channelType,
       last_message_id: "last_message_id" in channel && channel.last_message_id
@@ -382,8 +393,106 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
       topic: ("description" in channel) ? channel.description : null,
       parent_id: categoryId,
       position,
-      icon: ("icon" in channel && channel.icon) ? channel.icon._id : null,
+      icon: ("icon" in channel && channel.icon) ? await hashToSnowflake(channel.icon._id) : null,
     };
+  },
+
+  // @ts-ignore
+  async from_quark_new(channel: API.Channel, extra: ChannelAFQ) {
+    const id = await toSnowflake(channel._id);
+
+    const categoryId = await (async () => {
+      if (extra?.categoryId) {
+        try {
+          const sf = await toSnowflake(extra.categoryId);
+          return sf;
+        } catch {
+          return "0";
+        }
+      }
+
+      const category = extra?.allCategories
+        ?.find((x) => x.channels.includes(channel._id))?.id;
+
+      if (!category) return null;
+
+      try {
+        const sf = await toSnowflake(category);
+        return sf;
+      } catch (e) {
+        return "0";
+      }
+    })();
+
+    const position = extra?.allCategories
+      ? extra.allCategories.findIndex((x) => x.channels.includes(channel._id))
+      : 0;
+
+    switch (channel.channel_type) {
+      case "DirectMessage": {
+        const excludedRecipients = channel.recipients.filter((x) => x !== extra?.excludedUser);
+
+        return {
+          last_message_id: channel.last_message_id
+            ? await toSnowflake(channel.last_message_id)
+            : null,
+          type: discordChannelType.DM,
+          id,
+          recipients: await Promise.all(excludedRecipients
+            .map((x) => User.from_quark({
+              _id: x,
+              username: "fixme",
+            }))),
+        } as APIDMChannel;
+      }
+      case "Group": {
+        const excludedRecipients = channel.recipients.filter((x) => x !== extra?.excludedUser);
+
+        return {
+          name: channel.name,
+          icon: channel.icon ? await hashToSnowflake(channel.icon._id) : null,
+          recipients: await Promise.all(excludedRecipients
+            .map((x) => User.from_quark({
+              _id: x,
+              username: "fixme",
+            }))),
+          last_message_id: channel.last_message_id
+            ? await toSnowflake(channel.last_message_id)
+            : null,
+          type: discordChannelType.GroupDM,
+          id,
+          owner_id: await toSnowflake(channel.owner),
+        } as APIGroupDMChannel;
+      }
+      case "SavedMessages": {
+        return {
+          last_message_id: null,
+          type: discordChannelType.DM,
+          id,
+          recipients: [await User.from_quark({
+            _id: channel.user,
+            username: "Saved Messages",
+          })],
+        } as APIDMChannel;
+      }
+      case "TextChannel": {
+        const discordChannel: APIGuildTextChannel<discordChannelType.GuildText> = {
+          id,
+          guild_id: await toSnowflake(channel.server),
+          name: channel.name,
+          type: discordChannelType.GuildText,
+          position,
+        };
+
+        return discordChannel;
+      }
+      case "VoiceChannel": {
+        return {};
+      }
+      default: {
+        throw new Error(`unimplemented channel type: ${channel}`);
+      }
+    }
   },
 };
 
@@ -403,6 +512,7 @@ export async function HandleChannelsAndCategories(
   const discordCategories = categories ? await Promise.all(categories
     .map((x) => GuildCategory.from_quark(x, {
       server,
+      allCategories: categories,
     })))
     : [];
 

@@ -18,6 +18,7 @@
 
 /* eslint-disable no-redeclare */
 import { ActivitySchema } from "./User";
+import { Tuple } from "../../utils/check";
 
 export const IdentifySchema = {
   token: String,
@@ -31,9 +32,10 @@ export const IdentifySchema = {
   $capabilities: Number,
   $client_state: {
     $guild_hashes: Object,
-    $highest_last_message_id: String,
+    $highest_last_message_id: new Tuple(String, Number),
     $read_state_version: Number,
     $user_guild_settings_version: Number,
+    $useruser_guild_settings_version: new Tuple(String, Number),
     $user_settings_version: undefined,
     $private_channels_version: Number,
     $guild_versions: Object,

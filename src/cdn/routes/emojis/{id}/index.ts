@@ -13,6 +13,6 @@ export default (express: Application) => <Resource> {
     const replacedId = req.params.id.replace(/\.[^/.]+$/, "");
     const emojiId = await tryFromSnowflake(replacedId);
 
-    await handleImgRequest(req, res, "emojis", emojiId);
+    await handleImgRequest(req, res, "emojis", emojiId, true);
   },
 };

@@ -33,3 +33,7 @@ Change your REVOLT_API_URL and REVOLT_BASE_URL to that of RSD.
 
 ## What Reflectcord needs from RSD
 Implementation of the /servers, /channels, /users, and /auth endpoints
+
+More Bonfire events - MessageCreate, UserUpdate, NotFound are the core few needed for proper functionality.
+
+Gateway send events (StartTyping, StopTyping)

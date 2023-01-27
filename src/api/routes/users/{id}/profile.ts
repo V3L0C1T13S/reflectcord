@@ -5,7 +5,7 @@ import { API } from "revolt.js";
 import { decodeTime } from "ulid";
 import { HTTPError } from "@reflectcord/common/utils";
 import {
-  UserProfile, fromSnowflake, toSnowflake,
+  UserProfile, fromSnowflake, toSnowflake, hashToSnowflake, PartialFile,
 } from "@reflectcord/common/models";
 import { uploadBase64File } from "@reflectcord/cdn/util";
 import { PatchCurrentUserBody, ProfileThemesExperimentBucket } from "@reflectcord/common/sparkle";
@@ -110,9 +110,10 @@ export default (express: Application) => <Resource> {
 
     res.json({
       accent_color: null,
-      avatar: updatedSelf?.avatar?._id ?? null,
+      avatar: updatedSelf?.avatar ? await PartialFile.from_quark(updatedSelf.avatar) : null,
       bio: fullUpdatedSelf?.content ?? null,
-      banner: fullUpdatedSelf?.background?._id,
+      banner: fullUpdatedSelf?.background
+        ? await hashToSnowflake(fullUpdatedSelf.background._id) : null,
     });
   },
 };

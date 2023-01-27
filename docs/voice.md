@@ -25,3 +25,15 @@ A backend can be selected by using the VOICE_BACKEND environment variable.
 Possible values are:
 - vortex (default)
 - standalone
+
+## Differences
+
+### Vortex
+- Bridges connections between Revolts official voice servers and clients
+- Supports voice chat across Reflectcord instances
+- Depends on Revolt for functionality, so video chat, live streaming, and activites will not work.
+
+### Standalone
+- More features can be implemented (ex. video)
+- Less likely to crash bots
+- You can only talk to people on the same Reflectcord instance as you

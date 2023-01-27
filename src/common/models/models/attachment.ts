@@ -3,6 +3,7 @@ import { reflectcordCDNURL } from "@reflectcord/common/constants";
 import { APIAttachment } from "discord.js";
 import { API } from "revolt.js";
 import { QuarkConversion } from "../QuarkConversion";
+import { hashToSnowflake } from "../util";
 
 export const Attachment: QuarkConversion<API.File, APIAttachment> = {
   async to_quark(attachment) {
@@ -39,7 +40,8 @@ export const Attachment: QuarkConversion<API.File, APIAttachment> = {
   async from_quark(attachment) {
     const { _id, size, content_type } = attachment;
 
-    const url = `http://${reflectcordCDNURL}/attachments/${_id}`;
+    const id = await hashToSnowflake(_id);
+    const url = `http://${reflectcordCDNURL}/attachments/${id}`;
 
     const { width, height } = (() => {
       if (attachment.metadata.type === "Image" || attachment.metadata.type === "Video") {
@@ -56,7 +58,7 @@ export const Attachment: QuarkConversion<API.File, APIAttachment> = {
     })();
 
     return {
-      id: _id,
+      id,
       filename: attachment.filename,
       size,
       url,
@@ -83,6 +85,6 @@ export const PartialFile: QuarkConversion<API.File, string> = {
   },
 
   async from_quark(file) {
-    return file._id;
+    return hashToSnowflake(file._id);
   },
 };

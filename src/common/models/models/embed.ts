@@ -16,6 +16,7 @@ import { QuarkConversion } from "../QuarkConversion";
 import {
   AutumnURL, embedEnableSpecials, reflectcordCDNURL, TwitterAPIBearer,
 } from "../../constants";
+import { hashToSnowflake } from "../util";
 
 export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
   async to_quark(embed) {
@@ -50,7 +51,7 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
       }
       if (embed.type === "Text") {
         if (embed.media) {
-          const imgUrl = `http://${reflectcordCDNURL}/attachments/${embed.media._id}`;
+          const imgUrl = `http://${reflectcordCDNURL}/attachments/${await hashToSnowflake(embed.media._id)}`;
           discordEmbed.image = {
             url: imgUrl,
             proxy_url: imgUrl,

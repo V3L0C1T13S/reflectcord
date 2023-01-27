@@ -1,17 +1,8 @@
+import { API } from "revolt.js";
+
 export type DiscoveryUsage = "high" | "medium" | "low"
 
-export type DiscoveryMedia = {
-  _id: string,
-  tag: string,
-  filename: string,
-  metadata: {
-    type: string,
-    width: number,
-    height: number,
-  },
-  content_type: string,
-  size: number,
-}
+export type DiscoveryMedia = API.File;
 
 export type DiscoveryServer = {
   _id: string,
@@ -36,14 +27,7 @@ export interface ImageMetadata {
   height: number;
 }
 
-export interface Avatar {
-  _id: string;
-  tag: string;
-  filename: string;
-  metadata: ImageMetadata;
-  content_type: string;
-  size: number;
-}
+export type Avatar = API.File;
 
 export interface Profile {
   content?: string | null;

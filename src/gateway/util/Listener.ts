@@ -123,6 +123,9 @@ export async function startListener(
           this.rv_user_id = currentUser._id;
 
           this.is_deprecated = isDeprecatedClient.call(this);
+          if (identifyPayload.properties.browser === "Discord Android") {
+            this.is_deprecated = true;
+          }
 
           this.typingConsumer = await RabbitMQ.channel?.consume(userStartTyping, (msg) => {
             if (!msg) return;
@@ -222,7 +225,7 @@ export async function startListener(
               }
 
               // Older clients expect bot guilds
-              if (this.version < 9 && !this.bot) {
+              if ((this.version < 9 && !this.bot) || this.is_deprecated) {
                 return legacyGuild;
               }
 
@@ -262,6 +265,7 @@ export async function startListener(
               os: identifyPayload.properties?.os,
             },
             status: identifyPayload?.presence?.status ?? "offline",
+            session_id: this.session_id,
           };
           const sessions = [currentSession];
 
@@ -273,7 +277,9 @@ export async function startListener(
             Dispatch(this, GatewayDispatchEvents.PresenceUpdate, {
               user: currentUserDiscord,
               ...currentSession,
-              client_status: currentSession.status,
+              client_status: {
+                desktop: currentSession.status,
+              },
             }).catch(Logger.error);
           });
 

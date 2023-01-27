@@ -4,11 +4,12 @@ import {
 } from "fs";
 import { Request, Response } from "express";
 import FormData from "form-data";
-import axios from "axios";
+import axios, { isAxiosError } from "axios";
 import fileType from "file-type";
 import Ffmpeg from "fluent-ffmpeg";
 import { AutumnURL } from "@reflectcord/common/constants";
 import { HTTPError, Logger } from "@reflectcord/common/utils";
+import { hashFromSnowflake } from "common/models";
 
 const DisallowedTypes = ["text/html", "text/mhtml", "multipart/related", "application/xhtml+xml"];
 
@@ -30,10 +31,18 @@ export async function downloadImage(type: ImageType, id: string) {
   if (!existsSync(imgTypeCacheDir)) mkdirSync(imgTypeCacheDir);
 
   if (!existsSync(imgDir)) {
-    Logger.log(`Downloading uncached ${type} ${id}`);
-    const res = (await axios.get(rvURL, { responseType: "arraybuffer" })).data;
-    writeFileSync(imgDir, res);
-    return res;
+    try {
+      Logger.log(`Downloading uncached ${type} ${id}`);
+      const res = (await axios.get(rvURL, { responseType: "arraybuffer" })).data;
+      writeFileSync(imgDir, res);
+      return res;
+    } catch (e) {
+      if (isAxiosError(e)) {
+        if (e.code === "404") {
+          throw new HTTPError("Invalid image!", 404);
+        }
+      }
+    }
   }
 
   const cachedImage = readFileSync(imgDir);
@@ -116,11 +125,12 @@ export async function handleImgRequest(
   res: Response,
   type: ImageType,
   id?: string,
+  skipConversion?: boolean,
 ) {
   if (!id) return res.sendStatus(404);
 
   // Discord adds .png to the end, for some reason.
-  const realId = id?.replace(/\.[^/.]+$/, "");
+  const realId = skipConversion ? id : await hashFromSnowflake(id.replace(/\.[^/.]+$/, ""));
   if (!realId) return res.sendStatus(500);
 
   const avatarData = await downloadImage(type, realId);

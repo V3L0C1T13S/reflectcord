@@ -40,6 +40,12 @@ export interface UserSettings {
   animate_stickers?: number;
   contact_sync_enabled?: boolean;
   convert_emoticons?: boolean;
+  custom_status: {
+    text: string | null,
+    expires_at: string | null,
+    emoji_id: string | null,
+    emoji_name: string | null,
+  } | null,
   default_guilds_restricted?: boolean;
   detect_platform_accounts?: boolean;
   developer_mode?: boolean;
@@ -52,6 +58,7 @@ export interface UserSettings {
     mutual_friends: boolean,
     mutual_guilds: boolean,
   };
+  friend_discovery_flags: number,
   gateway_connected?: boolean;
   gif_auto_play?: boolean;
   guild_folders?: GuildFolder[];
@@ -64,6 +71,7 @@ export interface UserSettings {
   render_embeds?: boolean;
   render_reactions?: boolean;
   restricted_guilds?: string[];
+  passwordless: boolean,
   show_current_game?: boolean;
   status?: string | null;
   stream_notifications_enabled?: boolean;
@@ -90,6 +98,7 @@ export const DefaultUserSettings: UserSettings = {
   animate_stickers: 0,
   contact_sync_enabled: false,
   convert_emoticons: true,
+  custom_status: null,
   default_guilds_restricted: true,
   detect_platform_accounts: true,
   developer_mode: true,
@@ -100,6 +109,7 @@ export const DefaultUserSettings: UserSettings = {
     mutual_friends: true,
     mutual_guilds: true,
   },
+  friend_discovery_flags: 0,
   explicit_content_filter: 0,
   gateway_connected: false,
   gif_auto_play: true,
@@ -113,6 +123,7 @@ export const DefaultUserSettings: UserSettings = {
   render_embeds: true,
   render_reactions: true,
   restricted_guilds: [],
+  passwordless: false,
   show_current_game: true,
   status: "online",
   stream_notifications_enabled: false,
