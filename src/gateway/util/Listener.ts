@@ -269,20 +269,6 @@ export async function startListener(
           };
           const sessions = [currentSession];
 
-          setImmediate(async () => {
-            if (this.bot) return;
-
-            Dispatch(this, GatewayDispatchCodes.SessionsReplace, [currentSession])
-              .catch(Logger.error);
-            Dispatch(this, GatewayDispatchEvents.PresenceUpdate, {
-              user: currentUserDiscord,
-              ...currentSession,
-              client_status: {
-                desktop: currentSession.status,
-              },
-            }).catch(Logger.error);
-          });
-
           const memberData = (await Promise.all(data.members.map(async (x) => {
             const server = this.rvAPIWrapper.servers.$get(x._id.server);
             const member = {
@@ -423,6 +409,20 @@ export async function startListener(
 
             await Dispatch(this, GatewayDispatchCodes.ReadySupplemental, supplementalData);
           }
+
+          setImmediate(async () => {
+            if (this.bot) return;
+
+            Dispatch(this, GatewayDispatchCodes.SessionsReplace, [currentSession])
+              .catch(Logger.error);
+            Dispatch(this, GatewayDispatchEvents.PresenceUpdate, {
+              user: currentUserDiscord,
+              ...currentSession,
+              client_status: {
+                desktop: currentSession.status,
+              },
+            }).catch(Logger.error);
+          });
 
           break;
         }

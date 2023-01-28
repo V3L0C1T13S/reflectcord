@@ -1,4 +1,4 @@
-import { Application, Request, Response } from "express";
+import { Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { Invite } from "@reflectcord/common/models";
 import { HTTPError } from "@reflectcord/common/utils";
@@ -24,7 +24,7 @@ export async function handleDeleteInvite(req: Request, res: Response) {
   res.json(await Invite.from_quark(revoltInvite));
 }
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   get: (req, res) => getInvite(req, res),
   post: async (req, res) => {
     const { inviteId } = req.params;

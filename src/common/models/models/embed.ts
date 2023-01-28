@@ -44,10 +44,9 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
       if (embed.description) discordEmbed.description = embed.description;
       if (embed.colour) discordEmbed.color = hexToRgbCode(embed.colour) ?? 0;
       if (embed.icon_url) {
-        discordEmbed.thumbnail = {
-          url: embed.icon_url,
-          proxy_url: proxyFile(embed.icon_url),
-        };
+        discordEmbed.footer ??= { text: "" };
+        discordEmbed.footer.icon_url = embed.icon_url;
+        discordEmbed.footer.proxy_icon_url = proxyFile(embed.icon_url);
       }
       if (embed.type === "Text") {
         if (embed.media) {
@@ -101,7 +100,7 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
         const isAutumn = mediaInfo.url?.startsWith(AutumnURL);
 
         if (isAutumn) {
-          mediaInfo.proxy_url = `http://${reflectcordCDNURL}/attachments/${attachmentId}`;
+          mediaInfo.proxy_url = `http://${reflectcordCDNURL}/attachments/${attachmentId ? await hashToSnowflake(attachmentId) : "fixme"}`;
         }
 
         discordEmbed.video = mediaInfo;
