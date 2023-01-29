@@ -63,6 +63,7 @@ export type MessageAFQ = Partial<{
   mentions: API.User[] | null | undefined,
   server: string | null,
   api_version: number,
+  replied_message: APIMessage | null
 }>
 
 export const MessageReference: QuarkConversion<
@@ -225,6 +226,10 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
       })(),
       reactions: await Reactions.from_quark(reactions),
     };
+
+    if (extra?.replied_message) {
+      discordMessage.referenced_message = extra.replied_message;
+    }
 
     if (masquerade?.name) {
       discordMessage.webhook_id = discordMessage.author.id;

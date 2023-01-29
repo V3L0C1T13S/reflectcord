@@ -1,5 +1,6 @@
 import { internalStatus, Status } from "@reflectcord/common/models";
 import { ActivityType } from "discord.js";
+import { API } from "revolt.js";
 import { Payload } from "../util";
 import { WebSocket } from "../Socket";
 
@@ -12,7 +13,8 @@ export async function presenceUpdate(this: WebSocket, data: Payload<internalStat
 
   const activity = presence.activities?.[0];
 
-  await this.rvAPI.patch("/users/@me", {
+  const remove: API.FieldsUser[] = [];
+  const body: API.DataEditUser = {
     status: await Status.to_quark(presence) ?? null,
     profile: activity && activity.type !== ActivityType.Custom ? await (async () => {
       const userId = await this.rvAPIWrapper.users.getSelfId();
@@ -28,7 +30,7 @@ export async function presenceUpdate(this: WebSocket, data: Payload<internalStat
           **${activity.assets?.small_text}**
           ${activity.state}
           ${activity.details}
-          <t:${activity.timestamps?.start}:t> elapsed
+          <t:${activity.timestamps?.start}:R> elapsed
           ${activity.buttons?.map((x, i) => `[${x}](${activity.metadata?.button_urls?.[i]})`)}
           -------------------------------------------- ${statePfx}
           ${currentProfile.content?.split(statePfx).pop()?.split(statePfx).pop()}
@@ -36,5 +38,18 @@ export async function presenceUpdate(this: WebSocket, data: Payload<internalStat
           : currentProfile.content ?? null,
       };
     })() : null,
-  });
+  };
+
+  if (!activity) {
+    remove.push("StatusText");
+  }
+
+  // HACK: Workaround for revolt erroring out if remove & fields are present
+  if (remove.length > 0) {
+    await this.rvAPI.patch("/users/@me", {
+      remove,
+    });
+  }
+
+  await this.rvAPI.patch("/users/@me", body);
 }

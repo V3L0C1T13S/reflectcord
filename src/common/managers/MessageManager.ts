@@ -56,9 +56,11 @@ export class MessageManager extends BaseManager<string, MessageContainer> {
       return null;
     })().catch(() => null);
 
+    const repliedMessage = rvMessage.replies?.[0] ? this.get(rvMessage.replies[0]) : null;
     const discordMessage = await Message.from_quark(rvMessage, {
       mentions: include?.mentions ? (await this.getMessageMentions(rvMessage))
         .map((x) => x.revolt) : null,
+      replied_message: repliedMessage?.discord ?? null,
       ...extra,
       user: extra?.user ?? authorInfo?.revolt,
     });

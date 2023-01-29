@@ -2,7 +2,7 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable camelcase */
 import { APIUser } from "discord.js";
-import { Application, Response } from "express";
+import { Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
 import { UserRelations } from "@reflectcord/common/sparkle";
@@ -10,7 +10,7 @@ import { fromSnowflake } from "@reflectcord/common/models";
 import { HTTPError } from "@reflectcord/common/utils";
 import { fetchUser } from ".";
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   get: async (req, res: Response<UserRelations[]>) => {
     const { id } = req.params;
     if (!id) throw new HTTPError("ID is required.", 244);
