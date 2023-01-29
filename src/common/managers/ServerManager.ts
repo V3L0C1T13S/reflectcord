@@ -1,6 +1,7 @@
 import { APIGuild } from "discord.js";
 import { API } from "revolt.js";
 import { isEqual } from "lodash";
+import { Logger } from "@reflectcord/common/utils";
 import {
   Guild, RevoltOrderingSetting, RevoltSettings, SettingsKeys,
 } from "../models";
@@ -94,7 +95,9 @@ export class ServerManager extends BaseManager<string, ServerContainer> {
     const ordering: RevoltOrderingSetting = JSON.parse(rvSettings.ordering?.[1] ?? "{}");
 
     const servers = ordering.servers
-      ? await Promise.all(ordering.servers.map((x) => this.apiWrapper.servers.fetch(x))) : [];
+      ? (await Promise.all(ordering.servers
+        .map((x) => this.apiWrapper.servers.fetch(x).catch(Logger.error))))
+        .filter((x): x is ServerContainer => !!x) : [];
 
     return servers;
   }
