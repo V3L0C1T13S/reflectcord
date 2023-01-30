@@ -1,5 +1,5 @@
 import axios from "axios";
-import { discordBaseAPIURL } from "common/constants";
+import { discordBaseAPIURL } from "@reflectcord/common/constants";
 import { DbManager } from "../../db";
 import { Logger } from "../Logger";
 

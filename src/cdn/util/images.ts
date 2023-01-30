@@ -9,7 +9,7 @@ import fileType from "file-type";
 import Ffmpeg from "fluent-ffmpeg";
 import { AutumnURL } from "@reflectcord/common/constants";
 import { HTTPError, Logger } from "@reflectcord/common/utils";
-import { hashFromSnowflake } from "common/models";
+import { hashFromSnowflake } from "@reflectcord/common/models";
 
 const DisallowedTypes = ["text/html", "text/mhtml", "multipart/related", "application/xhtml+xml"];
 

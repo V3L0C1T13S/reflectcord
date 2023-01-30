@@ -1,10 +1,10 @@
 /* eslint-disable camelcase */
-import { Application } from "express";
 import { Resource } from "express-automatic-routes";
 import { uploadBase64File } from "@reflectcord/cdn/util";
-import { DbManager } from "@reflectcord/common/db";
+import { UploadedFile } from "@reflectcord/common/mongoose";
+import { HTTPError } from "@reflectcord/common/utils";
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   options: (req, res) => {
     res.set("access-control-allow-credentials", "true");
     res.set("access-control-allow-headers", "content-type");
@@ -21,14 +21,20 @@ export default (express: Application) => <Resource> {
   put: async (req, res) => {
     const { upload_id } = req.query;
 
+    if (typeof upload_id !== "string") throw new HTTPError("Invalid upload id query");
+
+    const uploadedFile = await UploadedFile.findById(upload_id);
+    if (!uploadedFile) throw new HTTPError("File does not exist", 404);
+    if (uploadedFile.autumn_id) throw new HTTPError("This file has already been uploaded", 401);
     const file = Buffer.from(req.body);
 
-    const autumn_id = await uploadBase64File("attachments", { file: file.toString("base64") });
-
-    await DbManager.fileUploads.insertOne({
-      upload_id,
-      autumn_id,
+    const autumn_id = await uploadBase64File("attachments", {
+      file: file.toString("base64"),
+      name: uploadedFile.info.name,
     });
+
+    uploadedFile.autumn_id = autumn_id;
+    await uploadedFile.save();
 
     res.sendStatus(200);
   },
