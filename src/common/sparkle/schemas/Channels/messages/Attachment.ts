@@ -5,6 +5,7 @@ import { Tuple } from "../../../../utils";
 export const AttachmentSchema = {
   $id: String,
   $filename: String,
+  $uploaded_filename: String, // TODO (docs)
   $description: String,
   $content_type: String,
   $size: Number,

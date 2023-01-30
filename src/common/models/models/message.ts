@@ -13,6 +13,7 @@ import { API } from "revolt.js";
 import { decodeTime } from "ulid";
 import { uploadFile } from "@reflectcord/cdn/util";
 import { systemUserID } from "@reflectcord/common/rvapi";
+import { DbManager } from "@reflectcord/common/db";
 import { QuarkConversion } from "../QuarkConversion";
 import {
   fromSnowflake, toSnowflake, tryFromSnowflake, tryToSnowflake,
@@ -348,8 +349,19 @@ export const MessageSendData: QuarkConversion<
       nonce: data.nonce?.toString() ?? null,
       attachments: extra?.files ? (await Promise.all(Object.values(extra.files)
         .map(async (x) => {
-          const file = Array.isArray(x) ? x?.[0] : x;
+          const file: any = Array.isArray(x) ? x?.[0] : x;
           if (!file) return;
+
+          if (file.uploaded_filename) {
+            const upload_id = file.uploaded_filename.split("/")[0];
+            const id = await DbManager.fileUploads.findOne({
+              upload_id,
+            });
+
+            if (!id?.autumn_id) throw new Error(`Bad file ID ${upload_id}`);
+
+            return id.autumn_id;
+          }
 
           const id = await uploadFile("attachments", {
             name: file.name,

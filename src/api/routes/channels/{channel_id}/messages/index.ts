@@ -82,10 +82,14 @@ export default (express: Application) => <Resource> {
 
       const rvId = await fromSnowflake(channel_id);
 
+      // eslint-disable-next-line no-self-compare
+      const files = req.files?.length ?? 0 > 0 ? req.files : req.body.attachments;
+
       const msg = await res.rvAPIWrapper.messages.sendMessage(
         rvId,
         await MessageSendData.to_quark(req.body, {
-          files: req.files,
+          // @ts-ignore
+          files,
         }),
       );
 

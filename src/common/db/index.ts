@@ -14,6 +14,8 @@ export namespace DbManager {
     .collection<snowflakeConversionData>("converted_snowflakes");
   export const hashes = client.db("reflectcord")
     .collection("converted_hashes");
+  export const fileUploads = client.db("reflectcord")
+    .collection("file_uploads");
 }
 
 export async function initDb() {
