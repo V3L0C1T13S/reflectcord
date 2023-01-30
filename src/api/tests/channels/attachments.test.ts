@@ -1,7 +1,6 @@
 import { describe, test, expect } from "@jest/globals";
 import { postToAPI } from "@reflectcord/common/utils/testUtils";
 import { TestChannelId } from "@reflectcord/common/constants";
-import querystring from "node:querystring";
 
 describe("new attachments (/channels/{id}/attachments)", () => {
   test("acquire bucket", async () => {
