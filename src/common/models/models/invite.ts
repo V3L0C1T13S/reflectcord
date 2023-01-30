@@ -51,6 +51,7 @@ export const Invite: QuarkConversion<API.InviteResponse, APIInvite> = {
         _id: invite.server_id,
         name: invite.server_name,
         icon: invite.server_icon ?? null,
+        flags: invite.server_flags ?? 0,
         banner: invite.server_banner ?? null,
         owner: systemUserID,
         channels: [invite.channel_id],

@@ -71,7 +71,7 @@
     "proxy-agent": "^5.0.0",
     "rate-limiter-flexible": "^2.4.1",
     "revolt-api": "^0.5.5-4",
-    "revolt.js": "^6.0.18",
+    "revolt.js": "^6.0.20",
     "rfcNative": "github:V3L0C1T13S/rfcNative#76abf0f162c6515f9cb42702b6d5fea00bc305be",
     "semantic-sdp": "^3.25.1",
     "serve-favicon": "^2.5.0",
