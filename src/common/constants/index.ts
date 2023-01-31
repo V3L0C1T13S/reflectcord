@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import { API } from "revolt.js";
+import axios from "axios";
 import { getNextData } from "../rvapi/discovery";
 
 dotenv.config();
@@ -59,6 +60,13 @@ export const discordBaseURL = process.env["DISCORD_BASE_URL"] ?? "https://discor
 export const discordBaseAPIURL = `${discordBaseURL}/api/v9`;
 
 let revoltConfig: API.RevoltConfig;
+let autumnConfig: {
+  tags: {
+    attachments: {
+      max_size: number,
+    },
+  },
+};
 
 export async function getRevoltDiscoveryDataURL() {
   const discoveryBuildId = await getNextData();
@@ -72,4 +80,12 @@ export async function getServerConfig() {
   revoltConfig = await new API.API().get("/");
 
   return revoltConfig;
+}
+
+export async function getAutumnConfig() {
+  if (autumnConfig) return autumnConfig;
+
+  autumnConfig = (await axios.get(AutumnURL)).data;
+
+  return autumnConfig;
 }

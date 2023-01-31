@@ -1,9 +1,10 @@
 import bodyParser from "body-parser";
 import path from "path";
 import { Server, RabbitMQ } from "@reflectcord/common/utils";
-import "express-async-errors";
 import { initDb } from "@reflectcord/common/db";
 import fileUpload from "express-fileupload";
+import "express-async-errors";
+import { ErrorHandler } from "../api/middleware/ErrorHandler";
 
 export class ReflectcordCDN extends Server {
   port = 3001;
@@ -39,6 +40,7 @@ export class ReflectcordCDN extends Server {
         next();
       });
     });
+    this.app.use(ErrorHandler);
 
     await initDb();
 

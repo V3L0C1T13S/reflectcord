@@ -7,7 +7,7 @@ import FormData from "form-data";
 import axios, { isAxiosError } from "axios";
 import fileType from "file-type";
 import Ffmpeg from "fluent-ffmpeg";
-import { AutumnURL } from "@reflectcord/common/constants";
+import { AutumnURL, getAutumnConfig } from "@reflectcord/common/constants";
 import { HTTPError, Logger } from "@reflectcord/common/utils";
 import { hashFromSnowflake } from "@reflectcord/common/models";
 
@@ -78,9 +78,14 @@ export async function uploadFile(
   dataType?: string,
 ) {
   const contentType = dataType ?? await getMimeType(file.file)
-    .catch(() => "application/octet-stream");
+    .catch((e) => {
+      console.error("mime type failure: ", e);
+      return "application/octet-stream";
+    });
   const data = new FormData();
   data.append("file", file.file, { filename: file.name, contentType });
+
+  if (file.file.length > (await getAutumnConfig()).tags.attachments.max_size) throw new HTTPError("File is too large!", 413);
 
   const response = await (axios.post<revoltAttachmentResponse>(
     `${AutumnURL}/${type}`,
