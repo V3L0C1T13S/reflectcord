@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import { Resource } from "express-automatic-routes";
-import { uploadBase64File } from "@reflectcord/cdn/util";
+import { uploadFile } from "@reflectcord/cdn/util";
 import { UploadedFile } from "@reflectcord/common/mongoose";
 import { HTTPError } from "@reflectcord/common/utils";
 
@@ -28,8 +28,8 @@ export default () => <Resource> {
     if (uploadedFile.autumn_id) throw new HTTPError("This file has already been uploaded", 401);
     const file = Buffer.from(req.body);
 
-    const autumn_id = await uploadBase64File("attachments", {
-      file: file.toString("base64"),
+    const autumn_id = await uploadFile("attachments", {
+      file,
       name: uploadedFile.info.name,
     });
 

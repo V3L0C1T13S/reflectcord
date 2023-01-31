@@ -1,7 +1,7 @@
 import axios from "axios";
 import axiosRateLimit from "axios-rate-limit";
 import { TestingToken } from "../../rvapi";
-import { baseURL } from "../../constants";
+import { baseURL, reflectcordCDNURL } from "../../constants";
 
 export const apiURL = `${baseURL}/api`;
 
@@ -29,6 +29,36 @@ export async function postToAPI(url: string, data: any) {
   const res = await TestAxiosClient({
     method: "post",
     url: `${apiURL}/${url}`,
+    headers: {
+      authorization: TestingToken,
+    },
+    data,
+  });
+
+  console.log(res.data);
+
+  return res;
+}
+
+export async function putToAPI(url: string, data: any) {
+  const res = await TestAxiosClient({
+    method: "put",
+    url: `${apiURL}/${url}`,
+    headers: {
+      authorization: TestingToken,
+    },
+    data,
+  });
+
+  console.log(res.data);
+
+  return res;
+}
+
+export async function putToCDN(url: string, data: any) {
+  const res = await TestAxiosClient({
+    method: "put",
+    url: `http://${reflectcordCDNURL}/${url}`,
     headers: {
       authorization: TestingToken,
     },

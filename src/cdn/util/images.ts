@@ -54,27 +54,6 @@ export type revoltAttachmentResponse = {
   id: string;
 }
 
-export async function generateVideoThumbnail(video: Buffer) {
-
-}
-
-export async function uploadFile(
-  type: ImageType,
-  file: { name: string; file: Buffer },
-  contentType: string,
-) {
-  const data = new FormData();
-  data.append("file", file.file, { filename: file.name, contentType });
-
-  const response = await (axios.post<revoltAttachmentResponse>(
-    `${AutumnURL}/${type}`,
-    data,
-    { headers: data.getHeaders() },
-  ));
-
-  return response.data.id;
-}
-
 export async function getMimeType(file: Buffer) {
   const fallback = "application/octet-stream";
 
@@ -87,6 +66,29 @@ export async function getMimeType(file: Buffer) {
   }
 
   return mimeType;
+}
+
+export async function generateVideoThumbnail(video: Buffer) {
+
+}
+
+export async function uploadFile(
+  type: ImageType,
+  file: { name: string; file: Buffer },
+  dataType?: string,
+) {
+  const contentType = dataType ?? await getMimeType(file.file)
+    .catch(() => "application/octet-stream");
+  const data = new FormData();
+  data.append("file", file.file, { filename: file.name, contentType });
+
+  const response = await (axios.post<revoltAttachmentResponse>(
+    `${AutumnURL}/${type}`,
+    data,
+    { headers: data.getHeaders() },
+  ));
+
+  return response.data.id;
 }
 
 export async function uploadBase64File(

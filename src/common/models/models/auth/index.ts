@@ -42,6 +42,13 @@ export const ResponseLogin: QuarkConversion<RevoltLoginResponse, APILoginRespons
       };
     }
 
+    if (login.result !== "Success") {
+      return {
+        token: null,
+        settings: undefined,
+      };
+    }
+
     return {
       token: login.token,
       settings: undefined,
