@@ -1,12 +1,11 @@
 /* eslint-disable camelcase */
-import { Application } from "express";
 import { Resource } from "express-automatic-routes";
 import { HTTPError } from "@reflectcord/common/utils";
 import { fromSnowflake, InviteCreate } from "@reflectcord/common/models";
 import { emitEvent } from "@reflectcord/common/Events";
 import { GatewayDispatchEvents } from "discord.js";
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   post: async (req, res) => {
     const { channel_id } = req.params;
 
@@ -17,7 +16,10 @@ export default (express: Application) => <Resource> {
     const rvInvite = await res.rvAPI.post(`/channels/${rvChannel as ""}/invites`);
     if (rvInvite.type !== "Server") throw new HTTPError("Revolt returned invalid invite type");
 
-    const invite = await InviteCreate.from_quark(rvInvite);
+    const channel = await res.rvAPIWrapper.channels.fetch(rvChannel);
+    const invite = await InviteCreate.from_quark(rvInvite, {
+      channel: channel.revolt,
+    });
 
     await emitEvent({
       event: GatewayDispatchEvents.InviteCreate,
@@ -45,8 +47,9 @@ export default (express: Application) => <Resource> {
     const invites = (await res.rvAPIWrapper.servers.getInvites(rvChannel.revolt.server))
       .filter((x) => x.channel === rvChannelId);
 
-    return res.json(await Promise.all(invites.map((x) => InviteCreate.from_quark(x, {
+    return res.json(await Promise.all(invites.map(async (x) => InviteCreate.from_quark(x, {
       channel: rvChannel.revolt,
+      discordInviter: (await res.rvAPIWrapper.users.fetch(x.creator)).discord,
     }))));
   },
 };

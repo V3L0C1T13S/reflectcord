@@ -9,6 +9,8 @@ import { emitEvent } from "@reflectcord/common/Events";
 import { fromSnowflake } from "@reflectcord/common/models/util";
 import { GatewayDispatchEvents } from "discord.js";
 import { UserContainer } from "@reflectcord/common/managers";
+import { Consumer } from "msc-node/lib/Consumer";
+import { Logger } from "@reflectcord/common/utils";
 import { VortexPacketType } from "../types/vortex";
 import { endpoint, Send, WebSocket } from "../../../util";
 import defaultsdp from "../../../util/sdp.json";
@@ -115,6 +117,8 @@ export function connectTransport(this: WebSocket, id: string, dtls: DtlsParamete
 export async function onVortexMessage(this: WebSocket, data: VortexDataPacket) {
   console.log(data);
 
+  const consumers = new Map<string, { audio: Consumer }>();
+
   switch (data.type) {
     case "InitializeTransports": {
       this.vortex_ws.send(JSON.stringify({
@@ -213,9 +217,30 @@ export async function onVortexMessage(this: WebSocket, data: VortexDataPacket) {
     case "UserStopProduce": {
       const channel = await this.rvAPIWrapper.channels.fetch(this.vortex_channel_id);
       const server = "server" in channel.revolt ? await this.rvAPIWrapper.servers.fetch(channel.revolt.server) : null;
+      const consumer = consumers.get(data.data.id);
+
+      switch (data.data.type) {
+        case "audio": {
+          if (consumer?.audio) {
+            await Send(this, {
+              op: VoiceOPCodes.Speaking,
+              d: {
+                user_id: await toSnowflake(data.data.id),
+                speaking: false,
+                ssrc: consumer.audio.id,
+              },
+            });
+          }
+          break;
+        }
+        default: {
+          Logger.warn(`Unhandled type ${data.data.type}`);
+          break;
+        }
+      }
 
       await updateVoiceState.call(this, data.data.id, channel, {
-        audio: true,
+        audio: false,
       }, server);
 
       break;

@@ -1,10 +1,9 @@
 /* eslint-disable camelcase */
 import { Resource } from "express-automatic-routes";
-import { DbManager } from "@reflectcord/common/db";
 import { HTTPError } from "@reflectcord/common/utils";
 import { emitEvent } from "@reflectcord/common/Events";
 import { fromSnowflake, toSnowflake } from "@reflectcord/common/models";
-import { GatewayDispatchCodes } from "@reflectcord/common/sparkle/schemas/Gateway/Dispatch";
+import { GatewayDispatchCodes } from "@reflectcord/common/sparkle";
 import { VoiceState } from "@reflectcord/common/mongoose";
 
 export default () => <Resource> {
