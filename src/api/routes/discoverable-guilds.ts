@@ -1,5 +1,4 @@
 /* eslint-disable camelcase */
-import { Application } from "express";
 import { Resource } from "express-automatic-routes";
 import { DiscoveryClient } from "@reflectcord/common/rvapi";
 import { DiscoverableGuild } from "@reflectcord/common/models";
@@ -7,7 +6,7 @@ import { HTTPError } from "@reflectcord/common/utils";
 
 const client = new DiscoveryClient();
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   get: async (req, res) => {
     await client.init();
 
