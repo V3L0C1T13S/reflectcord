@@ -1,10 +1,12 @@
 /* eslint-disable no-nested-ternary */
 /* eslint-disable camelcase */
-import { APIGuildMember, APIUser, RESTPatchAPIGuildMemberJSONBody } from "discord.js";
+import {
+  APIGuildMember, APIUser, RESTPatchAPIGuildMemberJSONBody, GuildMemberFlags,
+} from "discord.js";
 import { Member as RevoltMember } from "revolt-api";
 import { API } from "revolt.js";
 import { QuarkConversion } from "../QuarkConversion";
-import { fromSnowflake, hashToSnowflake, toSnowflake } from "../util";
+import { fromSnowflake, toSnowflake } from "../util";
 import { User } from "./user";
 import { toCompatibleISO } from "../../utils/date";
 import { PartialFile } from "./attachment";
@@ -44,7 +46,15 @@ export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, Memb
     const convRoles = roles
       ? await Promise.all(roles.map((x) => toSnowflake(x)))
       : [];
-
+    const user = extra?.discordUser
+      ? extra.discordUser
+      : extra?.user
+        ? await User.from_quark(extra.user)
+        : await User.from_quark({
+          _id: _id.user,
+          username: member.nickname ?? "fixme",
+          avatar: member.avatar ?? null,
+        });
     const discordAvatar = member.avatar ? await PartialFile.from_quark(member.avatar) : null;
 
     return {
@@ -59,15 +69,8 @@ export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, Memb
       nick: nickname ?? null,
       avatar: discordAvatar,
       pending: false,
-      user: extra?.discordUser
-        ? extra.discordUser
-        : extra?.user
-          ? await User.from_quark(extra.user)
-          : await User.from_quark({
-            _id: _id.user,
-            username: member.nickname ?? "fixme",
-            avatar: member.avatar ?? null,
-          }),
+      user,
+      flags: 0,
     };
   },
 };

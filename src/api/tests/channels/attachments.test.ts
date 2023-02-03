@@ -33,7 +33,7 @@ describe("new attachments (/channels/{id}/attachments)", () => {
 
     const uploadResponse = await axios.put(attachment.upload_url, testFile, {
       headers: {
-        Authorization: TestingToken,
+        Authorization: TestingToken!,
       },
     });
 

@@ -141,6 +141,7 @@ export const Guild: QuarkConversion<Server, APIGuild, GuildATQ, GuildAFQ> = {
     const id = await toSnowflake(_id);
 
     const features = getServerFeatures(server);
+    if (server.discoverable) features.push(GuildFeature.Discoverable);
 
     const banner = server.banner ? `${await hashToSnowflake(server.banner._id)}/background/${await hashToSnowflake(server.banner._id)}` : null;
 

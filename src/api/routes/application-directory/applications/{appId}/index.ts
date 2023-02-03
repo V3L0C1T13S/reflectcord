@@ -25,7 +25,7 @@ export default () => <Resource> {
         filename: rvBot.revolt.avatar.filename,
         content_type: rvBot.revolt.avatar.content_type,
         metadata: {
-          type: "image",
+          type: "Image",
           width: 256,
           height: 256,
         },

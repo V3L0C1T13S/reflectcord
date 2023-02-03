@@ -91,8 +91,8 @@ export async function createInternalListener(this: WebSocket) {
     this.events[channel.revolt._id] = await listenEvent(channel.revolt._id, consumer, opts);
   });
 
-  this.once("close", () => {
-    if (opts.channel) opts.channel.close();
+  this.once("close", async () => {
+    if (opts.channel) await opts.channel.close().catch(Logger.error);
     else {
       Object.values(this.events).forEach((x) => x());
       Object.values(this.member_events).forEach((x) => x());

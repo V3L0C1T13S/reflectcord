@@ -7,6 +7,8 @@ export type snowflakeConversionData = {
   _id: string;
 }
 
+export type HashConverion = snowflakeConversionData;
+
 export namespace DbManager {
   export const client = new MongoClient(mongoURL);
   // eslint-disable-next-line import/no-mutable-exports
@@ -14,7 +16,7 @@ export namespace DbManager {
   export const snowflakes = client.db("reflectcord")
     .collection<snowflakeConversionData>("converted_snowflakes");
   export const hashes = client.db("reflectcord")
-    .collection("converted_hashes");
+    .collection<HashConverion>("converted_hashes");
   export const fileUploads = client.db("reflectcord")
     .collection("file_uploads");
 }

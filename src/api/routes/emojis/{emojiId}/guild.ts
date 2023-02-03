@@ -14,15 +14,14 @@ export default () => <Resource> {
 
     const rvEmoji = await res.rvAPI.get(`/custom/emoji/${rvEmojiId as ""}`);
 
-    if (rvEmoji.parent.type !== "Server") {
-      throw new HTTPError("Server does not exist or is private.", 404);
-    }
+    if (rvEmoji.parent.type !== "Server") throw new HTTPError("Emoji is not a server emoji!");
 
     await client.init();
 
     const servers = await client.servers.fetchPopular();
 
-    const rvServer = servers.pageProps.servers.find((server) => server._id === rvEmoji.parent.id);
+    // @ts-ignore: WTF typescript?
+    const rvServer = servers.pageProps.servers.find((server) => rvEmoji.parent.id === server._id);
     if (!rvServer) throw new HTTPError("Server does not exist or is private.", 404);
 
     res.json(await Guild.from_quark({
@@ -30,6 +29,7 @@ export default () => <Resource> {
       channels: [],
       owner: systemUserID,
       default_permissions: 0,
+      discoverable: true,
     }));
   },
 };
