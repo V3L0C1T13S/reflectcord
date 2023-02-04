@@ -1,7 +1,7 @@
 import { Resource } from "express-automatic-routes";
-import { fromSnowflake, Guild } from "@reflectcord/common/models";
+import { DiscoverableGuild, fromSnowflake } from "@reflectcord/common/models";
 import { HTTPError } from "@reflectcord/common/utils";
-import { DiscoveryClient, systemUserID } from "@reflectcord/common/rvapi";
+import { DiscoveryClient } from "@reflectcord/common/rvapi";
 
 const client = new DiscoveryClient();
 
@@ -24,12 +24,6 @@ export default () => <Resource> {
     const rvServer = servers.pageProps.servers.find((server) => rvEmoji.parent.id === server._id);
     if (!rvServer) throw new HTTPError("Server does not exist or is private.", 404);
 
-    res.json(await Guild.from_quark({
-      ...rvServer,
-      channels: [],
-      owner: systemUserID,
-      default_permissions: 0,
-      discoverable: true,
-    }));
+    res.json(await DiscoverableGuild.from_quark(rvServer));
   },
 };
