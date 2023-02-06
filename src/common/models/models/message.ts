@@ -173,7 +173,9 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
         return authorUser;
       })(),
       timestamp: toCompatibleISO(new Date(decodeTime(_id)).toISOString()),
-      edited_timestamp: message.edited ? toCompatibleISO(message.edited) : null,
+      edited_timestamp: message.edited
+        ? toCompatibleISO(new Date(message.edited).toISOString())
+        : null,
       tts: false,
       mention_everyone: false,
       mentions: mentions ? await Promise.all(

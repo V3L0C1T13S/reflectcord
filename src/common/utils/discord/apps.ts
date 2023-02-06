@@ -6,7 +6,7 @@ import { Logger } from "../Logger";
 const client = axios.create();
 const discordAppsURL = `${discordBaseAPIURL}/applications/detectable`;
 
-const appData = DbManager.client.db("reflectcord")
+export const appData = DbManager.client.db("reflectcord")
   .collection("discordApps");
 
 let rawAppData: any[];

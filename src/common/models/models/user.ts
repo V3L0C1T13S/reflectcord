@@ -199,8 +199,8 @@ export const selfUser: QuarkConversion<revoltUserInfo, APIUser, selfUserATQ, sel
       nsfw_allowed: true,
       // This doesn't seem to be required but it exists in actual discord so
       premium: true,
-      premium_usage_flags: 0,
-      purchased_flags: 0,
+      premium_usage_flags: 2,
+      purchased_flags: 5,
       locale: "en-US",
       analytics_token: extra?.genAnalyticsToken ? genSessionId() : null,
       verified: true,
