@@ -6,6 +6,7 @@ import {
 import { API } from "revolt.js";
 import { clamp } from "lodash";
 import {
+  createUserPresence,
   fromSnowflake, Member, Status, User,
 } from "@reflectcord/common/models";
 import { ReqGuildMembersSchema, GuildMembersChunk } from "@reflectcord/common/sparkle";
@@ -32,9 +33,13 @@ async function HandleRequest(
   }
 
   const body: GuildMembersChunk = {
+    chunk_index: 0,
+    chunk_count: 0,
     guild_id: guildId,
     members: [],
   };
+
+  if (nonce) body.nonce = nonce;
 
   const discordMembers = (await Promise.all(members.members
     .map(async (x, i) => {
@@ -74,17 +79,15 @@ async function HandleRequest(
   // TODO: Move to native code
   if (presences) {
     const discordPresences = await Promise.all(members.users.map(async (x) => {
-      const status = await Status.from_quark(x.status);
-      const { activities } = status;
-      const discordPresence = {
-        user: await User.from_quark(x),
+      const userObj = this.rvAPIWrapper.users.createObj({
+        revolt: x,
+        discord: await User.from_quark(x),
+      });
+      const discordPresence = createUserPresence({
+        user: userObj.revolt,
+        discordUser: userObj.discord,
         guild_id: guildId,
-        status: status.status,
-        activities,
-        client_status: {
-          desktop: status.status,
-        },
-      };
+      });
 
       return discordPresence;
     }));

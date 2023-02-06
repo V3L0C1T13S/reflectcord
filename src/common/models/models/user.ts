@@ -387,6 +387,7 @@ export interface RevoltPresenceData {
   user: RevoltUser,
   discordUser?: APIUser,
   server?: string,
+  guild_id?: string,
 }
 
 export async function createUserPresence(
@@ -410,7 +411,8 @@ export async function createUserPresence(
     last_modified: Date.now(),
   };
 
-  if (data.server) presence.guild_id = await toSnowflake(data.server);
+  if (data.guild_id) presence.guild_id = data.guild_id;
+  if (data.server && !data.guild_id) presence.guild_id = await toSnowflake(data.server);
   if (status.activities) presence.activities = status.activities as any;
 
   return presence;

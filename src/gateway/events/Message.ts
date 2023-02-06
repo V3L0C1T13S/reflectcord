@@ -21,9 +21,12 @@
 import { GatewayCloseCodes, GatewayOpcodes } from "discord.js";
 import erlpack from "erlpack";
 import { Logger } from "@reflectcord/common/utils";
+import BigIntJson from "json-bigint";
 import { Payload } from "../util";
 import { WebSocket } from "../Socket";
 import { OPCodeHandlers } from "../opcodes";
+
+const bigIntJson = BigIntJson({ storeAsString: true });
 
 export async function Message(this: WebSocket, buffer: Buffer) {
   let data: Payload;
@@ -32,7 +35,7 @@ export async function Message(this: WebSocket, buffer: Buffer) {
     (buffer instanceof Buffer && buffer[0] === 123) // ASCII 123 = `{`. Bad check for JSON
     || typeof buffer === "string"
   ) {
-    data = JSON.parse(buffer.toString());
+    data = bigIntJson.parse(buffer.toString());
   } else if (this.encoding === "etf" && buffer instanceof Buffer) {
     try {
       data = erlpack.unpack(buffer);
@@ -47,7 +50,7 @@ export async function Message(this: WebSocket, buffer: Buffer) {
         buffer = buffer.toString() as any;
       }
     }
-    data = JSON.parse(buffer as unknown as string);
+    data = bigIntJson.parse(buffer as unknown as string);
   } else {
     Logger.log(`Session ${this.session_id} sent an undecodable invalid payload.`);
     return this.close(GatewayCloseCodes.DecodeError);

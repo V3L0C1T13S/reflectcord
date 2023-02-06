@@ -24,8 +24,11 @@ export interface ReqGuildMembersSchema {
  * Sent in response to an OP8 Request guild members
  */
 export interface GuildMembersChunk {
+  chunk_index: number,
+  chunk_count: number,
   guild_id: string | string[],
   members: APIGuildMember[],
   not_found?: string[],
   presences?: any[],
+  nonce?: string,
 }
