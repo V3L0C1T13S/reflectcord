@@ -98,8 +98,7 @@ export class ChannelsManager extends BaseManager<string, ChannelContainer> {
     clear?.forEach((entry) => {
       switch (entry) {
         case "Description": {
-          // @ts-ignore
-          delete channel.revolt.description;
+          if ("description" in channel.revolt) delete channel.revolt.description;
           break;
         }
         case "Icon": {

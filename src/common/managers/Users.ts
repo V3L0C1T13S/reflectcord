@@ -1,7 +1,7 @@
 import { APIUser } from "discord.js";
 import { API } from "revolt.js";
 import { isEqual } from "lodash";
-import { Logger } from "../utils";
+import { Logger } from "@reflectcord/common/utils";
 import { User } from "../models";
 import { BaseManager } from "./BaseManager";
 import { QuarkContainer } from "./types";
@@ -95,7 +95,7 @@ export class UserManager extends BaseManager<string, UserContainer> {
     return this.rvAPI.get(`/users/${id as ""}/profile`);
   }
 
-  update(id: string, data: UserI) {
+  update(id: string, data: UserI, clear?: API.FieldsUser[]) {
     const user = this.get(id)!;
     const apply = (ctx: string, key: string, target?: string) => {
       if (
@@ -108,6 +108,25 @@ export class UserManager extends BaseManager<string, UserContainer> {
         user[ctx][target ?? key] = data[ctx][key];
       }
     };
+
+    clear?.forEach((entry) => {
+      switch (entry) {
+        case "Avatar":
+          user.revolt.avatar = null;
+          break;
+        case "StatusText": {
+          if (user.revolt.status) {
+            user.revolt.status.text = null;
+          }
+          break;
+        }
+        default: {
+          Logger.warn(`unhandled user clear ${entry}`);
+          break;
+        }
+      }
+    });
+
     const applyRevolt = (key: string, target?: string) => apply("revolt", key, target);
     const applyDiscord = (key: string, target?: string) => apply("discord", key, target);
 
