@@ -46,6 +46,12 @@ export class ChannelsManager extends BaseManager<string, ChannelContainer> {
     await this.rvAPI.delete(`/channels/${id}/recipients/${user}`);
   }
 
+  async editChannel(id: string, data: API.DataEditChannel) {
+    const updated = this.rvAPI.patch(`/channels/${id as ""}`, data);
+
+    return updated;
+  }
+
   async deleteChannel(id: string, leaveSilently?: boolean, avoidReq?: boolean) {
     const channel = this.get(id);
 

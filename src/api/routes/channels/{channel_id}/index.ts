@@ -7,15 +7,15 @@ import { HTTPError } from "@reflectcord/common/utils";
 import { APIChannel } from "discord.js";
 
 export async function getChannel(api: API.API, id: string) {
-  const rvChannel = await api.get(`/channels/${id}`) as API.Channel;
+  const rvChannel = await api.get(`/channels/${id as ""}`);
 
   return rvChannel;
 }
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   get: async (req, res: Response<APIChannel>) => {
     const { channel_id } = req.params;
-    if (!channel_id) throw new HTTPError("Maformed request", 244);
+    if (!channel_id) throw new HTTPError("Bad params");
 
     const rvId = await fromSnowflake(channel_id);
 
@@ -25,16 +25,17 @@ export default (express: Application) => <Resource> {
   },
   patch: async (req, res: Response<APIChannel>) => {
     const { channel_id } = req.params;
-    if (!channel_id) throw new HTTPError("Maformed request", 244);
+    if (!channel_id) throw new HTTPError("Bad params");
 
     const rvId = await fromSnowflake(channel_id);
-    const rvChannel = await res.rvAPI.patch(`/channels/${rvId as ""}`, await ChannelPatchBody.to_quark(req.body));
+    const rvChannel = await res.rvAPIWrapper.channels
+      .editChannel(rvId, await ChannelPatchBody.to_quark(req.body));
 
     res.json(await Channel.from_quark(rvChannel));
   },
   delete: async (req, res: Response<APIChannel>) => {
     const { channel_id } = req.params;
-    if (!channel_id) throw new HTTPError("Maformed request", 244);
+    if (!channel_id) throw new HTTPError("Bad params");
 
     const rvId = await fromSnowflake(channel_id);
 
