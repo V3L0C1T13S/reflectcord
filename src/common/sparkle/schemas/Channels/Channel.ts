@@ -1,5 +1,5 @@
 /* eslint-disable no-redeclare */
-import { RESTPostAPIGuildChannelJSONBody } from "discord.js";
+import { RESTPatchAPIChannelJSONBody, RESTPostAPIGuildChannelJSONBody } from "discord.js";
 import { Tuple } from "../../../utils/check";
 
 export const ChannelCreateBody = {
@@ -8,5 +8,12 @@ export const ChannelCreateBody = {
   $type: Number,
   $parent_id: new Tuple(String, Number),
 };
+
+export interface APIChannelPatchBody extends RESTPatchAPIChannelJSONBody {
+  /**
+   * Base64 encoded channel icon. Clear icon if null.
+  */
+  icon?: string | null,
+}
 
 export type ChannelCreateBody = RESTPostAPIGuildChannelJSONBody;

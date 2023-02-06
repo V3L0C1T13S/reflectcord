@@ -96,6 +96,10 @@ export class ChannelsManager extends BaseManager<string, ChannelContainer> {
           delete channel.revolt.description;
           break;
         }
+        case "Icon": {
+          if ("icon" in channel.revolt) delete channel.revolt.icon;
+          break;
+        }
         default:
       }
     });
@@ -108,7 +112,7 @@ export class ChannelsManager extends BaseManager<string, ChannelContainer> {
     apply("revolt", "name");
     apply("revolt", "icon");
     apply("revolt", "description");
-    apply("revolt", "recipients", "recipient_ids");
+    apply("revolt", "recipients");
     apply("revolt", "last_message_id");
     apply("revolt", "nsfw");
 

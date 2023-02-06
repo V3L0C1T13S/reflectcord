@@ -81,12 +81,21 @@ export async function onIdentify(this: WebSocket, data: Payload) {
   clients.add(this.client);
 
   this.on("close", () => {
-    clients.delete(this.client);
+    if (this.client) clients.delete(this.client);
   });
 
   const readyBody: any = {
-    streams: [],
-    ssrc: -1,
+    streams: [
+      {
+        type: "video",
+        ssrc: this.client.in.video_ssrc + 1,
+        rtx_ssrc: this.client.in.video_ssrc + 2,
+        rid: "100",
+        quality: 100,
+        active: false,
+      },
+    ],
+    ssrc: this.client.in.audio_ssrc,
     ip: PublicIP,
     port: endpoint.getLocalPort(),
     modes: [

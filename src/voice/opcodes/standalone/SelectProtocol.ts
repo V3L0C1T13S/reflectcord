@@ -29,7 +29,10 @@ export async function selectProtocol(this: WebSocket, payload: Payload) {
 
   const data = payload.d;
 
-  const offer = SemanticSDP.SDPInfo.parse(`m=audio\n${data.sdp}`);
+  // eslint-disable-next-line prefer-template
+  const offer = SemanticSDP.SDPInfo.parse("m=audio\n" + data.sdp);
+  // @ts-ignore
+  offer.getMedias()[0].type = "audio"; // this is bad, but answer.toString() fails otherwise
   this.client.sdp.setICE(offer.getICE());
   this.client.sdp.setDTLS(offer.getDTLS());
 
@@ -45,21 +48,45 @@ export async function selectProtocol(this: WebSocket, payload: Payload) {
   const candidates = transport.getLocalCandidates();
   const candidate = candidates[0];
 
-  const answer = `m=audio ${port} ICE/SDP
-a=fingerprint:${fingerprint}
-c=IN IP4 ${PublicIP}
-a=rtcp:${port}
-a=ice-ufrag:${ice.getUfrag()}
-a=ice-pwd:${ice.getPwd()}
-a=fingerprint:${fingerprint}
-a=candidate:1 1 ${candidate?.getTransport()} ${candidate?.getFoundation()} ${candidate?.getAddress()} ${candidate?.getPort()} typ host
-`;
+  const answer = offer.answer({
+    dtls,
+    ice,
+    candidates: endpoint.getLocalCandidates(),
+    capabilities: {
+      audio: {
+        codecs: ["opus"],
+        rtx: true,
+        rtcpfbs: [{ id: "transport-cc" }],
+        extensions: [
+          "urn:ietf:params:rtp-hdrext:ssrc-audio-level",
+          "http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time",
+          "http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01",
+          "urn:ietf:params:rtp-hdrext:sdes:mid",
+        ],
+      },
+    },
+  });
+
+  // the Video handler creates streams but we need streams now so idk
+  // eslint-disable-next-line no-restricted-syntax
+  for (const offered of offer.getStreams().values()) {
+    const incomingStream = transport.createIncomingStream(offered);
+    const outgoingStream = transport.createOutgoingStream({
+      audio: true,
+    });
+    outgoingStream.attachTo(incomingStream);
+    this.client.in.stream = incomingStream;
+    this.client.out.stream = outgoingStream;
+
+    const info = outgoingStream.getStreamInfo();
+    answer.addStream(info);
+  }
 
   await Send(this, {
     op: VoiceOPCodes.SessionDescription,
     d: {
       video_codec: "H264",
-      sdp: answer,
+      sdp: answer.toString(),
       media_session_id: this.sessionId,
       audio_codec: "opus",
     },

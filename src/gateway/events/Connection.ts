@@ -68,6 +68,7 @@ export async function Connection(this: ws.Server, socket: WebSocket, request: In
     socket.sequence = 0;
     socket.subscribed_servers = {};
     socket.lazy_channels = {};
+    socket.subscribed_members = [];
 
     socket.rvClient = new Client({
       apiURL: revoltApiURL,

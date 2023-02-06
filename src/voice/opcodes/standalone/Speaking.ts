@@ -25,6 +25,7 @@ export async function onSpeaking(this: WebSocket, data: Payload) {
 
   getClients(this.client.channel_id).forEach((client) => {
     if (client === this.client) return;
+    if (!this.client) return;
     const ssrc = this.client.out.tracks.get(client.websocket.user_id);
 
     Send(client.websocket, {

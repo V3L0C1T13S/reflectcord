@@ -1,4 +1,7 @@
-import { Category, Channel as rvChannel, DataCreateChannel } from "revolt-api";
+/* eslint-disable camelcase */
+import {
+  Category, Channel as rvChannel, DataCreateChannel, DataEditChannel, FieldsChannel,
+} from "revolt-api";
 import {
   APIChannel,
   APIDMChannel,
@@ -10,6 +13,7 @@ import {
   APIUser,
   ChannelType as discordChannelType,
   OverwriteType,
+  RESTPatchAPIChannelJSONBody,
   RESTPostAPIGuildChannelJSONBody,
 } from "discord.js";
 import { API } from "revolt.js";
@@ -19,6 +23,7 @@ import {
 } from "../util";
 import { User } from "./user";
 import { convertPermNumber } from "./permissions";
+import { APIChannelPatchBody } from "../../sparkle";
 
 export type ChannelATQ = {};
 
@@ -539,5 +544,34 @@ DataCreateChannel, RESTPostAPIGuildChannelJSONBody
       // type: type ? await ChannelCreateType.from_quark(type) : discordChannelType.GuildText,
       nsfw: !!nsfw,
     };
+  },
+};
+
+export const ChannelPatchBody: QuarkConversion<
+DataEditChannel, APIChannelPatchBody
+> = {
+  async to_quark(data) {
+    const remove: FieldsChannel[] = [];
+
+    if (data.icon === null) remove.push("Icon");
+
+    const body: DataEditChannel = {
+      name: data.name ?? null,
+      description: data.topic ?? null,
+      nsfw: data.nsfw ?? null,
+    };
+
+    if (remove.length > 0) body.remove = remove;
+
+    return body;
+  },
+
+  async from_quark(data) {
+    const body: RESTPatchAPIChannelJSONBody = {};
+
+    if (data.name) body.name = data.name;
+    if (data.description) body.topic = data.description;
+
+    return body;
   },
 };

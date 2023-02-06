@@ -58,6 +58,7 @@ export interface WebSocket extends WS {
   bot: boolean;
   subscribed_servers: Record<string, subscribedServer>;
   lazy_channels: Record<string, lazyChannel>;
+  subscribed_members: string[];
   enable_lazy_channels: boolean;
   is_deprecated: boolean;
   version: number;

@@ -1,7 +1,9 @@
-import { Application } from "express";
+import { Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { handleImgRequest } from "../../../util";
 
-export default (express: Application) => <Resource> {
-  get: (req, res) => handleImgRequest(req, res, "attachments", req.params.id),
+export const handleAttachmentRequest = (req: Request, res: Response) => handleImgRequest(req, res, "attachments", req.params.id);
+
+export default () => <Resource> {
+  get: handleAttachmentRequest,
 };

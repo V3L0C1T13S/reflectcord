@@ -41,7 +41,7 @@ export const Attachment: QuarkConversion<API.File, APIAttachment> = {
     const { _id, size, content_type } = attachment;
 
     const id = await hashToSnowflake(_id);
-    const url = `http://${reflectcordCDNURL}/attachments/${id}`;
+    const url = `http://${reflectcordCDNURL}/attachments/${id}/${attachment.filename}`;
 
     const { width, height } = (() => {
       if (attachment.metadata.type === "Image" || attachment.metadata.type === "Video") {
@@ -57,16 +57,25 @@ export const Attachment: QuarkConversion<API.File, APIAttachment> = {
       };
     })();
 
-    return {
+    const discordAttachment: APIAttachment = {
       id,
       filename: attachment.filename,
       size,
       url,
       proxy_url: url,
-      width,
-      height,
       content_type,
     };
+
+    if (width && height) {
+      discordAttachment.width = width;
+      discordAttachment.height = height;
+    }
+
+    if (discordAttachment.content_type?.startsWith("text/plain")) {
+      discordAttachment.content_type = `${discordAttachment.content_type}; charset=utf-8`;
+    }
+
+    return discordAttachment;
   },
 };
 
@@ -85,6 +94,7 @@ export const PartialFile: QuarkConversion<API.File, string> = {
   },
 
   async from_quark(file) {
+    // TODO: Figure out when conversion is appropriate
     return hashToSnowflake(file._id);
   },
 };

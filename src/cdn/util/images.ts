@@ -92,6 +92,7 @@ export async function uploadFile(
     data,
     { headers: data.getHeaders() },
   ));
+  console.log(dataType);
 
   return response.data.id;
 }

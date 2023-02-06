@@ -19,15 +19,16 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable no-plusplus */
 /* eslint-disable camelcase */
-import { APIGuildMember, GatewayOpcodes } from "discord.js";
+import { APIGuildMember, GatewayDispatchEvents, GatewayOpcodes } from "discord.js";
 import { API } from "revolt.js";
 import {
-  internalStatus, Member, Status, fromSnowflake, toSnowflake,
+  internalStatus, Member, Status, fromSnowflake, toSnowflake, createUserPresence,
 } from "@reflectcord/common/models";
 import {
   LazyRequest, GatewayDispatchCodes, LazyRange, SyncItem, LazyGroup, LazyOpMember,
 } from "@reflectcord/common/sparkle";
 import { MemberContainer } from "@reflectcord/common/managers";
+import { listenEvent } from "@reflectcord/common/Events";
 import { Send, Payload, Dispatch } from "../util";
 import { WebSocket } from "../Socket";
 import { check } from "./instanceOf";
@@ -195,12 +196,20 @@ async function getMembers(
   };
 }
 
+function subscribeToMember(this: WebSocket, id: string) {
+  if (this.events[id]) return false; // already subscribed as friend
+  if (this.member_events[id]) return false; // already subscribed in member list
+  this.subscribed_members.push(id);
+
+  return true;
+}
+
 // FIXME: Partially implemented
 export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
   check.call(this, LazyRequest, data.d);
 
   const {
-    guild_id, typing, channels, activities, threads,
+    guild_id, typing, channels, activities, threads, members,
   } = data.d!;
 
   const channel_id = Object.keys(channels || {}).first();
@@ -208,6 +217,8 @@ export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
 
   const rvChannelId = await fromSnowflake(channel_id);
   const rvServerId = await fromSnowflake(guild_id);
+  const server = this.rvAPIWrapper.servers.get(rvServerId);
+  if (!server) throw new Error(`Server ${server} is not in RVAPI cache`);
 
   const ranges = channels![channel_id];
   if (!Array.isArray(ranges)) throw new Error("Not a valid Array");
@@ -222,10 +233,35 @@ export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
   if (threads !== undefined) subscribedServer.threads = threads;
   lazyChannel.messages = true;
 
+  // https://github.com/fosscord/fosscord-server/blob/76c85f7181cf5116b8f4ccd9015d1df371eb9c01/src/gateway/opcodes/LazyRequest.ts#L218
+  if (members) {
+    await Promise.all(members.map(async (id) => {
+      const rvMemberId = await fromSnowflake(id);
+      const user = await this.rvAPIWrapper.users.fetch(rvMemberId);
+      const alreadySubscribed = subscribeToMember.call(
+        this,
+        rvMemberId,
+      );
+      if (!alreadySubscribed) return;
+
+      const presence = createUserPresence({
+        user: user.revolt,
+        discordUser: user.discord,
+        server: server.revolt._id,
+      });
+
+      await Dispatch(this, GatewayDispatchEvents.PresenceUpdate, presence);
+    }));
+
+    if (!channels) return;
+  }
+
   const results = await getMembers
     .call(this, rvServerId, [0, 99], this.subscribed_servers[rvServerId]?.activities);
   const ops = results.results;
   const member_count = ops.members.length;
+
+  results.extendedMembers.forEach((member) => subscribeToMember.call(this, member.revolt._id.user));
 
   const { groups } = ops;
 
