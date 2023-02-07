@@ -234,6 +234,7 @@ export interface internalActivity extends Omit<ActivitiesOptions, "type"> {
 
 export interface internalStatus extends Omit<PresenceData, "activities"> {
   activities?: internalActivity[],
+  since?: number,
 }
 
 export type StatusATQ = {};
@@ -334,6 +335,11 @@ export const Status: QuarkConversion<RevoltUser["status"], internalStatus, Statu
       } as any);
     }
 
+    if (discordStatus.status === "idle") {
+      discordStatus.since = Date.now();
+      discordStatus.afk = true;
+    }
+
     return discordStatus;
   },
 };
@@ -402,18 +408,26 @@ export async function createUserPresence(
   const presence: Omit<GatewayPresenceUpdateDispatchData, "guild_id"> & {
     guild_id?: string,
     last_modified?: number,
+    since?: number,
+    afk?: boolean,
   } = {
-    user: data.discordUser ?? await User.from_quark(data.user),
-    status: realStatus as any,
+    activities: status.activities as any ?? [],
     client_status: {
       web: realStatus as any,
     },
+    status: realStatus as any,
     last_modified: Date.now(),
+    // FIXME: Discord has inconsistent behaviour with the user object
+    user: data.discordUser ?? await User.from_quark(data.user),
   };
+
+  if (status.status === "idle" && status.since && status.afk) {
+    presence.since = status.since;
+    presence.afk = status.afk;
+  }
 
   if (data.guild_id) presence.guild_id = data.guild_id;
   if (data.server && !data.guild_id) presence.guild_id = await toSnowflake(data.server);
-  if (status.activities) presence.activities = status.activities as any;
 
   return presence;
 }

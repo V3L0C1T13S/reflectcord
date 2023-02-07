@@ -879,35 +879,28 @@ export async function startListener(
         case "UserUpdate": {
           const user = await this.rvAPIWrapper.users.fetch(data.id);
 
+          // TODO: Make it so we don't have to do this to clear revolt beforehand
+          this.rvAPIWrapper.users.update(data.id, {
+            revolt: data.data ?? {},
+            discord: {},
+          }, data.clear);
+
           this.rvAPIWrapper.users.update(data.id, {
             revolt: data.data ?? {},
             discord: await User.from_quark({
               ...user.revolt,
               ...data.data,
             }),
-          });
+          }, data.clear);
 
           if (data.id !== this.rv_user_id) {
             if (data.data.status || data.data.online !== null || data.data.online !== undefined) {
-              const status = await Status.from_quark(
-                data.data.status ?? user.revolt.status,
-                {
-                  online: data.data.online,
-                },
-              );
-
-              const presence = status.status === "invisible" ? "offline" : status.status;
-
-              await Dispatch(this, GatewayDispatchEvents.PresenceUpdate, {
-                activities: status.activities ?? [],
-                client_status: {
-                  desktop: presence,
-                },
-                status: presence,
-                last_modified: Date.now(),
-                // FIXME: Discord has inconsistent behaviour with the user object
-                user: user.discord,
+              const updated = await createUserPresence({
+                user: user.revolt,
+                discordUser: user.discord,
               });
+
+              await Dispatch(this, GatewayDispatchEvents.PresenceUpdate, updated);
             }
 
             return;
