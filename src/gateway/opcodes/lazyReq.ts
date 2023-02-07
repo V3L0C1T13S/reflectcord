@@ -29,6 +29,7 @@ import {
 } from "@reflectcord/common/sparkle";
 import { MemberContainer } from "@reflectcord/common/managers";
 import { listenEvent } from "@reflectcord/common/Events";
+import Long from "long";
 import { Send, Payload, Dispatch } from "../util";
 import { WebSocket } from "../Socket";
 import { check } from "./instanceOf";
@@ -47,6 +48,7 @@ async function getMembers(
   this: WebSocket,
   guild_id: string,
   range: LazyRange,
+  target_channel: string,
   activities?: boolean,
 ) {
   if (!Array.isArray(range) || range.length !== 2) throw new Error("invalid range");
@@ -66,6 +68,7 @@ async function getMembers(
   }
 
   const server = this.rvAPIWrapper.servers.get(guild_id);
+  const channel = this.rvAPIWrapper.channels.get(target_channel);
 
   members.members.sort((x, y) => {
     const extractRoles = (r: string) => server?.revolt.roles?.[r];
@@ -257,7 +260,7 @@ export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
   }
 
   const results = await getMembers
-    .call(this, rvServerId, [0, 99], this.subscribed_servers[rvServerId]?.activities);
+    .call(this, rvServerId, [0, 99], rvChannelId, this.subscribed_servers[rvServerId]?.activities);
   const ops = results.results;
   const member_count = ops.members.length;
 

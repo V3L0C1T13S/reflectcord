@@ -57,7 +57,7 @@ export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, Memb
         });
     const discordAvatar = member.avatar ? await PartialFile.from_quark(member.avatar) : null;
 
-    return {
+    const discordMember: APIGuildMember = {
       // id: await toSnowflake(_id.user),
       joined_at: toCompatibleISO(new Date(joined_at).toISOString()),
       communication_disabled_until: timeout
@@ -72,6 +72,8 @@ export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, Memb
       user,
       flags: 0,
     };
+
+    return discordMember;
   },
 };
 

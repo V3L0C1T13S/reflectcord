@@ -4,10 +4,10 @@ import {
   GatewayDispatchEvents,
 } from "discord.js";
 import { API } from "revolt.js";
-import { clamp } from "lodash";
+import { clamp, chunk } from "lodash";
 import {
   createUserPresence,
-  fromSnowflake, Member, Status, User,
+  fromSnowflake, Member, User,
 } from "@reflectcord/common/models";
 import { ReqGuildMembersSchema, GuildMembersChunk } from "@reflectcord/common/sparkle";
 import rfcNative from "rfcNative";
@@ -25,6 +25,8 @@ async function HandleRequest(
   user_ids?: string[] | string,
   query?: string,
   nonce?: string,
+  chunk_index = 0,
+  chunk_count = 1,
   limit = 1000,
 ) {
   if (limit) {
@@ -33,8 +35,8 @@ async function HandleRequest(
   }
 
   const body: GuildMembersChunk = {
-    chunk_index: 0,
-    chunk_count: 0,
+    chunk_index,
+    chunk_count,
     guild_id: guildId,
     members: [],
   };
@@ -110,28 +112,36 @@ export async function RequestGuildMembers(
 
   const maxMembers = limit ? clamp(limit, 1, 1000) : undefined;
 
-  if (typeof guild_id === "string") {
-    const rvId = await fromSnowflake(guild_id);
+  await Promise.all((Array.isArray(guild_id) ? guild_id : [guild_id]).map(async (x) => {
+    const rvId = await fromSnowflake(x);
     const members = await this.rvAPI.get(`/servers/${rvId as ""}/members`, {
       exclude_offline: false,
     });
-    await HandleRequest.call(
+    /*
+    if (limit) {
+      members.members.splice(limit);
+      members.users.splice(limit);
+    }
+    // incorrect chunking lol - we need to only send wanted members in the chunk
+    const memberChunks = chunk(members.members, 1000);
+    const userChunks = chunk(members.users, 1000);
+    await Promise.all(memberChunks.map((memberChunk, i) => HandleRequest.call(
       this,
-      guild_id,
-      members,
+      x,
+      {
+        members: memberChunk,
+        users: userChunks[i]!,
+      },
       presences,
       user_ids,
       query,
       nonce,
+      i,
+      memberChunks.length,
       maxMembers,
-    );
-  } else {
-    await Promise.all(guild_id.map(async (x) => {
-      const rvId = await fromSnowflake(x);
-      const members = await this.rvAPI.get(`/servers/${rvId as ""}/members`, {
-        exclude_offline: false,
-      });
-      await HandleRequest.call(this, x, members, presences, user_ids, query, nonce, maxMembers);
-    }));
-  }
+    )));
+    */
+    await HandleRequest
+      .call(this, x, members, presences, user_ids, query, nonce, undefined, undefined, maxMembers);
+  }));
 }
