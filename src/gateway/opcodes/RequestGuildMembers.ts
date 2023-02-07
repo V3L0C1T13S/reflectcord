@@ -85,7 +85,7 @@ async function HandleRequest(
         revolt: x,
         discord: await User.from_quark(x),
       });
-      const discordPresence = createUserPresence({
+      const discordPresence = await createUserPresence({
         user: userObj.revolt,
         discordUser: userObj.discord,
         guild_id: guildId,
