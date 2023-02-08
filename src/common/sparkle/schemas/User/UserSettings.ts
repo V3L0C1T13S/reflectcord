@@ -91,6 +91,10 @@ export interface UserSettings {
   } | null,
 }
 
+export type APIUserSettingsPATCHResponse = UserSettings & {
+  index?: number | string | undefined,
+}
+
 export const DefaultUserSettings: UserSettings = {
   afk_timeout: 3600,
   allow_accessibility_detection: true,

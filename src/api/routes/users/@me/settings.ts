@@ -1,13 +1,28 @@
 /* eslint-disable camelcase */
-import { UserSettings as DiscordUserSettings } from "@reflectcord/common/sparkle";
-import { RevoltSettings, SettingsKeys, UserSettings } from "@reflectcord/common/models";
-import { Application, Response } from "express";
+import { APIUserSettingsPATCHResponse, UserSettings as DiscordUserSettings } from "@reflectcord/common/sparkle";
+import {
+  createSettingsSyncPOST, RevoltSettings, SettingsKeys, UserSettings,
+} from "@reflectcord/common/models";
+import { Response } from "express";
 import { Resource } from "express-automatic-routes";
 
-// FIXME
-export default (express: Application) => <Resource> {
-  patch: (req, res: Response<DiscordUserSettings>) => {
-    res.sendStatus(204);
+export default () => <Resource> {
+  patch: async (req, res: Response<APIUserSettingsPATCHResponse>) => {
+    const current = await res.rvAPI.post("/sync/settings/fetch", {
+      keys: SettingsKeys,
+    });
+
+    const merged = {
+      ...current,
+      ...await UserSettings.to_quark(req.body),
+    };
+
+    await res.rvAPI.post("/sync/settings/set", createSettingsSyncPOST(merged));
+
+    res.json({
+      ...await UserSettings.from_quark(merged),
+      index: undefined,
+    });
   },
   get: async (req, res: Response<DiscordUserSettings>) => {
     const settings = await res.rvAPI.post("/sync/settings/fetch", {
