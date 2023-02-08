@@ -636,13 +636,19 @@ export async function startListener(
         case "ChannelUpdate": {
           const channelHandle = this.rvAPIWrapper.channels.get(data.id);
           if (channelHandle) {
+            // TODO: Better clear functions
+            this.rvAPIWrapper.channels.update(data.id, {
+              revolt: data.data,
+              discord: {},
+            }, data.clear);
+
             this.rvAPIWrapper.channels.update(data.id, {
               revolt: data.data,
               discord: await Channel.from_quark({
                 ...channelHandle.revolt,
                 ...data.data,
               } as API.Channel),
-            });
+            }, data.clear);
 
             const body: GatewayUserChannelUpdateOptional = {
               ...channelHandle.discord,
