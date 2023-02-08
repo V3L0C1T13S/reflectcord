@@ -29,7 +29,7 @@ export class MemberManager extends BaseManager<string, MemberContainer> {
     return data;
   }
 
-  update(id: string, data: MemberI) {
+  update(id: string, data: MemberI, clear?: API.FieldsMember[]) {
     const member = this.get(id)!;
     const apply = (ctx: string, key: string, target?: string) => {
       if (
@@ -44,6 +44,28 @@ export class MemberManager extends BaseManager<string, MemberContainer> {
     };
     const applyRevolt = (key: string, target?: string) => apply("revolt", key, target);
     const applyDiscord = (key: string, target?: string) => apply("discord", key, target);
+
+    clear?.forEach((value) => {
+      switch (value) {
+        case "Avatar": {
+          delete member.revolt.avatar;
+          break;
+        }
+        case "Nickname": {
+          delete member.revolt.nickname;
+          break;
+        }
+        case "Roles": {
+          delete member.revolt.roles;
+          break;
+        }
+        case "Timeout": {
+          delete member.revolt.timeout;
+          break;
+        }
+        default:
+      }
+    });
 
     applyRevolt("joined_at");
     applyRevolt("nickname");

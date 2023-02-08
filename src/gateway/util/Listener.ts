@@ -807,7 +807,10 @@ export async function startListener(
           break;
         }
         case "ServerMemberJoin": {
-          const member = await this.rvAPIWrapper.members.fetch(data.id, data.user);
+          const server = this.rvAPIWrapper.servers.get(data.id);
+          if (!server?.extra?.members) return;
+
+          const member = await server.extra.members.fetch(data.id, data.user);
 
           const body: GatewayGuildMemberAddDispatchData = {
             ...member.discord,
@@ -819,8 +822,16 @@ export async function startListener(
           break;
         }
         case "ServerMemberUpdate": {
-          const member = await this.rvAPIWrapper.members.fetch(data.id.server, data.id.user);
-          this.rvAPIWrapper.members.update(data.id.user, {
+          const server = this.rvAPIWrapper.servers.get(data.id.server);
+          if (!server?.extra?.members) return;
+
+          const member = await server.extra.members.fetch(data.id.server, data.id.user);
+          server.extra.members.update(data.id.user, {
+            revolt: data.data,
+            discord: {},
+          }, data.clear);
+
+          server.extra.members.update(data.id.user, {
             revolt: data.data,
             discord: await Member.from_quark({
               ...member.revolt,
@@ -828,7 +839,7 @@ export async function startListener(
             }, {
               discordUser: member.discord.user,
             }),
-          });
+          }, data.clear);
 
           const body: GatewayGuildMemberUpdateDispatchData = {
             ...member.discord,
