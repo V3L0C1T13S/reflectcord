@@ -5,7 +5,7 @@ import protobuf from "protobufjs";
 import { join } from "path";
 import { invert } from "lodash";
 import { QuarkConversion } from "../../QuarkConversion";
-import { toSnowflake } from "../../util";
+import { fromSnowflake, toSnowflake } from "../../util";
 
 const protoDir = join(__dirname, "../../../../../resources");
 
@@ -135,13 +135,10 @@ UserSettingsAFQ
       "appearance:theme:font": "Ubuntu",
       "appearance:theme:monoFont": "Ubuntu Mono",
     } : null;
-    /*
     const ordering: RevoltOrderingSetting | null = settings.guild_positions
       ? {
         servers: await Promise.all(settings.guild_positions.map((id) => fromSnowflake(id))),
-      }
-      : null;
-    */
+      } : null;
     const userContent: DiscordUserSettings["user_content"] = settings.user_content;
     const textAndImages: RevoltTextAndImagesSetting = {
       animate_emoji: !!settings.animate_emoji,
@@ -155,7 +152,7 @@ UserSettingsAFQ
 
     if (locale) rvSettings.locale = [Date.now(), JSON.stringify(locale)];
     if (theme) rvSettings.theme = [Date.now(), JSON.stringify(theme)];
-    // if (ordering) rvSettings.ordering = [Date.now(), JSON.stringify(ordering)];
+    if (ordering) rvSettings.ordering = [Date.now(), JSON.stringify(ordering)];
     if (userContent) rvSettings.user_content = [Date.now(), JSON.stringify(userContent)];
 
     return rvSettings;
