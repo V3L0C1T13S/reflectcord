@@ -44,10 +44,10 @@ import {
   UserSettings,
   settingsToProtoBuf,
   ReadState,
-  GatewayGuildEmoji,
   Role,
   createCommonGatewayGuild,
   createUserPresence,
+  createGatewayGuildEmoji,
 } from "@reflectcord/common/models";
 import { Logger, RabbitMQ, toCompatibleISO } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
@@ -162,18 +162,30 @@ export async function startListener(
 
           const lazyGuilds: GatewayGuildCreateDispatchData[] = [];
 
+          if (data.emojis) {
+            await Promise.all(data.emojis
+              .filter((x) => x.parent.type === "Server")
+              .map(async (x) => this.rvAPIWrapper.emojis.createObj({
+                revolt: x,
+                discord: await Emoji.from_quark(x, {
+                  discordUser: this.rvAPIWrapper.users.get(x.creator_id)?.discord,
+                }),
+              })));
+          }
+
           const guilds = await Promise.all(data.servers
             .map(async (server) => {
               const rvChannels: API.Channel[] = server.channels
                 .map((x) => this.rvAPIWrapper.channels.$get(x)?.revolt).filter((x) => x);
 
               const emojis = data.emojis
-                ?.filter((x) => x.parent.type === "Server" && x.parent.id === server._id);
+                ?.filter((emoji) => emoji.parent.type === "Server" && emoji.parent.id === server._id)
+                .map((emoji) => this.rvAPIWrapper.emojis.get(emoji._id)!);
 
               const rvServer = this.rvAPIWrapper.servers.createObj({
                 revolt: server,
                 discord: await Guild.from_quark(server, {
-                  emojis,
+                  discordEmojis: emojis?.map((emoji) => emoji.discord),
                 }),
               });
 
@@ -200,8 +212,9 @@ export async function startListener(
               const guild = {
                 ...commonGuild,
                 data_mode: "full",
-                emojis: emojis ? await Promise.all(emojis
-                  ?.map((x) => GatewayGuildEmoji.from_quark(x))) : [],
+                emojis: emojis
+                  ?.map((emoji) => createGatewayGuildEmoji(emoji.discord, discordGuild.id))
+                  ?? [],
                 id: discordGuild.id,
                 lazy: true,
                 premium_subscription_count: discordGuild.premium_subscription_count ?? 0,
@@ -231,15 +244,6 @@ export async function startListener(
 
               return guild;
             }));
-
-          if (data.emojis) {
-            await Promise.all(data.emojis
-              .filter((x) => x.parent.type === "Server")
-              .map(async (x) => this.rvAPIWrapper.emojis.createObj({
-                revolt: x,
-                discord: await Emoji.from_quark(x),
-              })));
-          }
 
           const mfaInfo = !currentUser.bot ? await this.rvAPI.get("/auth/mfa/") : null;
           const authInfo = !currentUser.bot ? await this.rvAPI.get("/auth/account/") : null;

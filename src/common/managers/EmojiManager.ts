@@ -1,5 +1,4 @@
 import { APIEmoji } from "discord.js";
-import { runInAction } from "mobx";
 import { API } from "revolt.js";
 import { Emoji } from "@reflectcord/common/models";
 import { BaseManager } from "./BaseManager";
@@ -30,7 +29,9 @@ export class EmojiManager extends BaseManager<string, EmojiContainer> {
 
     return this.createObj({
       revolt: res,
-      discord: await Emoji.from_quark(res),
+      discord: await Emoji.from_quark(res, {
+        discordUser: this.apiWrapper.users.get(res.creator_id)?.discord,
+      }),
     });
   }
 }

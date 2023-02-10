@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable camelcase */
 /* eslint-disable no-bitwise */
 import {
@@ -25,7 +26,9 @@ import { QuarkConversion } from "../../QuarkConversion";
 import { fromSnowflake, hashToSnowflake, toSnowflake } from "../../util";
 import { convertPermNumber, Permissions } from "../permissions";
 import { Role } from "../role";
-import { discordGatewayGuildEmoji, Emoji, GatewayGuildEmoji } from "../emoji";
+import {
+  createGatewayGuildEmoji, discordGatewayGuildEmoji, Emoji,
+} from "../emoji";
 import { toCompatibleISO } from "../../../utils/date";
 import { PartialFile } from "../attachment";
 
@@ -96,6 +99,7 @@ export type GuildATQ = {
 };
 export type GuildAFQ = Partial<{
   emojis: API.Emoji[] | undefined | null,
+  discordEmojis: APIEmoji[] | undefined | null,
 }>
 
 export const Guild: QuarkConversion<Server, APIGuild, GuildATQ, GuildAFQ> = {
@@ -179,8 +183,10 @@ export const Guild: QuarkConversion<Server, APIGuild, GuildATQ, GuildAFQ> = {
 
         return discordRoles;
       })(),
-      emojis: extra?.emojis ? await Promise.all(extra.emojis
-        .map((x) => Emoji.from_quark(x))) : [],
+      emojis: extra?.discordEmojis
+        ? extra?.discordEmojis
+        : extra?.emojis ? await Promise.all(extra.emojis
+          .map((x) => Emoji.from_quark(x))) : [],
       features,
       mfa_level: GuildMFALevel.None,
       application_id: null,
@@ -333,11 +339,14 @@ export async function createUserGatewayGuild(
   guild: APIGuild,
   data: UserGatewayGuildData,
 ): Promise<UserGatewayGuild> {
+  const { emojis } = guild;
+
   return {
     ...createCommonGatewayGuild(guild, data),
     data_mode: "full",
-    emojis: data.emojis ? await Promise.all(data.emojis
-      ?.map((x) => GatewayGuildEmoji.from_quark(x))) : [],
+    emojis: emojis
+      ?.map((emoji) => createGatewayGuildEmoji(emoji, guild.id))
+    ?? [],
     id: guild.id,
     lazy: true,
     premium_subscription_count: guild.premium_subscription_count ?? 0,

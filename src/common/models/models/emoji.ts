@@ -1,4 +1,6 @@
-import { APIEmoji, APIPartialEmoji, APIReaction } from "discord.js";
+import {
+  APIEmoji, APIPartialEmoji, APIReaction, APIUser,
+} from "discord.js";
 import { API } from "revolt.js";
 import { toSnowflake } from "@reflectcord/common/models";
 import { emojis } from "../../emojilib";
@@ -9,7 +11,8 @@ import { User } from "./user";
 export type EmojiATQ = {};
 
 export type EmojiAFQ = Partial<{
-  user: API.User | null | undefined,
+  user?: API.User | null | undefined,
+  discordUser?: APIUser | null | undefined,
 }>;
 
 export const PartialEmoji: QuarkConversion<API.Emoji, APIPartialEmoji> = {
@@ -56,16 +59,31 @@ export const Emoji: QuarkConversion<API.Emoji, APIEmoji, EmojiATQ, EmojiAFQ> = {
       ...partial,
       available: true,
       roles: [],
-      user: await User.from_quark(extra?.user ?? {
-        _id: emoji.creator_id,
-        username: "fixme",
-      }),
+      user: extra?.discordUser
+        ? extra.discordUser
+        : await User.from_quark(extra?.user ?? {
+          _id: emoji.creator_id,
+          username: "fixme",
+        }),
     };
   },
 };
 
 export interface discordGatewayGuildEmoji extends APIEmoji {
   guildId: string | null;
+  allNamesString: string;
+}
+
+export function createGatewayGuildEmoji(
+  emoji: APIEmoji,
+  guildId?: string,
+): discordGatewayGuildEmoji {
+  return {
+    ...emoji,
+    managed: false,
+    allNamesString: `:${emoji.name}:`,
+    guildId: guildId ?? null,
+  };
 }
 
 // Sent in the gateway READY event underneath the "emojis" object in a guild
@@ -79,13 +97,9 @@ API.Emoji, discordGatewayGuildEmoji, EmojiATQ, EmojiAFQ
   async from_quark(emoji, extra) {
     const discordEmoji = await Emoji.from_quark(emoji, extra);
 
-    discordEmoji.managed = false;
+    const guildId = emoji.parent.type === "Server" ? await toSnowflake(emoji.parent.id) : undefined;
 
-    return {
-      ...discordEmoji,
-      allNamesString: `:${discordEmoji.name}:`,
-      guildId: emoji.parent.type === "Server" ? await toSnowflake(emoji.parent.id) : null,
-    };
+    return createGatewayGuildEmoji(discordEmoji, guildId);
   },
 };
 
