@@ -15,4 +15,4 @@ export * from "./checkRoute";
 export * from "./UnimplementedError";
 export * from "./types";
 export * from "./date";
-// export * from "./handlers";
+export * from "./revolt";

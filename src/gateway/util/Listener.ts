@@ -3,7 +3,6 @@
 /* eslint-disable no-plusplus */
 import {
   APIChannel,
-  GatewayChannelDeleteDispatchData,
   GatewayCloseCodes,
   GatewayDispatchEvents,
   GatewayGuildCreateDispatchData,
@@ -19,8 +18,6 @@ import {
   GatewayMessageReactionAddDispatchData,
   GatewayMessageReactionRemoveDispatchData,
   GatewayMessageReactionRemoveEmojiDispatchData,
-  GatewayMessageUpdateDispatchData,
-  GatewayOpcodes,
   GatewayTypingStartDispatchData,
 } from "discord.js";
 import { API } from "revolt.js";
@@ -38,7 +35,6 @@ import {
   User,
   toSnowflake,
   GuildCategory,
-  fromSnowflake,
   SettingsKeys,
   RevoltSettings,
   UserSettings,
@@ -49,18 +45,19 @@ import {
   createUserPresence,
   createGatewayGuildEmoji,
 } from "@reflectcord/common/models";
-import { Logger, RabbitMQ, toCompatibleISO } from "@reflectcord/common/utils";
+import { Logger, RabbitMQ } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
 import {
   GatewayUserChannelUpdateOptional,
   IdentifySchema,
   GatewayUserSettingsProtoUpdateDispatchData,
   GatewayDispatchCodes,
+  MergedMember,
 } from "@reflectcord/common/sparkle";
-import { discordEpoch, reflectcordWsURL } from "@reflectcord/common/constants";
+import { reflectcordWsURL } from "@reflectcord/common/constants";
 import { VoiceState } from "@reflectcord/common/mongoose";
 import { WebSocket } from "../Socket";
-import { Dispatch, Send } from "./send";
+import { Dispatch } from "./send";
 import experiments from "./experiments.json";
 import { isDeprecatedClient } from "../versioning";
 import { updateMessage } from "./messages";
@@ -96,8 +93,7 @@ export async function startListener(
   this.rvClient.on("packet", async (data) => {
     try {
       switch (data.type) {
-        // @ts-ignore
-        case "NotFound": {
+        case "Error": {
           this.close(GatewayCloseCodes.AuthenticationFailed);
           break;
         }
@@ -277,7 +273,9 @@ export async function startListener(
             const server = this.rvAPIWrapper.servers.$get(x._id.server);
             const member = {
               revolt: x,
-              discord: await Member.from_quark(x),
+              discord: await Member.from_quark(x, {
+                discordUser: this.rvAPIWrapper.users.get(x._id.user)?.discord,
+              }),
             };
 
             server.extra?.members.createObj(member);
@@ -288,15 +286,22 @@ export async function startListener(
           const mergedMembers = memberData.map((member_data) => {
             const { guild, member } = member_data;
 
-            // FIXME: Make role with highest ranking take priority
-            const hoisted_role = guild.roles.find((role) => role.hoist
-            && member.discord.roles.find((member_role) => member_role === role.id));
+            const hoistedRoles = guild.roles
+              .filter((role) => role.hoist && member.discord.roles
+                .find((member_role) => member_role === role.id));
 
-            const body: any = { ...member.discord };
+            /**
+             * FIXME: When we eventually sort role positions correctly,
+             * this code will need to be adjusted
+            */
+            const hoisted_role = hoistedRoles
+              .sort((r1, r2) => r1.position - r2.position)[0];
 
-            if (hoisted_role) body.hoisted_role = hoisted_role;
+            const mergedMember: MergedMember = { ...member.discord };
 
-            return body;
+            if (hoisted_role) mergedMember.hoisted_role = hoisted_role;
+
+            return mergedMember;
           });
 
           const relationships = await Promise.all(users

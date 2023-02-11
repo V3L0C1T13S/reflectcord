@@ -152,7 +152,7 @@ UserSettingsAFQ
 
     if (locale) rvSettings.locale = [Date.now(), JSON.stringify(locale)];
     if (theme) rvSettings.theme = [Date.now(), JSON.stringify(theme)];
-    if (ordering) rvSettings.ordering = [Date.now(), JSON.stringify(ordering)];
+    // if (ordering) rvSettings.ordering = [Date.now(), JSON.stringify(ordering)];
     if (userContent) rvSettings.user_content = [Date.now(), JSON.stringify(userContent)];
 
     return rvSettings;

@@ -1,7 +1,7 @@
 import { Response } from "express";
 import { Resource } from "express-automatic-routes";
 import axios from "axios";
-import { DiscoverableBot } from "@reflectcord/common/models";
+import { DiscoverableBot, PartialFile } from "@reflectcord/common/models";
 import { AppCategory, CollectionType } from "@reflectcord/common/sparkle";
 import { getRevoltDiscoveryDataURL } from "@reflectcord/common/constants";
 import { BotDiscoveryResponse } from "@reflectcord/common/rvapi";
@@ -18,6 +18,7 @@ export default () => <Resource> {
     const categories = [];
 
     if (mostPopularBot) {
+      const application = await DiscoverableBot.from_quark(mostPopularBot);
       categories.push({
         id: "0",
         active: true,
@@ -28,9 +29,11 @@ export default () => <Resource> {
         application_directory_collection_items: [{
           id: "0",
           type: 1,
-          image_hash: mostPopularBot.profile?.background?._id ?? "",
+          image_hash: mostPopularBot.profile?.background
+            ? await PartialFile.from_quark(mostPopularBot.profile.background)
+            : "",
           position: 1,
-          application: await DiscoverableBot.from_quark(mostPopularBot),
+          application,
         }],
       });
     }
@@ -47,7 +50,9 @@ export default () => <Resource> {
         .map(async (app, pos) => ({
           id: "0",
           type: 1,
-          image_hash: app.profile?.background?._id ?? "",
+          image_hash: app.profile?.background
+            ? await PartialFile.from_quark(app.profile.background)
+            : "",
           position: pos,
           application: await DiscoverableBot.from_quark(app),
         }))),

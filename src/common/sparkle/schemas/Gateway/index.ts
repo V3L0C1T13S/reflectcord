@@ -5,3 +5,4 @@ export * from "./APIGatewayResponse";
 export * from "./Dispatch";
 export * from "./GatewayEvents";
 export * from "./LazyRequest";
+export * from "./Members";
