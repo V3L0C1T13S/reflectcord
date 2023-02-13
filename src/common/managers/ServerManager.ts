@@ -108,16 +108,22 @@ export class ServerManager extends BaseManager<string, ServerContainer> {
     });
   }
 
-  /**
-   * Add an array of roles to a member
-   * @returns The updated member
-  */
-  async addRolesToMember(serverId: string, memberId: string, roles: string[]) {
+  protected async getMember(serverId: string, memberId: string) {
     // TODO: Better caching
     const server = this.get(serverId);
     const member = server?.extra
       ? (await server.extra.members.fetch(serverId, memberId)).revolt
       : await this.rvAPI.get(`/servers/${serverId as ""}/members/${memberId as ""}`);
+
+    return member;
+  }
+
+  /**
+   * Add an array of roles to a member
+   * @returns The updated member
+  */
+  async addRolesToMember(serverId: string, memberId: string, roles: string[]) {
+    const member = await this.getMember(serverId, memberId);
 
     const res = await this.rvAPI.patch(`/servers/${serverId as ""}/members/${memberId as ""}`, {
       roles: [...member.roles ?? [], ...roles],
@@ -132,6 +138,20 @@ export class ServerManager extends BaseManager<string, ServerContainer> {
   */
   addRoleToMember(serverId: string, memberId: string, role: string) {
     return this.addRolesToMember(serverId, memberId, [role]);
+  }
+
+  async removeRolesFromMember(serverId: string, memberId: string, roles: string[]) {
+    const member = await this.getMember(serverId, memberId);
+
+    const res = await this.rvAPI.patch(`/servers/${serverId as ""}/members/${memberId as ""}`, {
+      roles: (member.roles ?? []).filter((id) => !roles.includes(id)),
+    });
+
+    return res;
+  }
+
+  async removeRoleFromMember(serverId: string, memberId: string, role: string) {
+    return this.removeRolesFromMember(serverId, memberId, [role]);
   }
 
   getInvite(id: string) {

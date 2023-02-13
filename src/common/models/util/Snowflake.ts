@@ -44,6 +44,14 @@ export async function fromSnowflake(id: string | number) {
   return existing._id;
 }
 
+export const multipleToSnowflake = (ids: string[]) => Promise.all(
+  ids.map((id) => toSnowflake(id)),
+);
+
+export const multipleFromSnowflake = (ids: string[] | number[]) => Promise.all(
+  ids.map((id) => fromSnowflake(id)),
+);
+
 /**
  * Only use on stuff that is either user-generted,
  * or generally unreliable.
