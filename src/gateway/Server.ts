@@ -16,6 +16,7 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import "missing-native-js-functions";
 import ws from "ws";
 import http from "http";
 import { RabbitMQ } from "@reflectcord/common/utils";

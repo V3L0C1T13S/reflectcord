@@ -1,4 +1,4 @@
-import { APIGuildMember, PresenceData } from "discord.js";
+import { APIGuildMember, PresenceData, PresenceStatus } from "discord.js";
 
 export interface LazyGroup {
   /** Role ID OR "offline" OR "online" */
@@ -7,15 +7,22 @@ export interface LazyGroup {
 }
 
 export type LazyOpMember = APIGuildMember & {
-  presence: PresenceData,
+  presence: Omit<PresenceData, "status"> & {
+    status?: PresenceStatus,
+  },
 }
 
 export type SyncItem = LazyGroup | LazyOpMember;
+
+export type LazyItemWithMember = { member: LazyOpMember }
+export type LazyItemWithGroup = { group: LazyGroup }
+export type LazyItem = LazyItemWithGroup | LazyItemWithMember;
 
 export type LazySyncType = "SYNC" | "INVALIDATE" | "INSERT" | "DELETE" | "UPDATE";
 
 export interface LazyOperator {
   op: LazySyncType,
+  guild_id: string,
 }
 
 export type LazyRange = [number, number];
@@ -23,7 +30,10 @@ export type LazyRange = [number, number];
 export interface LazyOperatorSync extends LazyOperator {
   op: "SYNC",
   range: LazyRange,
-  items: SyncItem[],
+  items: LazyItem[],
+  id: string,
+  member_count: number,
+  groups: LazyGroup[],
 }
 
 export interface LazyOperatorInvalidate extends LazyOperator {
@@ -34,13 +44,13 @@ export interface LazyOperatorInvalidate extends LazyOperator {
 export interface LazyOperatorInsert extends LazyOperator {
   op: "INSERT",
   index: number,
-  item: SyncItem,
+  item: LazyItem,
 }
 
 export interface LazyOperatorUpdate extends LazyOperator {
   op: "UPDATE",
   index: number,
-  item: SyncItem,
+  item: LazyItem,
 }
 
 export interface LazyOperatorDelete extends LazyOperator {

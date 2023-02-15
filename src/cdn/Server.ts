@@ -1,3 +1,4 @@
+import "missing-native-js-functions";
 import bodyParser from "body-parser";
 import path from "path";
 import { Server, RabbitMQ } from "@reflectcord/common/utils";

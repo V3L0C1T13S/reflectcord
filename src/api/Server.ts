@@ -16,6 +16,7 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import "missing-native-js-functions";
 import {
   NextFunction, Router, Response, Request,
 } from "express";

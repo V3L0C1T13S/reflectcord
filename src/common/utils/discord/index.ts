@@ -4,3 +4,5 @@ export * from "./session";
 export * from "./apps";
 export * from "./regex";
 export * from "./revolt_regex";
+// wtf? exporting causes crash
+// export * from "./MemberList";

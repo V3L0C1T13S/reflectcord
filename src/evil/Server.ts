@@ -1,3 +1,4 @@
+import "missing-native-js-functions";
 import { Router } from "express";
 import morgan from "morgan";
 import { join } from "path";

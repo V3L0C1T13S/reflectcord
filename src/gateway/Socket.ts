@@ -23,6 +23,7 @@ import { API } from "revolt-api";
 import { Client } from "revolt.js";
 import WS from "ws";
 import { Deflate, Inflate } from "fast-zlib";
+import { MemberList } from "@reflectcord/common/utils/discord/MemberList";
 import { APIWrapper } from "../common/rvapi";
 import { Payload } from "./util";
 
@@ -43,6 +44,7 @@ interface subscribedServer {
    * Subscribed to new thread creations
   */
   threads?: boolean;
+  memberList?: MemberList
 }
 
 /**

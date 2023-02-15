@@ -192,7 +192,7 @@ async function getMembers(
     results: {
       items,
       groups,
-      range,
+      range: [range[0], items.length],
       members: items.map((x) => ("member" in x ? x.member : undefined)).filter((x) => !!x),
     },
     extendedMembers,

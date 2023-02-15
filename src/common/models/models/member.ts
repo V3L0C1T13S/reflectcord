@@ -6,7 +6,7 @@ import {
 import { Member as RevoltMember } from "revolt-api";
 import { API } from "revolt.js";
 import { QuarkConversion } from "../QuarkConversion";
-import { fromSnowflake, toSnowflake } from "../util";
+import { fromSnowflake, multipleToSnowflake, toSnowflake } from "../util";
 import { User } from "./user";
 import { toCompatibleISO } from "../../utils/date";
 import { PartialFile } from "./attachment";
@@ -43,9 +43,6 @@ export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, Memb
       _id, joined_at, nickname, timeout, roles,
     } = member;
 
-    const convRoles = roles
-      ? await Promise.all(roles.map((x) => toSnowflake(x)))
-      : [];
     const user = extra?.discordUser
       ? extra.discordUser
       : extra?.user
@@ -63,7 +60,7 @@ export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, Memb
       communication_disabled_until: timeout
         ? toCompatibleISO(new Date(timeout).toISOString())
         : null,
-      roles: convRoles,
+      roles: member.roles ? await multipleToSnowflake(member.roles) : [],
       deaf: false,
       mute: false,
       nick: nickname ?? null,
