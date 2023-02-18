@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { APIMessage, RESTPostAPIChannelMessageJSONBody } from "discord.js";
+import { APIMessage } from "discord.js";
 import { Application, Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
@@ -12,7 +12,7 @@ import {
 } from "@reflectcord/common/utils";
 import { MessageCreateSchema } from "@reflectcord/common/sparkle";
 
-export type sendReq = Request<any, any, RESTPostAPIChannelMessageJSONBody & { payload_json: any }>;
+export type sendReq = Request<any, any, MessageCreateSchema & { payload_json: any }>;
 
 export type rvMsgWithUsers = {
   messages: API.Message[];
@@ -82,13 +82,11 @@ export default (express: Application) => <Resource> {
 
       const rvId = await fromSnowflake(channel_id);
 
-      // eslint-disable-next-line no-self-compare
-      const files = req.files?.length ?? 0 > 0 ? req.files : req.body.attachments;
+      const files = req.files ? req.files : req.body.attachments;
 
       const msg = await res.rvAPIWrapper.messages.sendMessage(
         rvId,
         await MessageSendData.to_quark(req.body, {
-          // @ts-ignore
           files,
         }),
       );

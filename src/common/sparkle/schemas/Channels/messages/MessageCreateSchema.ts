@@ -22,4 +22,6 @@ export const MessageCreateSchema = {
 };
 
 // eslint-disable-next-line no-redeclare
-export type MessageCreateSchema = RESTPostAPIChannelMessageJSONBody;
+export interface MessageCreateSchema extends Omit<RESTPostAPIChannelMessageJSONBody, "attachments"> {
+  attachments?: RESTPostAPIChannelMessageJSONBody["attachments"] | AttachmentSchema[],
+}

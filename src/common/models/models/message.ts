@@ -22,6 +22,8 @@ import { Attachment } from "./attachment";
 import { Embed, SendableEmbed } from "./embed";
 import { Reactions } from "./emoji";
 import { User } from "./user";
+import { MessageCreateSchema } from "../../sparkle";
+import { AttachmentSchema, FileIsNewAttachment } from "../../sparkle/schemas/Channels/messages/Attachment";
 import {
   CHANNEL_MENTION, REVOLT_CHANNEL_MENTION, REVOLT_USER_MENTION,
   USER_MENTION,
@@ -319,12 +321,12 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
 };
 
 export type MessageSendDataATQ = {
-  files?: fileUpload.FileArray | null | undefined,
+  files?: fileUpload.FileArray | MessageCreateSchema["attachments"] | null | undefined,
 }
 
 export const MessageSendData: QuarkConversion<
   API.DataMessageSend,
-  RESTPostAPIChannelMessageJSONBody,
+  MessageCreateSchema,
   MessageSendDataATQ
 > = {
   async to_quark(data, extra) {
@@ -349,12 +351,14 @@ export const MessageSendData: QuarkConversion<
         mention: data.allowed_mentions?.replied_user ?? true,
       }] : null,
       nonce: data.nonce?.toString() ?? null,
-      attachments: extra?.files ? (await Promise.all(Object.values(extra.files)
+      // TODO: Cleanup
+      attachments: extra?.files ? (await Promise.all((
+        Array.isArray(extra.files) ? extra.files : Object.values(extra.files))
         .map(async (x) => {
-          const file: any = Array.isArray(x) ? x?.[0] : x;
+          const file = Array.isArray(x) ? x?.[0] : x;
           if (!file) return;
 
-          if (file.uploaded_filename) {
+          if (!Array.isArray(x) && FileIsNewAttachment(file) && file.uploaded_filename) {
             const upload_id = file.uploaded_filename.split("/")[0];
             const uploadedFile = await UploadedFile.findById(upload_id);
 
@@ -362,6 +366,8 @@ export const MessageSendData: QuarkConversion<
 
             return uploadedFile.autumn_id;
           }
+
+          if (!("data" in file)) throw new Error("We can't determine what type of file this is. Please report this!");
 
           const id = await uploadFile("attachments", {
             name: file.name,

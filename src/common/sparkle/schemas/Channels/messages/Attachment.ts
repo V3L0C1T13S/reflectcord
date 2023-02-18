@@ -16,4 +16,8 @@ export const AttachmentSchema = {
   $ephemeral: Boolean,
 };
 
-export type AttachmentSchema = APIAttachment;
+export type AttachmentSchema = APIAttachment & {
+  uploaded_filename?: string,
+};
+
+export const FileIsNewAttachment = (file: any): file is AttachmentSchema => "uploaded_filename" in file;

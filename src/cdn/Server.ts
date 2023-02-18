@@ -29,18 +29,6 @@ export class ReflectcordCDN extends Server {
     });
     this.app.use(bodyParser.json({ inflate: true, limit: "10mb" }));
     this.app.use(fileUpload());
-    this.app.use((req, res, next) => {
-      let data = "";
-      req.setEncoding("utf8");
-      req.on("data", (chunk) => {
-        data += chunk;
-      });
-
-      req.on("end", () => {
-        req.body = data;
-        next();
-      });
-    });
     this.app.use(ErrorHandler);
 
     await initDb();

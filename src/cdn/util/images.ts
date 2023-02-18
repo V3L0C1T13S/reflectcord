@@ -79,7 +79,7 @@ export async function uploadFile(
 ) {
   const contentType = dataType ?? await getMimeType(file.file)
     .catch((e) => {
-      console.error("mime type failure: ", e);
+      Logger.error(`mime type failure: ${e}`);
       return "application/octet-stream";
     });
   const data = new FormData();
@@ -92,7 +92,6 @@ export async function uploadFile(
     data,
     { headers: data.getHeaders() },
   ));
-  console.log(dataType);
 
   return response.data.id;
 }
