@@ -44,6 +44,10 @@ interface subscribedServer {
    * Subscribed to new thread creations
   */
   threads?: boolean;
+  /**
+   * Members we're subscribed to
+   */
+  members?: string[];
   memberList?: MemberList
 }
 

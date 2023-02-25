@@ -1,8 +1,10 @@
 import { APIMessage } from "discord.js";
 import { API } from "revolt.js";
-import { isEqual } from "lodash";
+import { invert, isEqual } from "lodash";
 import { Logger } from "@reflectcord/common/utils";
-import { Message, MessageAFQ, User } from "../models";
+import {
+  interactionTitle, Message, MessageAFQ, User,
+} from "../models";
 import { BaseManager } from "./BaseManager";
 import { QuarkContainer } from "./types";
 import { systemUserID } from "../rvapi/users";
@@ -15,6 +17,32 @@ type messageInclude = {
 }
 
 type messageExtra = MessageAFQ;
+
+export const digitMap: Record<number, string> = {
+  0: "0️⃣",
+  1: "1️⃣",
+  2: "2️⃣",
+  3: "3️⃣",
+  4: "4️⃣",
+  5: "5️⃣",
+  6: "6️⃣",
+  7: "7️⃣",
+  8: "8️⃣",
+  9: "9️⃣",
+};
+
+export const emojiMap: Record<string, number> = {
+  "0️⃣": 0,
+  "1️⃣": 1,
+  "2️⃣": 2,
+  "3️⃣": 3,
+  "4️⃣": 4,
+  "5️⃣": 5,
+  "6️⃣": 6,
+  "7️⃣": 7,
+  "8️⃣": 8,
+  "9️⃣": 9,
+};
 
 export class MessageManager extends BaseManager<string, MessageContainer> {
   $get(id: string, data?: MessageContainer) {
@@ -121,6 +149,24 @@ export class MessageManager extends BaseManager<string, MessageContainer> {
     const discordMessage = await Message.from_quark(revoltResponse);
     const selfUser = await this.apiWrapper.users.getSelf(false);
 
+    const interactionEmbed = revoltResponse.embeds?.last();
+    if (interactionEmbed?.type === "Text" && interactionEmbed.title === interactionTitle && interactionEmbed.description) {
+      try {
+        const reactionNumbers = interactionEmbed.description.split("\n").map((x) => x[0]?.toNumber())
+          .filter((x): x is number => x !== undefined);
+
+        const reactions = reactionNumbers.map((x) => digitMap[x])
+          .filter((x): x is string => !!x);
+
+        await Promise.all(reactions.map(async (x) => {
+        // @ts-ignore stfu
+          await this.rvAPI.put(encodeURI(`/channels/${channel as ""}/messages/${revoltResponse._id as ""}/reactions/${x as ""}`));
+        }));
+      } catch (e) {
+        Logger.error(`Couldn't add interaction bridge ${e}`);
+      }
+    }
+
     if (!this.apiWrapper.bot) await this.ack(channel, revoltResponse._id).catch(Logger.error);
 
     return {
@@ -132,6 +178,44 @@ export class MessageManager extends BaseManager<string, MessageContainer> {
         author: await User.from_quark(selfUser),
       },
     };
+  }
+
+  async editMessage(
+    channel: string,
+    id: string,
+    data: API.DataEditMessage,
+    extra?: { fixEmbedComponentUpdate: boolean },
+  ) {
+    const revoltData = data;
+    if (extra?.fixEmbedComponentUpdate) {
+      const currentMessage = await this.fetch(channel, id);
+
+      const selectedEmbeds: API.Embed[] = currentMessage.revolt.embeds?.filter((x) => x.type === "Text") ?? [];
+
+      const oldInteractionEmbed = selectedEmbeds.last();
+      const newInteractionEmbed = revoltData.embeds?.last();
+
+      // HACK! Works around embeds being overridden by our interaction embed
+      if (
+        revoltData.embeds?.length === 1
+        && revoltData.embeds[0]?.title === interactionTitle
+        && selectedEmbeds.length > 1
+      ) {
+        if (oldInteractionEmbed?.type === "Text" && oldInteractionEmbed.title === interactionTitle) {
+          selectedEmbeds.pop();
+        }
+        // TODO (types)
+        // @ts-ignore
+        revoltData.embeds = [...selectedEmbeds, ...revoltData.embeds];
+      } else if (newInteractionEmbed?.title !== interactionTitle && oldInteractionEmbed?.type === "Text" && oldInteractionEmbed.title === interactionTitle) {
+        // @ts-ignore
+        revoltData.embeds = [...revoltData.embeds, oldInteractionEmbed];
+      }
+    }
+
+    const response = await this.rvAPI.patch(`/channels/${channel as ""}/messages/${id as ""}`, revoltData);
+
+    return response;
   }
 
   ack(channel:string, id: string) {

@@ -47,10 +47,12 @@ export default (express: Application) => <Resource> {
 
     const patchData = await MessageSendData.to_quark(req.body);
 
-    const rvMessage = await res.rvAPI.patch(`/channels/${rvChannel as ""}/messages/${rvMsgId as ""}`, {
-      content: patchData.content ? patchData.content : null,
-      embeds: patchData.embeds ? patchData.embeds : null,
-    });
+    const rvMessage = await res.rvAPIWrapper.messages.editMessage(
+      rvChannel,
+      rvMsgId,
+      patchData,
+      { fixEmbedComponentUpdate: true },
+    );
 
     return res.json(await Message.from_quark(rvMessage));
   },

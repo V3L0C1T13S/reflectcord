@@ -4,8 +4,10 @@ import {
   APIMessage,
   APIMessageReference,
   APIUser,
+  ComponentType,
   MessageType,
-  RESTPostAPIChannelMessageJSONBody,
+  ButtonStyle,
+  APIButtonComponent,
 } from "discord.js";
 import fileUpload from "express-fileupload";
 import { Message as RevoltMessage } from "revolt-api";
@@ -16,14 +18,14 @@ import { systemUserID } from "@reflectcord/common/rvapi";
 import { UploadedFile } from "@reflectcord/common/mongoose";
 import { QuarkConversion } from "../QuarkConversion";
 import {
-  fromSnowflake, toSnowflake, tryFromSnowflake, tryToSnowflake,
+  fromSnowflake, multipleFromSnowflake, toSnowflake, tryFromSnowflake, tryToSnowflake,
 } from "../util";
 import { Attachment } from "./attachment";
 import { Embed, SendableEmbed } from "./embed";
 import { Reactions } from "./emoji";
 import { User } from "./user";
 import { MessageCreateSchema } from "../../sparkle";
-import { AttachmentSchema, FileIsNewAttachment } from "../../sparkle/schemas/Channels/messages/Attachment";
+import { FileIsNewAttachment } from "../../sparkle/schemas/Channels/messages/Attachment";
 import {
   CHANNEL_MENTION, REVOLT_CHANNEL_MENTION, REVOLT_USER_MENTION,
   USER_MENTION,
@@ -35,6 +37,10 @@ import {
   toCompatibleISO,
 } from "../../utils";
 
+// The invisible unicode is a special signal that this is a Reflectcord made embed.
+export const interactionTitle = "‎Interactions‎";
+export const disabledComponentText = "(Disabled)";
+
 async function replaceAsync(
   str: string,
   regex: RegExp,
@@ -44,6 +50,13 @@ async function replaceAsync(
   const data = await Promise.all(promises);
   return str.replace(regex, () => data.shift()!);
 }
+
+export const extractComponentName = (x: string) => x.slice(3);
+export const extractInteractionNames = (description: string) => description.split("\n").map(extractComponentName);
+export const extractInteractionNumbers = (description: string) => description.split("\n").map((x) => x[0]?.toNumber())
+  .filter((x): x is number => x !== undefined);
+// FIXME: May mess up bots
+export const isButtonDisabled = (x: string) => x.endsWith(` ${disabledComponentText}`);
 
 export type APIMention = {
   id: string,
@@ -232,8 +245,46 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
       reactions: await Reactions.from_quark(reactions),
     };
 
+    const interactionEmbed = discordMessage.embeds?.last();
+
+    if (interactionEmbed?.title === interactionTitle && interactionEmbed.description) {
+      // To prevent potential bugs, we remove this embed on the discord side.
+      discordMessage.embeds?.pop();
+
+      const names = extractInteractionNames(interactionEmbed.description);
+
+      discordMessage.components ??= [];
+
+      discordMessage.components.push({
+        type: ComponentType.ActionRow,
+        components: names.map((x, i) => ({
+          type: ComponentType.Button,
+          custom_id: x,
+          label: x,
+          style: ButtonStyle.Primary,
+          disabled: isButtonDisabled(x),
+        })),
+      });
+    }
+
     if (extra?.replied_message) {
       discordMessage.referenced_message = extra.replied_message;
+    }
+
+    if (message.interactions?.reactions) {
+      discordMessage.components ??= [];
+      discordMessage.components.push({
+        type: ComponentType.ActionRow,
+        components: await Promise.all(message.interactions.reactions.map(async (reaction) => ({
+          custom_id: reaction,
+          type: ComponentType.Button,
+          style: ButtonStyle.Primary,
+          emoji: {
+            id: await toSnowflake(reaction),
+            name: "fixme",
+          },
+        }))),
+      });
     }
 
     if (masquerade?.name) {
@@ -377,6 +428,33 @@ export const MessageSendData: QuarkConversion<
           return id;
         }))).filter((x) => x) as string[] : null,
     };
+
+    if (data.components?.[0]) {
+      const allComponents = data.components.flatMap((action) => action.components);
+      /*
+      const selectedComponents = allComponents
+        .filter((x): x is APIButtonComponent => x.type === ComponentType.Button && !!x.emoji?.id);
+
+      const ids = selectedComponents.map((x) => x.emoji!.id!);
+      */
+
+      // FIXME: This part requires a stupid hack - we may want to consider using content instead...
+      sendData.embeds ??= [];
+      // FIXME (interactions): We're mapping all components as a button... Obviously, not good.
+      sendData.embeds.push({
+        title: interactionTitle,
+        // eslint-disable-next-line no-nested-ternary
+        description: allComponents.map((x, i) => `${i}: ${"custom_id" in x ? x.custom_id : "label" in x ? x.label : "No label"}${x.disabled ? ` ${disabledComponentText}` : ""}`).join("\n"),
+      });
+
+      /*
+      if (selectedComponents.length > 0) {
+        sendData.interactions = {
+          reactions: await multipleFromSnowflake(ids),
+        };
+      }
+      */
+    }
 
     if (sendData.content) {
       sendData.content = await replaceAsync(

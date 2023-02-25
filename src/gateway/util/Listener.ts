@@ -2,7 +2,10 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-plusplus */
 import {
+  APIButtonComponentWithCustomId,
   APIChannel,
+  ButtonStyle,
+  ComponentType,
   GatewayCloseCodes,
   GatewayDispatchEvents,
   GatewayGuildCreateDispatchData,
@@ -12,6 +15,7 @@ import {
   GatewayGuildMemberUpdateDispatchData,
   GatewayGuildRoleDeleteDispatchData,
   GatewayGuildRoleUpdateDispatchData,
+  GatewayInteractionCreateDispatchData,
   GatewayMessageCreateDispatchData,
   GatewayMessageDeleteBulkDispatchData,
   GatewayMessageDeleteDispatchData,
@@ -19,6 +23,7 @@ import {
   GatewayMessageReactionRemoveDispatchData,
   GatewayMessageReactionRemoveEmojiDispatchData,
   GatewayTypingStartDispatchData,
+  InteractionType,
 } from "discord.js";
 import { API } from "revolt.js";
 import { APIWrapper, createAPI, systemUserID } from "@reflectcord/common/rvapi";
@@ -44,6 +49,10 @@ import {
   createCommonGatewayGuild,
   createUserPresence,
   createGatewayGuildEmoji,
+  interactionTitle,
+  extractInteractionNames,
+  extractInteractionNumbers,
+  isButtonDisabled,
 } from "@reflectcord/common/models";
 import { Logger, RabbitMQ } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
@@ -56,6 +65,8 @@ import {
 } from "@reflectcord/common/sparkle";
 import { reflectcordWsURL } from "@reflectcord/common/constants";
 import { VoiceState } from "@reflectcord/common/mongoose";
+import { emojiMap as reactionMap } from "@reflectcord/common/managers/";
+import { emojis as emojiMap } from "@reflectcord/common/emojilib";
 import { WebSocket } from "../Socket";
 import { Dispatch } from "./send";
 import experiments from "./experiments.json";
@@ -512,12 +523,69 @@ export async function startListener(
             return;
           }
 
-          const emoji = await this.rvAPIWrapper.emojis.fetch(data.emoji_id);
+          const isInEmojiMap = !!emojiMap[data.emoji_id];
+          const emoji = !isInEmojiMap ? await this.rvAPIWrapper.emojis.fetch(data.emoji_id) : null;
+          const channel = await this.rvAPIWrapper.channels.fetch(data.channel_id);
+          const message = await this.rvAPIWrapper.messages.fetch(data.channel_id, data.id);
+          const interactionEmbed = message.revolt.embeds?.last();
+
+          if (interactionEmbed?.type === "Text" && interactionEmbed.title === interactionTitle && interactionEmbed.description) {
+            const reactionNumbers = extractInteractionNumbers(interactionEmbed.description);
+            const names = extractInteractionNames(interactionEmbed.description);
+
+            const revoltReactionNumber = reactionMap[data.emoji_id];
+            // const selected = reactionNumbers.find((x) => x === revoltReactionNumber);
+            if (revoltReactionNumber !== undefined) {
+              const componentName = names[revoltReactionNumber];
+              if (componentName) {
+                const component: APIButtonComponentWithCustomId = {
+                  custom_id: componentName,
+                  label: componentName,
+                  style: ButtonStyle.Primary,
+                  type: ComponentType.Button,
+                };
+
+                if (isButtonDisabled(componentName)) component.disabled = true;
+
+                const user = await this.rvAPIWrapper.users.fetch(data.user_id);
+                const server = "server" in channel.revolt ? await this.rvAPIWrapper.servers.fetch(channel.revolt.server) : null;
+                const interactionData: GatewayInteractionCreateDispatchData = {
+                  id: message.discord.id,
+                  application_id: this.user_id,
+                  data: {
+                    custom_id: component.custom_id,
+                    component_type: component.type,
+                  },
+                  type: InteractionType.MessageComponent,
+                  channel_id: channel.discord.id,
+                  token: message.discord.id,
+                  version: 1,
+                  message: message.discord,
+                  locale: "en-US",
+                  app_permissions: "0", // TODO (interactions): App permissions
+                };
+
+                if (server) {
+                  interactionData.member = {
+                    ...(await server.extra!.members
+                      .fetch(server.revolt._id, user.revolt._id)).discord,
+                    permissions: "0", // TODO (interactions) Member permissions
+                    user: user.discord,
+                  };
+                  interactionData.guild_id = server.discord.id;
+                } else interactionData.user = user.discord;
+
+                await Dispatch(this, GatewayDispatchCodes.InteractionCreate, interactionData);
+              }
+            }
+          }
+
+          if (!emoji) return;
 
           const body: GatewayMessageReactionAddDispatchData = {
             user_id: await toSnowflake(data.user_id),
-            channel_id: await toSnowflake(data.channel_id),
-            message_id: await toSnowflake(data.id),
+            channel_id: message.discord.channel_id,
+            message_id: message.discord.id,
             emoji: await PartialEmoji.from_quark(emoji.revolt),
           };
 
