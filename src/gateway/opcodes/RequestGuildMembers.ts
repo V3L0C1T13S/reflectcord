@@ -4,10 +4,10 @@ import {
   GatewayDispatchEvents,
 } from "discord.js";
 import { API } from "revolt.js";
-import { clamp, chunk } from "lodash";
+import { clamp } from "lodash";
 import {
   createUserPresence,
-  fromSnowflake, Member, User,
+  fromSnowflake, Member, multipleFromSnowflake, multipleToSnowflake, User,
 } from "@reflectcord/common/models";
 import { ReqGuildMembersSchema, GuildMembersChunk } from "@reflectcord/common/sparkle";
 import rfcNative from "rfcNative";
@@ -43,16 +43,17 @@ async function HandleRequest(
 
   if (nonce) body.nonce = nonce;
 
-  const discordMembers = (await Promise.all(members.members
-    .map(async (x, i) => {
-      const member = await Member.from_quark(x, { user: members.users[i] });
-      // @ts-ignore - Refcord native uses a special member.id property
-      member.id = member.user?.id ?? "0";
+  const rvUserIds = user_ids
+    ? await multipleFromSnowflake(Array.isArray(user_ids) ? user_ids : [user_ids])
+    : null;
 
-      return member;
-    })));
-
-  if (user_ids) {
+  if (user_ids && rvUserIds) {
+    const found: { member: API.Member, user: API.User }[] = [];
+    members.members.forEach((member, i) => {
+      if (rvUserIds.includes(member._id.user)) found.push({ member, user: members.users[i]! });
+    });
+    const notFound = rvUserIds.filter((id) => !found.find((m) => m.user._id === id));
+    /*
     const nativeResults = rfcNative.processOP8({
       discord_members: discordMembers,
       user_ids: Array.isArray(user_ids) ? user_ids : [user_ids],
@@ -60,12 +61,23 @@ async function HandleRequest(
       presences: !!presences,
       query: "",
     });
+    */
 
-    body.not_found = nativeResults.results.not_found;
-    body.members = nativeResults.results.members;
+    body.not_found = await multipleToSnowflake(notFound);
+    body.members = await Promise.all(found
+      .map((m, i) => Member.from_quark(m.member, { user: m.user })));
   } else if (query) {
     // Empty string means get all members
     if (query !== "") {
+      const discordMembers = (await Promise.all(members.members
+        .map(async (x, i) => {
+          const member = await Member.from_quark(x, { user: members.users[i] });
+          // @ts-ignore - Refcord native uses a special member.id property
+          member.id = member.user?.id ?? "0";
+
+          return member;
+        })));
+
       const nativeResults = rfcNative.processOP8({
         discord_members: discordMembers,
         user_ids: [],
