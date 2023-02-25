@@ -19,18 +19,16 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable no-plusplus */
 /* eslint-disable camelcase */
-import { APIGuildMember, GatewayDispatchEvents, GatewayOpcodes } from "discord.js";
+import { GatewayDispatchEvents } from "discord.js";
 import { API } from "revolt.js";
 import {
   internalStatus, Member, Status, fromSnowflake, toSnowflake, createUserPresence,
 } from "@reflectcord/common/models";
 import {
-  LazyRequest, GatewayDispatchCodes, LazyRange, SyncItem, LazyGroup, LazyOpMember,
+  LazyRequest, GatewayDispatchCodes, LazyRange, SyncItem, LazyGroup, LazyOpMember, LazyItem,
 } from "@reflectcord/common/sparkle";
 import { MemberContainer } from "@reflectcord/common/managers";
-import { listenEvent } from "@reflectcord/common/Events";
-import Long from "long";
-import { Send, Payload, Dispatch } from "../util";
+import { Payload, Dispatch } from "../util";
 import { WebSocket } from "../Socket";
 import { check } from "./instanceOf";
 import "missing-native-js-functions";
@@ -50,26 +48,56 @@ async function getMembers(
   range: LazyRange,
   target_channel: string,
   activities?: boolean,
+  newMembers?: API.AllMemberResponse,
+  fastUserFind?: boolean,
 ) {
   if (!Array.isArray(range) || range.length !== 2) throw new Error("invalid range");
+
+  // Keeps track of the real info for us
+  const counts = {
+    online: 0, offline: 0, realOffline: 0,
+  };
 
   const groups: LazyGroup[] = [];
   const items: { group?: LazyGroup, member?: LazyOpMember }[] = [];
   const discordGuildId = await toSnowflake(guild_id);
+  const offlineMembers: { member: API.Member, user: API.User }[] = [];
   const offlineItems: { group?: LazyGroup, member?: LazyOpMember }[] = [];
 
-  let members = await this.rvAPI.get(`/servers/${guild_id as ""}/members`, {
-    exclude_offline: false,
-  });
-  if (members.members.length > 1000) {
+  let members: API.AllMemberResponse;
+
+  if (newMembers) members = newMembers;
+  else {
     members = await this.rvAPI.get(`/servers/${guild_id as ""}/members`, {
-      exclude_offline: true,
+      exclude_offline: false,
     });
+    if (members.members.length > 1000) {
+      members = await this.rvAPI.get(`/servers/${guild_id as ""}/members`, {
+        exclude_offline: true,
+      });
+    }
   }
 
   const server = this.rvAPIWrapper.servers.get(guild_id);
   const channel = this.rvAPIWrapper.channels.get(target_channel);
 
+  members.members = members.members.filter((m, i) => {
+    const user = fastUserFind ? members.users[i] : members.users.find((u) => u._id === m._id.user);
+
+    if (!user) return false;
+
+    if (!user.online) {
+      // Backout if we're out of range
+      if (!(i > range[1] || i < range[0])) {
+        offlineMembers.push({ member: m, user });
+
+        counts.offline += 1;
+      }
+      counts.realOffline += 1;
+    } else counts.online += 1;
+
+    return user.online;
+  });
   members.members.sort((x, y) => {
     const extractRoles = (r: string) => server?.revolt.roles?.[r];
 
@@ -87,8 +115,14 @@ async function getMembers(
     const otherHighest = Math.min(...otherRoleRanks);
 
     // eslint-disable-next-line no-nested-ternary
-    return (highestRank > otherHighest ? 0 : highestRank < otherHighest ? -1 : 1);
+    return (highestRank > otherHighest
+      ? 0 : highestRank < otherHighest ? -1 : 1);
   });
+
+  if (newMembers) {
+    members.members = members.members.slice(range[0], range[1]);
+    // offlineMembers = offlineMembers.slice(range[0], range[1]);
+  }
 
   type extendMemberContainer = MemberContainer & {
     user?: API.User | undefined | null,
@@ -101,7 +135,7 @@ async function getMembers(
 
       const discordMember = await Member.from_quark(member, { user });
 
-      if (discordMember.roles.length < 1) discordMember.roles.push(discordGuildId);
+      if (discordMember.roles?.length <= 0) discordMember.roles.push(discordGuildId);
 
       return {
         revolt: member,
@@ -121,7 +155,10 @@ async function getMembers(
     .unique((r) => r);
 
   memberRoles.push(
-    discordGuildId,
+    memberRoles.splice(
+      memberRoles.findIndex((x) => x === discordGuildId),
+      1,
+    )[0]!,
   );
 
   memberRoles.forEach((role) => {
@@ -133,7 +170,7 @@ async function getMembers(
         .find((r) => r === role),
     );
     const group: SyncItem = {
-      count: role_members.length,
+      count: role === discordGuildId ? counts.online : role_members.length,
       id: role === discordGuildId ? "online" : role,
     };
 
@@ -177,9 +214,32 @@ async function getMembers(
     discordMembers = other_members;
   });
 
+  offlineItems.push(...await Promise.all(offlineMembers
+    .map(async (member) => {
+      const discordMember = await Member.from_quark(member.member, { user: member.user });
+
+      const { status } = member.user;
+
+      const discordStatus = await Status.from_quark(status, { online: member.user.online });
+
+      return {
+        member: {
+          ...discordMember,
+          presence: {
+            activities: activities ? discordStatus?.activities as any : [],
+            client_status: {
+              web: "offline",
+            },
+            status: "offline" as any,
+            user: { id: discordMember.user!.id },
+          },
+        },
+      };
+    })));
+
   if (offlineItems.length > 0) {
     const group = {
-      count: offlineItems.length,
+      count: counts.realOffline,
       id: "offline",
     };
     items.push({ group });
@@ -192,17 +252,21 @@ async function getMembers(
     results: {
       items,
       groups,
-      range: [range[0], items.length],
-      members: items.map((x) => ("member" in x ? x.member : undefined)).filter((x) => !!x),
+      range,
+      members: items
+        .map((x) => ("member" in x ? { ...x.member, settings: undefined } : undefined))
+        .filter((x) => !!x),
+      counts,
     },
     extendedMembers,
   };
 }
 
-function subscribeToMember(this: WebSocket, id: string) {
+function subscribeToMember(this: WebSocket, server: string, id: string) {
   if (this.events[id]) return false; // already subscribed as friend
   if (this.member_events[id]) return false; // already subscribed in member list
-  this.subscribed_members.push(id);
+  if (this.subscribed_servers[server]?.members?.includes(id)) return false;
+  this.subscribed_servers[server]?.members?.push(id);
 
   return true;
 }
@@ -215,39 +279,26 @@ export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
     guild_id, typing, channels, activities, threads, members,
   } = data.d!;
 
-  const channel_id = Object.keys(channels || {}).first();
-  if (!channel_id) return;
-
-  const rvChannelId = await fromSnowflake(channel_id);
   const rvServerId = await fromSnowflake(guild_id);
-  const server = this.rvAPIWrapper.servers.get(rvServerId);
-  if (!server) throw new Error(`Server ${server} is not in RVAPI cache`);
-
-  const ranges = channels![channel_id];
-  if (!Array.isArray(ranges)) throw new Error("Not a valid Array");
-
   // eslint-disable-next-line no-multi-assign
   const subscribedServer = this.subscribed_servers[rvServerId] ??= {};
-  // eslint-disable-next-line no-multi-assign
-  const lazyChannel = this.lazy_channels[rvChannelId] ??= {};
-
-  if (activities !== undefined) subscribedServer.activities = activities;
-  if (typing !== undefined) subscribedServer.typing = typing;
-  if (threads !== undefined) subscribedServer.threads = threads;
-  lazyChannel.messages = true;
+  const server = this.rvAPIWrapper.servers.get(rvServerId);
+  if (!server) throw new Error(`Server ${server} is not in RVAPI cache`);
 
   // https://github.com/fosscord/fosscord-server/blob/76c85f7181cf5116b8f4ccd9015d1df371eb9c01/src/gateway/opcodes/LazyRequest.ts#L218
   if (members) {
     await Promise.all(members.map(async (id) => {
       const rvMemberId = await fromSnowflake(id);
-      const user = await this.rvAPIWrapper.users.fetch(rvMemberId);
       const alreadySubscribed = subscribeToMember.call(
         this,
+        rvServerId,
         rvMemberId,
       );
       if (!alreadySubscribed) return;
 
-      const presence = createUserPresence({
+      const user = await this.rvAPIWrapper.users.fetch(rvMemberId);
+
+      const presence = await createUserPresence({
         user: user.revolt,
         discordUser: user.discord,
         server: server.revolt._id,
@@ -259,14 +310,58 @@ export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
     if (!channels) return;
   }
 
-  const results = await getMembers
-    .call(this, rvServerId, [0, 99], rvChannelId, this.subscribed_servers[rvServerId]?.activities);
-  const ops = results.results;
-  const member_count = ops.members.length;
+  if (!channels) throw new Error("Must provide channel ranges");
 
+  const channel_id = Object.keys(channels || {}).first();
+  if (!channel_id) return;
+
+  const rvChannelId = await fromSnowflake(channel_id);
+
+  if (activities !== undefined) subscribedServer.activities = activities;
+  if (typing !== undefined) subscribedServer.typing = typing;
+  if (threads !== undefined) subscribedServer.threads = threads;
+  // eslint-disable-next-line no-multi-assign
+  const lazyChannel = this.lazy_channels[rvChannelId] ??= {};
+  lazyChannel.messages = true;
+
+  const ranges = channels[channel_id];
+  if (!Array.isArray(ranges)) throw new Error("Not a valid Array");
+
+  let excludeOffline = false;
+  let rvMembers = await this.rvAPI.get(`/servers/${rvServerId as ""}/members`, {
+    exclude_offline: excludeOffline,
+  });
+  const member_count = rvMembers.members.length;
+  // Actually, discord doesn't even care about offline members if its large enough
+  if (rvMembers.members.length > 1000) {
+    excludeOffline = true;
+    rvMembers = await this.rvAPI.get(`/servers/${rvServerId as ""}/members`, {
+      exclude_offline: excludeOffline,
+    });
+  }
+
+  const newOps = await Promise.all(ranges.map(async (range) => {
+    const op = await getMembers
+      .call(
+        this,
+        rvServerId,
+        range,
+        rvChannelId,
+        this.subscribed_servers[rvServerId]?.activities,
+        { ...rvMembers }, // Clone so that it doesnt throw up
+        excludeOffline,
+      );
+
+    return op;
+  }));
+
+  /*
   results.extendedMembers.forEach((member) => subscribeToMember.call(this, member.revolt._id.user));
+  */
 
-  const { groups } = ops;
+  const groups = newOps.map((x) => x.results.groups)
+    .flat()
+    .unique();
 
   if (subscribedServer.threads) {
     // STUB
@@ -278,12 +373,12 @@ export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
   }
 
   await Dispatch(this, GatewayDispatchCodes.GuildMemberListUpdate, {
-    ops: [{
-      items: ops.items,
+    ops: newOps.map((x) => ({
+      items: x.results.items,
       op: "SYNC",
-      range: ops.range,
-    }],
-    online_count: member_count - (groups.find((x) => x.id === "offline")?.count ?? 0),
+      range: x.results.range,
+    })),
+    online_count: newOps[0]?.results.counts.online ?? 0,
     member_count,
     id: "everyone",
     guild_id,
