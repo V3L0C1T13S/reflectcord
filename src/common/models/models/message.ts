@@ -16,6 +16,7 @@ import { decodeTime } from "ulid";
 import { uploadFile } from "@reflectcord/cdn/util";
 import { systemUserID } from "@reflectcord/common/rvapi";
 import { UploadedFile } from "@reflectcord/common/mongoose";
+import { Logger } from "@reflectcord/common/utils";
 import { QuarkConversion } from "../QuarkConversion";
 import {
   fromSnowflake, multipleFromSnowflake, toSnowflake, tryFromSnowflake, tryToSnowflake,
@@ -55,6 +56,7 @@ export const extractComponentName = (x: string) => x.slice(3);
 export const extractInteractionNames = (description: string) => description.split("\n").map(extractComponentName);
 export const extractInteractionNumbers = (description: string) => description.split("\n").map((x) => x[0]?.toNumber())
   .filter((x): x is number => x !== undefined);
+export const findComponentByName = (description: string, name: string) => description.split("\n").find((x) => extractComponentName(x) === name);
 // FIXME: May mess up bots
 export const isButtonDisabled = (x: string) => x.endsWith(` ${disabledComponentText}`);
 
@@ -151,7 +153,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
       id: await toSnowflake(_id),
       channel_id,
       content: content?.replace(/\|\|.+\|\|/gs, (match) => `\\${match}`)
-      // Translate !!Revite spoilers!! to ||Discord spoilers||
+        // Translate !!Revite spoilers!! to ||Discord spoilers||
         .replace(
           /!!.+!!/g,
           (match) => `||${match.substring(2, match.length - 2)}||`,
@@ -248,34 +250,40 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
     const interactionEmbed = discordMessage.embeds?.last();
 
     if (interactionEmbed?.title === interactionTitle && interactionEmbed.description) {
-      // To prevent potential bugs, we remove this embed on the discord side.
-      discordMessage.embeds?.pop();
+      try {
+        // To prevent potential bugs, we remove this embed on the discord side.
+        discordMessage.embeds?.pop();
 
-      const names = extractInteractionNames(interactionEmbed.description);
+        const names = extractInteractionNames(interactionEmbed.description);
 
-      discordMessage.components ??= [];
+        discordMessage.components ??= [];
 
-      discordMessage.components.push({
-        type: ComponentType.ActionRow,
-        components: names.map((x, i) => ({
-          type: ComponentType.Button,
-          custom_id: x,
-          label: x,
-          style: ButtonStyle.Primary,
-          disabled: isButtonDisabled(x),
-        })),
-      });
+        discordMessage.components.push({
+          type: ComponentType.ActionRow,
+          components: names.map((x, i) => ({
+            type: ComponentType.Button,
+            custom_id: x,
+            label: x,
+            style: ButtonStyle.Primary,
+            disabled: isButtonDisabled(x),
+          })),
+        });
+      } catch (e) {
+        Logger.error(`Failed to create components - This may be due to a malformed interaction embed. ${e}`);
+      }
     }
 
     if (extra?.replied_message) {
       discordMessage.referenced_message = extra.replied_message;
     }
 
-    if (message.interactions?.reactions) {
+    const selectedInteractions = message.interactions?.reactions
+      ?.filter((x) => REVOLT_ULID.test(x));
+    if (selectedInteractions && selectedInteractions.length > 0) {
       discordMessage.components ??= [];
       discordMessage.components.push({
         type: ComponentType.ActionRow,
-        components: await Promise.all(message.interactions.reactions.map(async (reaction) => ({
+        components: await Promise.all(selectedInteractions.map(async (reaction) => ({
           custom_id: reaction,
           type: ComponentType.Button,
           style: ButtonStyle.Primary,

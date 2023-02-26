@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import { Resource } from "express-automatic-routes";
-import { extractInteractionNames, interactionTitle, multipleFromSnowflake } from "@reflectcord/common/models";
+import { interactionTitle, multipleFromSnowflake, findComponentByName } from "@reflectcord/common/models";
 import { InteractionType } from "discord.js";
 import { HTTPError } from "@reflectcord/common/utils";
 import { digitMap } from "@reflectcord/common/managers";
@@ -26,8 +26,7 @@ export default () => <Resource> {
       throw new HTTPError("This message has no valid interactions.");
     }
 
-    const names = extractInteractionNames(interactionEmbed.description);
-    const selected = names.find((x) => x === data.custom_id);
+    const selected = findComponentByName(interactionEmbed.description, data.custom_id);
 
     const selectedNumber = selected?.[0]?.toNumber();
     if (selectedNumber === undefined) throw new HTTPError("Invalid index");
