@@ -501,12 +501,11 @@ export const MessageSendData: QuarkConversion<
         sendData.content,
         EMOJI_REGEX,
         async (match) => {
-          const id = match.match(/(<a?)?:\w+:/g)?.[0];
+          const fullId = match.split(":").last();
+          const id = fullId?.slice(0, fullId.length - 1);
           if (!id) return match;
 
-          if (!SNOWFLAKE.test(id)) return match;
-
-          return `:${await tryFromSnowflake(id.substring(0, id.length - 1))}:`;
+          return `:${await tryFromSnowflake(id)}:`;
         },
       );
     }
