@@ -270,5 +270,6 @@ export class MessageManager extends BaseManager<string, MessageContainer> {
     applyDiscord("edited_timestamp");
     applyDiscord("embeds");
     applyDiscord("mentions");
+    applyDiscord("components");
   }
 }
