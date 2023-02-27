@@ -8,6 +8,7 @@ import {
   MessageType,
   ButtonStyle,
   APIButtonComponent,
+  APIButtonComponentWithCustomId,
 } from "discord.js";
 import fileUpload from "express-fileupload";
 import { Message as RevoltMessage } from "revolt-api";
@@ -19,7 +20,7 @@ import { UploadedFile } from "@reflectcord/common/mongoose";
 import { Logger } from "@reflectcord/common/utils";
 import { QuarkConversion } from "../QuarkConversion";
 import {
-  fromSnowflake, multipleFromSnowflake, toSnowflake, tryFromSnowflake, tryToSnowflake,
+  fromSnowflake, toSnowflake, tryFromSnowflake, tryToSnowflake,
 } from "../util";
 import { Attachment } from "./attachment";
 import { Embed, SendableEmbed } from "./embed";
@@ -53,13 +54,41 @@ async function replaceAsync(
 }
 
 export const extractComponentName = (x: string) => x.slice(3);
-export const extractInteractionNames = (description: string) => description.split("\n").map(extractComponentName);
-export const extractInteractionNumbers = (description: string) => description.split("\n").map((x) => x[0]?.toNumber())
+export const extractComponentCustomId = (x: string) => extractComponentName(x);
+export const extractComponents = (description: string) => description.split("\n");
+export const extractInteractionNames = (description: string) => extractComponents(description)
+  .map(extractComponentName);
+export const extractInteractionNumbers = (description: string) => extractComponents(description)
+  .map((x) => x[0]?.toNumber())
   .filter((x): x is number => x !== undefined);
-export const findComponentByName = (description: string, name: string) => description.split("\n").find((x) => extractComponentName(x) === name);
+export const findComponentByName = (
+  description: string,
+  name: string,
+) => extractComponents(description).find((x) => extractComponentName(x) === name);
+export const findComponentByIndex = (
+  description: string,
+  index: number,
+) => extractComponents(description).find((x) => x[0]?.toNumber() === index);
 // FIXME: May mess up bots
 export const isButtonDisabled = (x: string) => x.endsWith(` ${disabledComponentText}`);
 
+/**
+ * Convert a component descriptor to a component
+*/
+export const convertDescriptorToComponent = (
+  componentDescriptor: string,
+): APIButtonComponentWithCustomId => ({
+  custom_id: extractComponentCustomId(componentDescriptor),
+  label: extractComponentName(componentDescriptor),
+  style: ButtonStyle.Primary,
+  type: ComponentType.Button,
+  disabled: isButtonDisabled(componentDescriptor),
+});
+
+export const convertEmbedDescriptorToComponents = (
+  description: string,
+): APIButtonComponentWithCustomId[] => extractComponents(description)
+  .map((x) => convertDescriptorToComponent(x));
 export type APIMention = {
   id: string,
   type: number,
@@ -254,19 +283,10 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
         // To prevent potential bugs, we remove this embed on the discord side.
         discordMessage.embeds?.pop();
 
-        const names = extractInteractionNames(interactionEmbed.description);
-
         discordMessage.components ??= [];
-
         discordMessage.components.push({
           type: ComponentType.ActionRow,
-          components: names.map((x, i) => ({
-            type: ComponentType.Button,
-            custom_id: x,
-            label: x,
-            style: ButtonStyle.Primary,
-            disabled: isButtonDisabled(x),
-          })),
+          components: convertEmbedDescriptorToComponents(interactionEmbed.description),
         });
       } catch (e) {
         Logger.error(`Failed to create components - This may be due to a malformed interaction embed. ${e}`);

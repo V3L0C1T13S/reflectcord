@@ -50,9 +50,8 @@ import {
   createUserPresence,
   createGatewayGuildEmoji,
   interactionTitle,
-  extractInteractionNames,
-  extractInteractionNumbers,
-  isButtonDisabled,
+  findComponentByIndex,
+  convertDescriptorToComponent,
 } from "@reflectcord/common/models";
 import { Logger, RabbitMQ } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
@@ -530,22 +529,15 @@ export async function startListener(
           const interactionEmbed = message.revolt.embeds?.last();
 
           if (interactionEmbed?.type === "Text" && interactionEmbed.title === interactionTitle && interactionEmbed.description) {
-            const reactionNumbers = extractInteractionNumbers(interactionEmbed.description);
-            const names = extractInteractionNames(interactionEmbed.description);
-
             const revoltReactionNumber = reactionMap[data.emoji_id];
-            // const selected = reactionNumbers.find((x) => x === revoltReactionNumber);
-            if (revoltReactionNumber !== undefined) {
-              const componentName = names[revoltReactionNumber];
-              if (componentName) {
-                const component: APIButtonComponentWithCustomId = {
-                  custom_id: componentName,
-                  label: componentName,
-                  style: ButtonStyle.Primary,
-                  type: ComponentType.Button,
-                };
 
-                if (isButtonDisabled(componentName)) component.disabled = true;
+            if (revoltReactionNumber !== undefined) {
+              const revoltComponent = findComponentByIndex(
+                interactionEmbed.description,
+                revoltReactionNumber,
+              );
+              if (revoltComponent) {
+                const component = convertDescriptorToComponent(revoltComponent);
 
                 const user = await this.rvAPIWrapper.users.fetch(data.user_id);
                 const server = "server" in channel.revolt ? await this.rvAPIWrapper.servers.fetch(channel.revolt.server) : null;
