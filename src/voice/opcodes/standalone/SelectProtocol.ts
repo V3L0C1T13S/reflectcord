@@ -29,59 +29,30 @@ export async function selectProtocol(this: WebSocket, payload: Payload) {
 
   const data = payload.d;
 
-  // eslint-disable-next-line prefer-template
-  const offer = SemanticSDP.SDPInfo.parse("m=audio\n" + data.sdp);
+  const offer = SemanticSDP.SDPInfo.parse(`m=audio\n${data.sdp}`);
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   offer.getMedias()[0].type = "audio"; // this is bad, but answer.toString() fails otherwise
   this.client.sdp.setICE(offer.getICE());
   this.client.sdp.setDTLS(offer.getDTLS());
-
   const transport = endpoint.createTransport(this.client.sdp);
   this.client.transport = transport;
   transport.setRemoteProperties(this.client.sdp);
   transport.setLocalProperties(this.client.sdp);
-
   const dtls = transport.getLocalDTLSInfo();
   const ice = transport.getLocalICEInfo();
   const port = endpoint.getLocalPort();
   const fingerprint = `${dtls.getHash()} ${dtls.getFingerprint()}`;
   const candidates = transport.getLocalCandidates();
   const candidate = candidates[0];
-
-  const answer = offer.answer({
-    dtls,
-    ice,
-    candidates: endpoint.getLocalCandidates(),
-    capabilities: {
-      audio: {
-        codecs: ["opus"],
-        rtx: true,
-        rtcpfbs: [{ id: "transport-cc" }],
-        extensions: [
-          "urn:ietf:params:rtp-hdrext:ssrc-audio-level",
-          "http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time",
-          "http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01",
-          "urn:ietf:params:rtp-hdrext:sdes:mid",
-        ],
-      },
-    },
-  });
-
-  // the Video handler creates streams but we need streams now so idk
-  // eslint-disable-next-line no-restricted-syntax
-  for (const offered of offer.getStreams().values()) {
-    const incomingStream = transport.createIncomingStream(offered);
-    const outgoingStream = transport.createOutgoingStream({
-      audio: true,
-    });
-    outgoingStream.attachTo(incomingStream);
-    this.client.in.stream = incomingStream;
-    this.client.out.stream = outgoingStream;
-
-    const info = outgoingStream.getStreamInfo();
-    answer.addStream(info);
-  }
-
+  const answer = `m=audio ${port} ICE/SDP\n`
+    + `a=fingerprint:${fingerprint}\n`
+    + `c=IN IP4 ${PublicIP}\n`
+    + `a=rtcp:${port}\n`
+    + `a=ice-ufrag:${ice.getUfrag()}\n`
+    + `a=ice-pwd:${ice.getPwd()}\n`
+    + `a=fingerprint:${fingerprint}\n`
+    + `a=candidate:1 1 ${candidate!.getTransport()} ${candidate!.getFoundation()} ${candidate!.getAddress()} ${candidate!.getPort()} typ host\n`;
   await Send(this, {
     op: VoiceOPCodes.SessionDescription,
     d: {

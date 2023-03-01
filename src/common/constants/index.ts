@@ -38,7 +38,7 @@ export const reflectcordVoiceURL = process.env["REFLECTCORD_VOICE_URL"] ?? "loca
 
 export const PublicIP = process.env["PUBLIC_IP"] ?? "127.0.0.1";
 
-export const webRTCPortRange = process.env["WEBRTC_PORT_RANGE"] ?? "4000";
+export const webRTCPortRange = process.env["WEBRTC_PORT_RANGE"] ?? "1024-65535";
 
 export const gifBoxURL = process.env["GIFBOX_URL"] ?? "https://gifbox.me";
 

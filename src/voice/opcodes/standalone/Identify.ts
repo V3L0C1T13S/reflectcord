@@ -86,6 +86,7 @@ export async function onIdentify(this: WebSocket, data: Payload) {
 
   const readyBody: any = {
     streams: [
+      /*
       {
         type: "video",
         ssrc: this.client.in.video_ssrc + 1,
@@ -94,6 +95,7 @@ export async function onIdentify(this: WebSocket, data: Payload) {
         quality: 100,
         active: false,
       },
+      */
     ],
     ssrc: this.client.in.audio_ssrc,
     ip: PublicIP,

@@ -19,8 +19,8 @@
 export const VoiceStateSchema = {
   $guild_id: String,
   $channel_id: String,
-  self_mute: Boolean,
-  self_deaf: Boolean,
+  $self_mute: Boolean,
+  $self_deaf: Boolean,
   $self_video: Boolean,
 };
 

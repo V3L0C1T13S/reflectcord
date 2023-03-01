@@ -26,7 +26,7 @@ import {
 import {
   fromSnowflake, Member, tryFromSnowflake,
 } from "@reflectcord/common/models";
-import { VoiceStateSchema, GatewayDispatchCodes } from "@reflectcord/common/sparkle";
+import { VoiceStateSchema, GatewayDispatchCodes, VoiceStateUpdate } from "@reflectcord/common/sparkle";
 import { reflectcordVoiceURL } from "@reflectcord/common/constants";
 import { emitEvent } from "@reflectcord/common/Events";
 import { VoiceState } from "@reflectcord/common/mongoose";
@@ -52,16 +52,16 @@ export interface VoiceStateObject {
 
 const findExistingStates = (channel_id: string) => VoiceState.find({ channel_id });
 
-export async function VSUpdate(this: WebSocket, data: Payload) {
+export async function VSUpdate(this: WebSocket, data: Payload<VoiceStateUpdate>) {
   check.call(this, VoiceStateSchema, data.d);
   const {
     self_mute, self_deaf, self_video, guild_id, channel_id,
-  } = data.d;
+  } = data.d!;
 
   this.voiceInfo = {
-    self_mute,
-    self_deaf,
-    self_video,
+    self_mute: self_mute ?? false,
+    self_deaf: self_deaf ?? false,
+    self_video: self_video ?? false,
     guild_id,
     channel_id,
   };
@@ -74,9 +74,9 @@ export async function VSUpdate(this: WebSocket, data: Payload) {
     $set: {
       deaf: false,
       mute: false,
-      self_mute,
-      self_deaf,
-      self_video,
+      self_mute: this.voiceInfo.self_mute,
+      self_deaf: this.voiceInfo.self_deaf,
+      self_video: this.voiceInfo.self_video,
       suppress: false,
       request_to_speak_timestamp: null,
     },
@@ -124,7 +124,8 @@ export async function VSUpdate(this: WebSocket, data: Payload) {
 
   stateData.session_id = this.session_id;
   stateData.channel_id = channel_id;
-  stateData.guild_id = guild_id;
+  if (guild_id) stateData.guild_id = guild_id;
+  else delete stateData.guild_id;
 
   if (guild_id) {
     const serverId = await fromSnowflake(guild_id);

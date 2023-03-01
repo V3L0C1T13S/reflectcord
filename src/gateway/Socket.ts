@@ -94,7 +94,7 @@ export interface WebSocket extends WS {
     self_video: boolean;
     self_stream?: boolean;
     channel_id?: string | null | undefined;
-    guild_id?: string;
+    guild_id?: string | null | undefined;
   };
   typingConsumer?: Replies.Consume | undefined;
   state: SocketState;
