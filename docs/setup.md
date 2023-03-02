@@ -26,6 +26,8 @@ MongoDB
 
 RabbitMQ
 
+CMake
+
 ## Setting up
 
 ### Prerequisites
@@ -45,6 +47,12 @@ After installation, Ubuntu will automatically start the systemd service for Rabb
 Alternatively, you can use Docker to run RabbitMQ.
 
 `docker run -d --hostname reflectcord --name reflectcord-rabbit -p 5672:5672 rabbitmq:3.11-management`
+
+#### Installing Reflectcord native dependencies
+
+Reflectcord native is the C++ code that some parts of Reflectcord call into. To install them, run this command in your terminal:
+
+`sudo apt install build-essential cmake g++`
 
 #### Dependencies
 
