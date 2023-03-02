@@ -1,8 +1,5 @@
 /* eslint-disable no-nested-ternary */
-import {
-  APIChannel,
-  APIExtendedInvite, APIInvite, APIUser,
-} from "discord.js";
+import { APIExtendedInvite, APIInvite, APIUser } from "discord.js";
 import { API } from "revolt.js";
 import { QuarkConversion } from "../QuarkConversion";
 import { PartialChannel } from "./channel";
@@ -10,6 +7,7 @@ import { User } from "./user";
 import { systemUserID } from "../../rvapi";
 import { Guild } from "./guilds";
 import { toCompatibleISO } from "../../utils/date";
+import { fromSnowflake } from "../util";
 
 export const Invite: QuarkConversion<API.InviteResponse, APIInvite> = {
   async to_quark(invite) {
@@ -18,9 +16,9 @@ export const Invite: QuarkConversion<API.InviteResponse, APIInvite> = {
     return {
       type: "Server",
       code,
-      server_id: invite.guild?.id ?? "0",
+      server_id: invite.guild?.id ? await fromSnowflake(invite.guild.id) : "0",
       server_name: invite.guild?.name ?? "fixme",
-      channel_id: invite.channel?.id ?? "0",
+      channel_id: invite.channel?.id ? await fromSnowflake(invite.channel.id) : "0",
       channel_name: invite.channel?.name ?? "fixme",
       user_name: "fixme",
       member_count: invite.approximate_member_count ?? 0,
@@ -96,9 +94,9 @@ API.Invite, APIInvite, InviteCreateATQ, InviteCreateAFQ
     return {
       type: "Server",
       _id: code,
-      creator: invite.inviter?.id ?? "0",
-      channel: invite.channel?.id ?? "0",
-      server: invite.guild?.id ?? "0",
+      creator: invite.inviter?.id ? await fromSnowflake(invite.inviter.id) : "0",
+      channel: invite.channel?.id ? await fromSnowflake(invite.channel.id) : "0",
+      server: invite.guild?.id ? await fromSnowflake(invite.guild.id) : "0",
     };
   },
 

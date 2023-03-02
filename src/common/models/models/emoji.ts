@@ -49,7 +49,15 @@ export const PartialEmoji: QuarkConversion<API.Emoji, APIPartialEmoji> = {
 
 export const Emoji: QuarkConversion<API.Emoji, APIEmoji, EmojiATQ, EmojiAFQ> = {
   async to_quark(emoji) {
-    return PartialEmoji.to_quark(emoji);
+    const revoltPartial = await PartialEmoji.to_quark(emoji);
+    const revoltEmoji = {
+      ...revoltPartial,
+    };
+    if (emoji.user) {
+      revoltEmoji.creator_id = await toSnowflake(emoji.user.id);
+    }
+
+    return revoltEmoji;
   },
 
   async from_quark(emoji, extra) {

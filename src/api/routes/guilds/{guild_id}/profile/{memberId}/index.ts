@@ -2,7 +2,7 @@
 import { RESTPatchAPIGuildMemberJSONBody } from "discord.js";
 import { Request } from "express";
 import { Resource } from "express-automatic-routes";
-import { Member, fromSnowflake } from "@reflectcord/common/models";
+import { Member, fromSnowflake, multipleFromSnowflake } from "@reflectcord/common/models";
 import { HTTPError } from "@reflectcord/common/utils";
 
 type editMemberBody = RESTPatchAPIGuildMemberJSONBody & {
@@ -21,7 +21,7 @@ export default () => <Resource> {
 
     const member = await res.rvAPI.patch(`/servers/${serverId as ""}/members/${rvMemberId as ""}`, {
       nickname: nick ?? null,
-      roles: roles ? await Promise.all(roles.map((x) => fromSnowflake(x))) : null,
+      roles: roles ? await multipleFromSnowflake(roles) : null,
     });
 
     res.json(await Member.from_quark(member));

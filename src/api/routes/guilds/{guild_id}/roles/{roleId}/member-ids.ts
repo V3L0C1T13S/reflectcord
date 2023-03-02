@@ -1,6 +1,6 @@
 import { Resource } from "express-automatic-routes";
 import { Response } from "express";
-import { fromSnowflake, toSnowflake } from "@reflectcord/common/models";
+import { fromSnowflake, multipleToSnowflake } from "@reflectcord/common/models";
 import { HTTPError } from "@reflectcord/common/utils";
 import { MemberIdsResponse } from "@reflectcord/common/sparkle";
 
@@ -18,6 +18,6 @@ export default () => <Resource> {
 
     const membersWithRole = members.members.filter((x) => x.roles?.includes(rvRoleId));
 
-    res.json(await Promise.all(membersWithRole.map((x) => toSnowflake(x._id.user))));
+    res.json(await multipleToSnowflake(membersWithRole.map((x) => x._id.user)));
   },
 };

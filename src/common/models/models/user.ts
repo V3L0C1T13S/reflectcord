@@ -16,6 +16,7 @@ import {
   UserFlagsBitField,
   UserPremiumType,
 } from "discord.js";
+import Long from "long";
 import { Badges } from "../../rvapi";
 import { UserRelationshipType } from "../../sparkle";
 import { QuarkConversion } from "../QuarkConversion";
@@ -49,11 +50,19 @@ export type revoltUserInfo = {
 export const PublicFlags: QuarkConversion<
   Badges,
   UserFlags,
-  {},
-  { id: string }
+  { id?: string },
+  { id?: string }
 > = {
-  async to_quark(flags) {
-    return 0;
+  async to_quark(flags, extra) {
+    const discordBitfield = new UserFlagsBitField(flags);
+    let calculated = Long.fromNumber(0);
+
+    if (discordBitfield.has("Staff") || (extra?.id && priviligedUsers.includes(extra.id))) calculated = calculated.or(Badges.Developer);
+    if (discordBitfield.has("BugHunterLevel1") || discordBitfield.has("BugHunterLevel2")) calculated = calculated.or(Badges.ResponsibleDisclosure);
+    if (discordBitfield.has("PremiumEarlySupporter")) calculated.or(Badges.Supporter);
+    if (discordBitfield.has("CertifiedModerator")) calculated.or(Badges.PlatformModeration);
+
+    return calculated.toNumber();
   },
 
   async from_quark(flags, extra) {
@@ -89,7 +98,9 @@ export const User: QuarkConversion<RevoltUser, APIUser, UserATQ, UserAFQ> = {
       relations: null,
       badges: null,
       status: null,
-      profile: null, // FIXME
+      profile: {
+        background: user.banner ? await PartialFile.to_quark(user.banner) : null,
+      }, // FIXME
       flags: null,
       privileged: false,
       bot: bot ? {
@@ -175,7 +186,7 @@ export const selfUser: QuarkConversion<revoltUserInfo, APIUser, selfUserATQ, sel
       user: await User.to_quark(user),
       authInfo: {
         email: user.email ?? "fixme",
-        _id: user.id,
+        _id: await fromSnowflake(user.id),
       },
       mfaInfo: {
         email_mfa: mfa_enabled,
@@ -191,8 +202,10 @@ export const selfUser: QuarkConversion<revoltUserInfo, APIUser, selfUserATQ, sel
   async from_quark(user, extra) {
     const mfa_enabled = Object.values(user.mfaInfo ?? []).some((v) => v === true);
 
+    const discordUser = await User.from_quark(user.user);
+
     return {
-      ...await User.from_quark(user.user),
+      ...discordUser,
       email: user.authInfo.email,
       mfa_enabled,
       // Revolt doesn't require age verification

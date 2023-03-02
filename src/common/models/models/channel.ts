@@ -19,7 +19,7 @@ import {
 import { API } from "revolt.js";
 import { QuarkConversion } from "../QuarkConversion";
 import {
-  fromSnowflake, hashToSnowflake, toSnowflake, tryToSnowflake,
+  fromSnowflake, hashToSnowflake, multipleFromSnowflake, toSnowflake, tryToSnowflake,
 } from "../util";
 import { User } from "./user";
 import { convertPermNumber } from "./permissions";
@@ -231,7 +231,7 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
           _id,
           active: true,
           recipients: channel.recipients
-            ? await Promise.all(channel.recipients.map((u) => fromSnowflake(u.id)))
+            ? await multipleFromSnowflake(channel.recipients.map((x) => x.id))
             : [],
           last_message_id: channel.last_message_id
             ? await fromSnowflake(channel.last_message_id)
@@ -246,7 +246,7 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
           owner: channel.owner_id ? await fromSnowflake(channel.owner_id) : "0",
           name: channel.name ?? "fixme",
           recipients: channel.recipients
-            ? await Promise.all(channel.recipients.map((u) => fromSnowflake(u.id)))
+            ? await multipleFromSnowflake(channel.recipients.map((x) => x.id))
             : [],
         };
       }

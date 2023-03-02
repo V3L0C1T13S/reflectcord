@@ -6,7 +6,9 @@ import {
 import { Member as RevoltMember } from "revolt-api";
 import { API } from "revolt.js";
 import { QuarkConversion } from "../QuarkConversion";
-import { fromSnowflake, multipleToSnowflake, toSnowflake } from "../util";
+import {
+  fromSnowflake, multipleFromSnowflake, multipleToSnowflake, toSnowflake,
+} from "../util";
 import { User } from "./user";
 import { toCompatibleISO } from "../../utils/date";
 import { PartialFile } from "./attachment";
@@ -34,7 +36,7 @@ export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, Memb
       joined_at,
       nickname: nick ?? null,
       timeout: communication_disabled_until ?? null,
-      roles: await Promise.all(roles.map((x) => fromSnowflake(x))),
+      roles: await multipleFromSnowflake(roles),
     };
   },
 
@@ -60,7 +62,7 @@ export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, Memb
       communication_disabled_until: timeout
         ? toCompatibleISO(new Date(timeout).toISOString())
         : null,
-      roles: member.roles ? await multipleToSnowflake(member.roles) : [],
+      roles: roles ? await multipleToSnowflake(roles) : [],
       deaf: false,
       mute: false,
       nick: nickname ?? null,
@@ -84,13 +86,15 @@ RESTPatchAPIGuildMemberJSONBody
     const remove: API.FieldsMember[] = [];
 
     if (nick === "") remove.push("Nickname");
+    if (communication_disabled_until === undefined) remove.push("Timeout");
 
     const body: API.DataMemberEdit = {
       nickname: nick || null,
-      remove: remove.length > 0 ? remove : null,
-      roles: roles ? await Promise.all(roles.map((x) => fromSnowflake(x))) : null,
+      roles: roles ? await multipleFromSnowflake(roles) : null,
       timeout: communication_disabled_until ?? null,
     };
+
+    if (remove.length > 0) body.remove = remove;
 
     return body;
   },
@@ -102,7 +106,7 @@ RESTPatchAPIGuildMemberJSONBody
 
     return {
       nick: nickname,
-      roles: roles ? await Promise.all(roles.map((x) => toSnowflake(x))) : null,
+      roles: roles ? await multipleToSnowflake(roles) : null,
       communication_disabled_until: timeout,
     };
   },

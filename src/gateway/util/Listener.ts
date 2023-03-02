@@ -52,6 +52,7 @@ import {
   interactionTitle,
   findComponentByIndex,
   convertDescriptorToComponent,
+  multipleToSnowflake,
 } from "@reflectcord/common/models";
 import { Logger, RabbitMQ } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
@@ -647,7 +648,7 @@ export async function startListener(
           const channel = await this.rvAPIWrapper.channels.fetch(data.channel);
 
           const body: GatewayMessageDeleteBulkDispatchData = {
-            ids: await Promise.all(data.ids.map((x) => toSnowflake(x))),
+            ids: await multipleToSnowflake(data.ids),
             channel_id: channel.discord.id,
           };
 

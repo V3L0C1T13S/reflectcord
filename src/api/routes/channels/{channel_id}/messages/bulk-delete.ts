@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 import { Resource } from "express-automatic-routes";
 import { HTTPError } from "@reflectcord/common/utils";
-import { fromSnowflake } from "@reflectcord/common/models";
+import { fromSnowflake, multipleFromSnowflake } from "@reflectcord/common/models";
 
 export default () => <Resource> {
   post: async (req, res) => {
@@ -13,7 +13,7 @@ export default () => <Resource> {
 
     if (!messages) throw new HTTPError("Invalid messages");
 
-    const rvMessages = await Promise.all(messages.map((x) => fromSnowflake(x)));
+    const rvMessages = await multipleFromSnowflake(messages);
     const rvId = await fromSnowflake(channel_id);
 
     await res.rvAPIWrapper.messages.bulkDelete(rvId, rvMessages);

@@ -23,7 +23,9 @@ import { DataEditServer, Server } from "revolt-api";
 import { uploadBase64File } from "@reflectcord/cdn/util";
 import { API } from "revolt.js";
 import { QuarkConversion } from "../../QuarkConversion";
-import { fromSnowflake, hashToSnowflake, toSnowflake } from "../../util";
+import {
+  fromSnowflake, hashToSnowflake, multipleFromSnowflake, toSnowflake,
+} from "../../util";
 import { convertPermNumber, Permissions } from "../permissions";
 import { Role } from "../role";
 import {
@@ -118,7 +120,7 @@ export const Guild: QuarkConversion<Server, APIGuild, GuildATQ, GuildAFQ> = {
       name,
       description,
       channels: extra?.channels
-        ? await Promise.all(extra.channels.map((x) => fromSnowflake(x)))
+        ? await multipleFromSnowflake(extra.channels)
         : [],
       categories: null,
       system_messages: system_channel_id ? {

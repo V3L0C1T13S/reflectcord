@@ -5,7 +5,9 @@ import protobuf from "protobufjs";
 import { join } from "path";
 import { invert } from "lodash";
 import { QuarkConversion } from "../../QuarkConversion";
-import { fromSnowflake, toSnowflake } from "../../util";
+import {
+  fromSnowflake, multipleFromSnowflake, multipleToSnowflake, toSnowflake,
+} from "../../util";
 
 const protoDir = join(__dirname, "../../../../../resources");
 
@@ -137,7 +139,7 @@ UserSettingsAFQ
     } : null;
     const ordering: RevoltOrderingSetting | null = settings.guild_positions
       ? {
-        servers: await Promise.all(settings.guild_positions.map((id) => fromSnowflake(id))),
+        servers: await multipleFromSnowflake(settings.guild_positions),
       } : null;
     const userContent: DiscordUserSettings["user_content"] = settings.user_content;
     const textAndImages: RevoltTextAndImagesSetting = {
@@ -173,7 +175,7 @@ UserSettingsAFQ
       theme: themeSettings["appearance:theme:base"] === "light" ? "light" : "dark",
       locale: LocaleMap[localeSettings["lang"]] ?? "en-US",
       guild_positions: orderingSettings?.servers
-        ? await Promise.all(orderingSettings.servers.map((x) => toSnowflake(x)))
+        ? await multipleToSnowflake(orderingSettings.servers)
         : [],
       developer_mode: true,
       status: extra?.status ?? null,
@@ -197,7 +199,7 @@ UserSettingsAFQ
       guild_folders: folderSettings.folders
         ? await Promise.all(folderSettings.folders.map(async (x, i) => ({
           color: x.color,
-          guild_ids: await Promise.all(x.servers.map((id) => toSnowflake(id))),
+          guild_ids: await multipleToSnowflake(x.servers),
           id: i,
           name: x.name,
         }))) : [],
