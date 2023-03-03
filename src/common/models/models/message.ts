@@ -55,6 +55,7 @@ async function replaceAsync(
 
 export const extractComponentName = (x: string) => x.slice(3);
 export const extractComponentCustomId = (x: string) => x.split("CID:")[1]?.split(" ")[0] ?? "FIXME_BAD_CID";
+export const extractComponentStyle = (x: string) => x.split("ST:")[1]?.split(" ")[0]?.toNumber() ?? ButtonStyle.Primary;
 export const extractComponents = (description: string) => description.split("\n");
 export const extractInteractionNames = (description: string) => extractComponents(description)
   .map(extractComponentName);
@@ -84,7 +85,7 @@ export const convertDescriptorToComponent = (
 ): APIButtonComponentWithCustomId => ({
   custom_id: extractComponentCustomId(componentDescriptor),
   label: extractComponentName(componentDescriptor),
-  style: ButtonStyle.Primary,
+  style: extractComponentStyle(componentDescriptor),
   type: ComponentType.Button,
   disabled: isButtonDisabled(componentDescriptor),
 });
@@ -476,7 +477,7 @@ export const MessageSendData: QuarkConversion<
       sendData.embeds.push({
         title: interactionTitle,
         // eslint-disable-next-line no-nested-ternary
-        description: allComponents.map((x, i) => `${i}: ${"label" in x ? x.label : "No label"} CID:${"custom_id" in x ? x.custom_id : "FIXME"} ${x.disabled ? `${disabledComponentText}` : ""}`).join("\n"),
+        description: allComponents.map((x, i) => `${i}: ${"label" in x ? x.label : "No label"} CID:${"custom_id" in x ? x.custom_id : "FIXME"} ST:${x.type === ComponentType.Button ? x.style : ButtonStyle.Primary} ${x.disabled ? `${disabledComponentText}` : ""}`).join("\n"),
       });
 
       /*
