@@ -27,7 +27,7 @@ import { Server, RabbitMQ } from "@reflectcord/common/utils";
 import { initDb } from "@reflectcord/common/db";
 import { enableLogging } from "@reflectcord/common/constants";
 import {
-  Authentication, BodyParser, Client, CORS, ErrorHandler, Versioning,
+  Authentication, BodyParser, CORS, ErrorHandler, Versioning,
 } from "./middleware";
 import "express-async-errors";
 import { reflectcordAPIPort } from "../common/constants/index";
@@ -79,7 +79,6 @@ export class ReflectcordAPI extends Server {
     this.app.use("/api", api);
 
     this.app.use(ErrorHandler);
-    Client(this.app);
 
     // eslint-disable-next-line no-console
     console.log("API UP!");
