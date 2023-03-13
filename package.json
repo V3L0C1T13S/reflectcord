@@ -40,7 +40,7 @@
     "chalk": "^5.2.0",
     "concurrently": "^7.5.0",
     "discord-api-types": "^0.37.33",
-    "discord.js": "^14.7.1",
+    "discord.js": "^14.8.0",
     "dotenv": "^16.0.3",
     "erlpack": "^0.1.4",
     "express": "^4.18.2",
