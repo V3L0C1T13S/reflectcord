@@ -108,6 +108,11 @@ export async function startListener(
           this.close(GatewayCloseCodes.AuthenticationFailed);
           break;
         }
+        // @ts-ignore
+        case "NotFound": {
+          this.close(GatewayCloseCodes.AuthenticationFailed);
+          break;
+        }
         case "Ready": {
           const currentUser = data.users.find((x) => x.relationship === "User");
           if (!currentUser) return this.close(GatewayCloseCodes.AuthenticationFailed);
@@ -123,7 +128,9 @@ export async function startListener(
             this.enable_lazy_channels = process.env["LAZY_MESSAGES"] as unknown as boolean ?? false;
           }
           // HACK! Fixes #10
+          // @ts-ignore
           this.rvClient.api = this.rvAPI;
+          // @ts-ignore
           this.rvAPIWrapper = new APIWrapper(this.rvAPI);
 
           this.user_id = await toSnowflake(currentUser._id);
