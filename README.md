@@ -1,5 +1,5 @@
 # Reflectcord
-[<img src="https://img.shields.io/badge/dynamic/json?labelColor=ff6e6d&color=15283f&label=Revolt%20Server&query=member_count&suffix=%20Members&url=https%3A%2F%2Fapi.revolt.chat%2Finvites%2FsasJBbfb&style=for-the-badge&cacheSeconds=60&logo=https%3A%2F%2Favatars.githubusercontent.com%2Fu%2F57727799?s=200&v=4" />](https://rvlt.gg/sasJBbfb) <!-- @EnokiUN made this uwu -->
+[<img src="https://img.shields.io/badge/dynamic/json?labelColor=ff6e6d&color=15283f&label=Revolt%20Server&query=member_count&suffix=%20Members&url=https%3A%2F%2Fapi.revolt.chat%2Finvites%2FsasJBbfb&style=for-the-badge&cacheSeconds=60" />](https://rvlt.gg/sasJBbfb) <!-- @EnokiUN made this uwu -->
 
 REST and Websocket compatibility layer for Discord->Revolt
 
