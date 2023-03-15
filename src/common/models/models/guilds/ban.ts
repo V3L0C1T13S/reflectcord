@@ -9,7 +9,7 @@ export type BanATQ = Partial<{
 }>
 
 export type BanAFQ = Partial<{
-  user: API.User,
+  user: API.User | null | undefined,
 }>
 
 export const Ban: QuarkConversion<API.ServerBan, APIBan, BanATQ, BanAFQ> = {

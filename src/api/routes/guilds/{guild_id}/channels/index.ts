@@ -7,7 +7,6 @@ import { HTTPError, validate } from "@reflectcord/common/utils";
 import {
   fromSnowflake, Channel, GuildCategory, tryFromSnowflake,
   HandleChannelsAndCategories, ChannelCreateBody, Permissions,
-  toSnowflake,
 } from "@reflectcord/common/models";
 import { ChannelCreateBody as DiscordChannelCreate } from "@reflectcord/common/sparkle";
 import { API } from "revolt.js";

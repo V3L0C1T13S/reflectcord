@@ -16,7 +16,7 @@ export default () => <Resource> {
     const bans = await res.rvAPI.get(`/servers/${rvId as ""}/bans`);
 
     const discordBans = await Promise.all(bans.bans.map((ban) => {
-      const user = bans.users.find((x) => x._id === ban._id.user) as API.User;
+      const user = bans.users.find((x) => x._id === ban._id.user);
 
       return Ban.from_quark(ban, {
         user,
