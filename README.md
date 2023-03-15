@@ -1,4 +1,5 @@
 # Reflectcord
+[![Revolt](https://img.shields.io/discord/770484164393828373.svg?color=94398d&labelColor=e03f4d&logoColor=ffffff&style=for-the-badge&label=Revolt&logo=revolt)](https://rvlt.gg/sasJBbfb "Development and support server")
 
 REST and Websocket compatibility layer for Discord->Revolt
 
