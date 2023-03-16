@@ -3,13 +3,7 @@ import { API } from "revolt.js";
 import { toSnowflake } from "@reflectcord/common/models";
 import { QuarkConversion } from "../../QuarkConversion";
 import { fromSnowflake } from "../../util";
-
-export interface ReadStateObject {
-  id: string,
-  last_message_id: string | null,
-  last_pin_timestamp: string | null,
-  mention_count: number,
-}
+import { ReadStateObject } from "../../../sparkle";
 
 export const ReadState: QuarkConversion<API.ChannelUnread, ReadStateObject> = {
   async to_quark(state) {

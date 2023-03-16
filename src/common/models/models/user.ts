@@ -402,6 +402,13 @@ export const Relationship: QuarkConversion<RelationshipStatus, UserRelationshipT
   },
 };
 
+export type GatewayFullUserPresence = Omit<GatewayPresenceUpdateDispatchData, "guild_id"> & {
+  guild_id?: string;
+  last_modified?: number;
+  since?: number;
+  afk?: boolean;
+};
+
 export interface RevoltPresenceData {
   user: RevoltUser,
   discordUser?: APIUser,
@@ -418,12 +425,7 @@ export async function createUserPresence(
 
   const realStatus = status.status === "invisible" ? "offline" : status.status ?? "offline";
 
-  const presence: Omit<GatewayPresenceUpdateDispatchData, "guild_id"> & {
-    guild_id?: string,
-    last_modified?: number,
-    since?: number,
-    afk?: boolean,
-  } = {
+  const presence: GatewayFullUserPresence = {
     activities: status.activities as any ?? [],
     client_status: {
       web: realStatus as any,

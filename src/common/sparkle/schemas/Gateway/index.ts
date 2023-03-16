@@ -6,3 +6,4 @@ export * from "./Dispatch";
 export * from "./GatewayEvents";
 export * from "./LazyRequest";
 export * from "./Members";
+export * from "./Ready";

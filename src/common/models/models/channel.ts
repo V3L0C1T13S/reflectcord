@@ -25,6 +25,10 @@ import { User } from "./user";
 import { convertPermNumber } from "./permissions";
 import { APIChannelPatchBody } from "../../sparkle";
 
+function alphabetPosition(text: string) {
+  return [...text].map((a) => parseInt(a, 36) - 10).filter((a) => a >= 0);
+}
+
 export type ChannelATQ = {};
 
 export type ChannelAFQ = Partial<{
@@ -152,7 +156,14 @@ export const GuildCategory: QuarkConversion<
 
   async from_quark(category, extra) {
     // Workaround for legacy format ("a", "b", "c") - insert pls migrate
-    const id = await tryToSnowflake(category.id);
+    const id = await (async () => {
+      try {
+        const sf = await toSnowflake(category.id);
+        return sf;
+      } catch {
+        return alphabetPosition(category.id).toString();
+      }
+    })();
     const position = extra?.allCategories?.findIndex((x) => x.id === category.id) ?? 0;
 
     const discordCategory: APIGuildCategoryChannel = {
@@ -273,7 +284,10 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
           const sf = await toSnowflake(extra.categoryId);
           return sf;
         } catch {
-          return extra.categoryId;
+          // Yes, this is a crappy hack.
+          // Yes, we are using the position of the category in the alphabet as an ID.
+          // No, I don't care + ratio + pls migrate revolt lounge categories insert
+          return alphabetPosition(extra.categoryId).toString();
         }
       }
 
@@ -286,7 +300,7 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
         const sf = await toSnowflake(category);
         return sf;
       } catch (e) {
-        return category;
+        return alphabetPosition(category).toString();
       }
     })();
 

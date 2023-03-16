@@ -62,6 +62,8 @@ import {
   GatewayUserSettingsProtoUpdateDispatchData,
   GatewayDispatchCodes,
   MergedMember,
+  ReadyData,
+  DefaultUserSettings,
 } from "@reflectcord/common/sparkle";
 import { reflectcordWsURL } from "@reflectcord/common/constants";
 import { VoiceState } from "@reflectcord/common/mongoose";
@@ -355,17 +357,10 @@ export async function startListener(
           const unreads = await this.rvAPI.get("/sync/unreads");
           const readStateEntries = await Promise.all(unreads.map((x) => ReadState.from_quark(x)));
 
-          const readyData = {
+          const readyData: ReadyData = {
             v: this.version,
-            application: currentUserDiscord.bot ? {
-              id: currentUserDiscord.id,
-              flags: 0,
-            } : {
-              id: "",
-              flags: 0,
-            },
             user: currentUserDiscord,
-            user_settings: user_settings ?? {},
+            user_settings: user_settings ?? DefaultUserSettings,
             user_settings_proto: user_settings_proto ? Buffer.from(user_settings_proto).toString("base64") : null,
             guilds,
             guild_experiments: [],
@@ -382,7 +377,7 @@ export async function startListener(
               version: 304128,
             } : readStateEntries,
             user_guild_settings: this.version > 7 ? {
-              entries: user_settings?.user_guild_settings,
+              entries: user_settings?.user_guild_settings ?? [],
               partial: false,
               version: 642,
             } : user_settings?.user_guild_settings ?? [],
@@ -396,6 +391,8 @@ export async function startListener(
             guild_join_requests: [],
             connected_accounts: [],
             analytics_token: "",
+            tutorial: null,
+            session_type: "normal",
             api_code_version: 1,
             consents: {
               personalization: {
@@ -411,6 +408,13 @@ export async function startListener(
             shard: [0, 1],
             presences: friendPresences,
           };
+
+          if (currentUserDiscord.bot) {
+            readyData.application = {
+              id: currentUserDiscord.id,
+              flags: 0,
+            };
+          }
 
           await Dispatch(this, GatewayDispatchEvents.Ready, readyData);
 
