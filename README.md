@@ -32,7 +32,13 @@ To check if your framework of choice or client works with Reflectcord, refer to 
 
 ## Setup
 
-See docs/setup.md
+[Server](docs/setup.md)
+
+[Bots](docs/bot_setup.md)
+
+For clients, it's generally recommended you use Diproxi to proxy discord.com requests to your instance.
+
+[Diproxi](docs/diproxi_setup.md)
 
 ## Credits
 
