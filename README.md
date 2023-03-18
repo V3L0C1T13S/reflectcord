@@ -29,6 +29,7 @@ To check if your framework of choice or client works with Reflectcord, refer to 
 
 ![image](https://user-images.githubusercontent.com/51764975/212494409-017dd53d-a958-4a0e-bdfa-2af3f26bd62d.png)
 ![image](https://user-images.githubusercontent.com/51764975/212494374-ce01cedb-31fd-4431-bb67-08ae6a70d2f9.png)
+![Reflectcord running the unofficial native and closed source Discord client Ripcord](https://user-images.githubusercontent.com/51764975/226075337-e721b96d-818e-4157-abcc-0ae6a7bbddb7.png)
 
 ## Setup
 
