@@ -53,6 +53,8 @@ import {
   findComponentByIndex,
   convertDescriptorToComponent,
   multipleToSnowflake,
+  GatewaySessionDTO,
+  identifyClient,
 } from "@reflectcord/common/models";
 import { Logger, RabbitMQ } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
@@ -64,6 +66,7 @@ import {
   MergedMember,
   ReadyData,
   DefaultUserSettings,
+  Session,
 } from "@reflectcord/common/sparkle";
 import { reflectcordWsURL } from "@reflectcord/common/constants";
 import { VoiceState } from "@reflectcord/common/mongoose";
@@ -277,17 +280,20 @@ export async function startListener(
           });
 
           const sessionStatus = await Status.from_quark(currentUser.status);
-          const currentSession = {
-            activities: sessionStatus.activities,
+          const currentSession: Session = {
+            activities: sessionStatus.activities ?? [],
             client_info: {
               version: 0,
-              client: "desktop",
-              os: identifyPayload.properties?.os,
+              client: identifyClient(identifyPayload.properties.browser ?? "Discord Client"),
             },
-            status: identifyPayload?.presence?.status ?? "offline",
+            status: identifyPayload?.presence?.status.toString() ?? "offline",
             session_id: this.session_id,
           };
-          const sessions = [currentSession];
+          if (identifyPayload.properties.os) {
+            currentSession.client_info.os = identifyPayload.properties.os;
+          }
+
+          const sessions = [new GatewaySessionDTO(currentSession)];
 
           const memberData = (await Promise.all(data.members.map(async (x) => {
             const server = this.rvAPIWrapper.servers.$get(x._id.server);
@@ -444,7 +450,7 @@ export async function startListener(
           setImmediate(async () => {
             if (this.bot) return;
 
-            Dispatch(this, GatewayDispatchCodes.SessionsReplace, [currentSession])
+            Dispatch(this, GatewayDispatchCodes.SessionsReplace, sessions)
               .catch(Logger.error);
             Dispatch(this, GatewayDispatchEvents.PresenceUpdate, {
               user: currentUserDiscord,
