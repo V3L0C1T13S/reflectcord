@@ -4,6 +4,7 @@
 import {
   APIButtonComponentWithCustomId,
   APIChannel,
+  APIUser,
   ButtonStyle,
   ComponentType,
   GatewayCloseCodes,
@@ -170,10 +171,30 @@ export async function startListener(
           const discordUsers = users.map((user) => user.discord);
 
           const channels = await Promise.all(data.channels
-            .map(async (channel) => this.rvAPIWrapper.channels.createObj({
-              revolt: channel,
-              discord: await Channel.from_quark(channel, { excludedUser: currentUser._id }),
-            })));
+            .map(async (channel) => {
+              const recipients: APIUser[] = [];
+              if (channel.channel_type === "Group" || channel.channel_type === "DirectMessage") {
+                channel.recipients.forEach((x) => {
+                  if (x === this.rv_user_id) return;
+
+                  const user = this.rvAPIWrapper.users.get(x);
+                  if (user) recipients.push(user.discord);
+                });
+              }
+              const params: any = { excludedUser: currentUser._id };
+              if (recipients.length > 0) params.discordRecipients = recipients;
+
+              const discordChannel = await Channel.from_quark(
+                channel,
+                params,
+              );
+              const channelObj = this.rvAPIWrapper.channels.createObj({
+                revolt: channel,
+                discord: discordChannel,
+              });
+
+              return channelObj;
+            }));
 
           const private_channels = channels
             .filter((x) => x.revolt.channel_type === "DirectMessage" || x.revolt.channel_type === "Group" || x.revolt.channel_type === "SavedMessages")
@@ -413,6 +434,7 @@ export async function startListener(
             _trace: ["s2-gateway-prd-7-5"],
             shard: [0, 1],
             presences: friendPresences,
+            auth_session_id_hash: "",
           };
 
           if (currentUserDiscord.bot) {
@@ -431,6 +453,7 @@ export async function startListener(
 
           if (!currentUserDiscord.bot) {
             const supplementalData = {
+              disclose: [],
               guilds: await Promise.all(guilds.map(async (x) => ({
                 id: x.id,
                 embedded_activities: [],

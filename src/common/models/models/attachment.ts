@@ -79,7 +79,7 @@ export const Attachment: QuarkConversion<API.File, APIAttachment> = {
   },
 };
 
-export const PartialFile: QuarkConversion<API.File, string> = {
+export const PartialFile: QuarkConversion<API.File, string, {}, { skipConversion?: boolean }> = {
   async to_quark(file) {
     return {
       _id: file,
@@ -93,7 +93,8 @@ export const PartialFile: QuarkConversion<API.File, string> = {
     };
   },
 
-  async from_quark(file) {
+  async from_quark(file, extra) {
+    if (extra?.skipConversion) return file._id;
     // TODO: Figure out when conversion is appropriate
     return hashToSnowflake(file._id);
   },

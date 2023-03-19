@@ -48,6 +48,14 @@ export type ChannelAFQ = Partial<{
    * channel is in, and also find the position automatically.
   */
   allCategories: API.Category[] | null | undefined,
+  /**
+   * Revolt recipients for this group
+  */
+  recipients: API.User[],
+  /**
+   * Discord recipients for this group. Takes immediate priority over recipients.
+  */
+  discordRecipients: APIUser[],
 }>;
 
 export const ChannelCreateType: QuarkConversion<"Text" | "Voice", discordChannelType> = {
@@ -330,7 +338,7 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
 
       const excludedRecipients = channel.recipients.filter((x) => x !== extra?.excludedUser);
 
-      commonProperties.recipients = await Promise.all(excludedRecipients
+      commonProperties.recipients = extra?.discordRecipients ?? await Promise.all(excludedRecipients
         .map((x) => User.from_quark({
           _id: x,
           username: "fixme",
@@ -345,11 +353,10 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
       commonProperties.user_limit = 0;
     }
 
-    return {
+    const discordChannel = {
       ...commonProperties,
       id,
       default_auto_archive_duration: 60,
-      invitable: undefined,
       type: channelType,
       last_message_id: "last_message_id" in channel && channel.last_message_id
         ? await toSnowflake(channel.last_message_id) : null,
@@ -363,7 +370,6 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
 
         return channel.name;
       })(),
-      origin_channel_id: id,
       nsfw: (() => {
         if (channel.channel_type !== "TextChannel"
         && channel.channel_type !== "VoiceChannel") return false;
@@ -414,6 +420,13 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
       position,
       icon: ("icon" in channel && channel.icon) ? await hashToSnowflake(channel.icon._id) : null,
     };
+
+    if (channel.channel_type === "DirectMessage") {
+      // @ts-ignore
+      delete discordChannel.name;
+    }
+
+    return discordChannel;
   },
 
   // @ts-ignore

@@ -12,3 +12,7 @@ export interface Session {
   client_info: ClientInfo;
   status: string;
 }
+
+export interface GatewaySession extends Session {
+  active?: boolean,
+}

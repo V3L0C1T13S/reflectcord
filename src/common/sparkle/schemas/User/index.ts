@@ -4,3 +4,4 @@ export * from "./Profile";
 export * from "./UserSettings";
 export * from "./ReadStates";
 export * from "./Session";
+export * from "./Connections";

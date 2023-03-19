@@ -1,9 +1,11 @@
 import {
   APIChannel, APIGuildMember, APIUnavailableGuild, APIUser, GatewayReadyDispatchData,
 } from "discord.js";
-import { UserGuildSetting, UserSettings, ReadStateObject } from "../User";
+import {
+  UserGuildSetting, UserSettings, ReadStateObject, ConnectedAccount, Session, GatewaySession,
+} from "../User";
 import { UserRelationshipType } from "../../types";
-import { GatewayFullUserPresence } from "../../../models";
+import { GatewayFullUserPresence, GatewaySessionDTO } from "../../../models";
 
 interface GatewayRelationshipData {
   id: string;
@@ -44,10 +46,10 @@ export interface ReadyData extends Omit<GatewayReadyDispatchData, "application">
   users: APIUser[],
   experiments: number[][],
   private_channels: APIChannel[],
-  sessions: unknown[],
+  sessions: GatewaySession[],
   friend_suggestion_count: number,
   guild_join_requests: unknown[],
-  connected_accounts: unknown[],
+  connected_accounts: ConnectedAccount[],
   analytics_token: string,
   api_code_version: number, // TODO: Document
   consents: {
