@@ -24,6 +24,7 @@ import { Client } from "revolt.js";
 import WS from "ws";
 import { Deflate, Inflate } from "fast-zlib";
 import { MemberList } from "@reflectcord/common/utils/discord/MemberList";
+import { CapabilitiesObject } from "@reflectcord/common/sparkle";
 import { APIWrapper } from "../common/rvapi";
 import { Payload } from "./util";
 
@@ -99,4 +100,5 @@ export interface WebSocket extends WS {
   typingConsumer?: Replies.Consume | undefined;
   state: SocketState;
   token: string;
+  capabilities: CapabilitiesObject
 }

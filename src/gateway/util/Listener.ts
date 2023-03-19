@@ -2,11 +2,8 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-plusplus */
 import {
-  APIButtonComponentWithCustomId,
   APIChannel,
   APIUser,
-  ButtonStyle,
-  ComponentType,
   GatewayCloseCodes,
   GatewayDispatchEvents,
   GatewayGuildCreateDispatchData,
@@ -68,6 +65,9 @@ import {
   ReadyData,
   DefaultUserSettings,
   Session,
+  ClientCapabilities,
+  IdentifyCapabilities,
+  DefaultCapabilities,
 } from "@reflectcord/common/sparkle";
 import { reflectcordWsURL } from "@reflectcord/common/constants";
 import { VoiceState } from "@reflectcord/common/mongoose";
@@ -120,6 +120,13 @@ export async function startListener(
           break;
         }
         case "Ready": {
+          if (identifyPayload.capabilities) {
+            const capabilitiesObject = IdentifyCapabilities(identifyPayload.capabilities);
+            this.capabilities = capabilitiesObject;
+          } else {
+            this.capabilities = DefaultCapabilities;
+            Logger.warn("Client has no capabilities??");
+          }
           const currentUser = data.users.find((x) => x.relationship === "User");
           if (!currentUser) return this.close(GatewayCloseCodes.AuthenticationFailed);
 
@@ -143,9 +150,6 @@ export async function startListener(
           this.rv_user_id = currentUser._id;
 
           this.is_deprecated = isDeprecatedClient.call(this);
-          if (identifyPayload.properties.browser === "Discord Android") {
-            this.is_deprecated = true;
-          }
 
           this.typingConsumer = await RabbitMQ.channel?.consume(userStartTyping, (msg) => {
             if (!msg) return;
@@ -278,9 +282,7 @@ export async function startListener(
               }
 
               // Older clients expect bot guilds
-              if ((this.version < 9 && !this.bot) || this.is_deprecated) {
-                return legacyGuild;
-              }
+              if (!this.capabilities.ClientStateV2) return legacyGuild;
 
               return guild;
             }));
@@ -387,8 +389,6 @@ export async function startListener(
           const readyData: ReadyData = {
             v: this.version,
             user: currentUserDiscord,
-            user_settings: user_settings ?? DefaultUserSettings,
-            user_settings_proto: user_settings_proto ? Buffer.from(user_settings_proto).toString("base64") : null,
             guilds,
             guild_experiments: [],
             geo_ordered_rtc_regions: ["newark", "us-east"],
@@ -398,12 +398,12 @@ export async function startListener(
               nickname: x.discord.user.username,
               user: x.discord.user,
             })),
-            read_state: this.version > 7 ? {
+            read_state: this.capabilities.VersionedReadStates ? {
               entries: readStateEntries,
               partial: false,
               version: 304128,
             } : readStateEntries,
-            user_guild_settings: this.version > 7 ? {
+            user_guild_settings: this.capabilities.VersionedUserGuildSettings ? {
               entries: user_settings?.user_guild_settings ?? [],
               partial: false,
               version: 642,
@@ -436,6 +436,10 @@ export async function startListener(
             presences: friendPresences,
             auth_session_id_hash: "",
           };
+
+          if (this.capabilities.UserSettingsProto && user_settings_proto) {
+            readyData.user_settings_proto = Buffer.from(user_settings_proto).toString("base64");
+          } else readyData.user_settings = user_settings ?? DefaultUserSettings;
 
           if (currentUserDiscord.bot) {
             readyData.application = {
