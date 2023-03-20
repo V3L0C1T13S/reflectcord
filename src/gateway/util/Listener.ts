@@ -842,7 +842,11 @@ export async function startListener(
             unavailable: false,
           };
 
-          await Dispatch(this, GatewayDispatchEvents.GuildCreate, this.bot ? botGuild : userGuild);
+          await Dispatch(
+            this,
+            GatewayDispatchEvents.GuildCreate,
+            this.capabilities.ClientStateV2 ? userGuild : botGuild,
+          );
 
           break;
         }
