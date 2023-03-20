@@ -532,14 +532,11 @@ export async function HandleChannelsAndCategories(
   channels: rvChannel[],
   categories?: Category[] | null,
   server?: string,
-  deprecated?: boolean,
 ) {
   const discordChannels = await Promise.all(channels
     .map((x) => Channel.from_quark(x, {
       allCategories: categories,
     })));
-
-  if (deprecated) return discordChannels;
 
   const discordCategories = categories ? await Promise.all(categories
     .map((x) => GuildCategory.from_quark(x, {

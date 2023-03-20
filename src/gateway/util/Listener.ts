@@ -242,7 +242,6 @@ export async function startListener(
                 rvChannels,
                 server.categories,
                 server._id,
-                this.is_deprecated,
               );
 
               cacheServerCreateChannels.call(this, rvChannels, serverChannels);
@@ -809,7 +808,6 @@ export async function startListener(
             data.channels,
             data.server.categories,
             data.server._id,
-            this.is_deprecated,
           );
 
           cacheServerCreateChannels.call(this, data.channels, channels);
