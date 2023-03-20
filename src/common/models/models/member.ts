@@ -1,17 +1,18 @@
 /* eslint-disable no-nested-ternary */
 /* eslint-disable camelcase */
 import {
-  APIGuildMember, APIUser, RESTPatchAPIGuildMemberJSONBody, GuildMemberFlags,
+  APIGuildMember, APIUser, RESTPatchAPIGuildMemberJSONBody,
 } from "discord.js";
 import { Member as RevoltMember } from "revolt-api";
 import { API } from "revolt.js";
 import { QuarkConversion } from "../QuarkConversion";
 import {
-  fromSnowflake, multipleFromSnowflake, multipleToSnowflake, toSnowflake,
+  fromSnowflake, multipleFromSnowflake, multipleToSnowflake,
 } from "../util";
 import { User } from "./user";
 import { toCompatibleISO } from "../../utils/date";
 import { PartialFile } from "./attachment";
+import { MergedMember } from "../../sparkle";
 
 export type MemberATQ = Partial<{
   user: APIUser,
@@ -75,6 +76,23 @@ export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, Memb
     return discordMember;
   },
 };
+
+export class MergedMemberDTO {
+  member: APIGuildMember;
+  user_id: string;
+
+  constructor(member: APIGuildMember, user_id: string) {
+    this.member = member;
+    this.user_id = user_id;
+  }
+
+  toJSON(): MergedMember {
+    return {
+      ...this.member,
+      user_id: this.user_id,
+    };
+  }
+}
 
 export const MemberEditBody: QuarkConversion<
 API.DataMemberEdit,

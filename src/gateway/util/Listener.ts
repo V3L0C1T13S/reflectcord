@@ -252,6 +252,23 @@ export async function startListener(
                 member: member ? member.discord : null,
               });
 
+              const legacyGuild = {
+                ...discordGuild,
+                ...commonGuild,
+              };
+
+              const botGuild = {
+                ...legacyGuild,
+                unavailable: false,
+              };
+
+              if (currentUser.bot) {
+                lazyGuilds.push(botGuild);
+                return { id: discordGuild.id, unavailable: true };
+              }
+
+              if (!this.capabilities.ClientStateV2) return legacyGuild;
+
               const guild = {
                 ...commonGuild,
                 data_mode: "full",
@@ -266,22 +283,6 @@ export async function startListener(
                 stickers: discordGuild.stickers,
                 version: 0,
               };
-
-              const botGuild = {
-                ...discordGuild,
-                ...commonGuild,
-                unavailable: false,
-              };
-
-              const legacyGuild = botGuild;
-
-              if (currentUser.bot) {
-                lazyGuilds.push(botGuild);
-                return { id: guild.id, unavailable: true };
-              }
-
-              // Older clients expect bot guilds
-              if (!this.capabilities.ClientStateV2) return legacyGuild;
 
               return guild;
             }));
@@ -345,7 +346,10 @@ export async function startListener(
             const hoisted_role = hoistedRoles
               .sort((r1, r2) => r1.position - r2.position)[0];
 
-            const mergedMember: MergedMember = { ...member.discord };
+            const mergedMember: MergedMember = {
+              ...member.discord,
+              user_id: member.discord.user!.id, // FIXME: This might break
+            };
 
             if (hoisted_role) mergedMember.hoisted_role = hoisted_role;
 
@@ -716,7 +720,7 @@ export async function startListener(
 
           if ("guild_id" in channel.discord && channel.discord.guild_id && "server" in channel.revolt) {
             if (!this.bot
-              && !this.is_deprecated
+              && this.capabilities.ClientStateV2
               && !this.subscribed_servers[channel.revolt.server]?.typing) {
               return;
             }

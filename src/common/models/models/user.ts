@@ -235,6 +235,7 @@ export interface activityMetadata {
 }
 
 export interface internalActivity extends Omit<ActivitiesOptions, "type"> {
+  created_at?: number,
   state?: string,
   details?: string,
   // FIXME: i want whatever typescript is taking for it to need me to do this garbage
@@ -341,6 +342,7 @@ export const Status: QuarkConversion<RevoltUser["status"], internalStatus, Statu
 
     if (status?.text) {
       discordStatus.activities?.push({
+        created_at: 0,
         id: "custom",
         name: "Custom Status",
         state: status.text,
@@ -407,6 +409,7 @@ export type GatewayFullUserPresence = Omit<GatewayPresenceUpdateDispatchData, "g
   last_modified?: number;
   since?: number;
   afk?: boolean;
+  user_id?: string;
 };
 
 export interface RevoltPresenceData {
@@ -424,7 +427,7 @@ export async function createUserPresence(
   });
 
   const realStatus = status.status === "invisible" ? "offline" : status.status ?? "offline";
-
+  const user = data.discordUser ?? await User.from_quark(data.user);
   const presence: GatewayFullUserPresence = {
     activities: status.activities as any ?? [],
     client_status: {
@@ -433,7 +436,8 @@ export async function createUserPresence(
     status: realStatus as any,
     last_modified: Date.now(),
     // FIXME: Discord has inconsistent behaviour with the user object
-    user: data.discordUser ?? await User.from_quark(data.user),
+    user,
+    user_id: user.id,
   };
 
   if (status.status === "idle" && status.since && status.afk) {

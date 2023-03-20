@@ -19,7 +19,7 @@ export const Role: QuarkConversion<API.Role, APIRole> = {
   async from_quark(role, id?: string) {
     const { name, permissions } = role;
 
-    return {
+    const discordRole: APIRole = {
       name,
       id: id ? await toSnowflake(id) : "0", // FIXME
       permissions: (await Permissions.from_quark(permissions)).toString(),
@@ -30,6 +30,13 @@ export const Role: QuarkConversion<API.Role, APIRole> = {
       managed: false,
       mentionable: false,
     };
+
+    // FIXME: hack momento
+    if (!discordRole.color) {
+      discordRole.color = 0;
+    }
+
+    return discordRole;
   },
 };
 

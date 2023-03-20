@@ -7,12 +7,37 @@ export const ClientCapabilities = {
   */
   LazyUserNotes: 1 << 0,
   NoAffineUserIds: 1 << 1,
+  /**
+   * Client supports versioned read states
+   *
+   * Sent while true: {
+   *  entries: ReadStateEntry[],
+   *  partial: boolean,
+   *  version: number
+   * }
+   *
+   * Sent while false: ReadStateEntry[]
+  */
   VersionedReadStates: 1 << 2,
+  /**
+   * Client supports versioned read states
+   *
+   * Sent while true: {
+   *  entries: GuildSettingEntry[],
+   *  partial: boolean,
+   *  version: number
+   * }
+   *
+   * Sent while false: GuildSettingEntry[]
+  */
   VersionedUserGuildSettings: 1 << 3,
   DeduplicateUserObjects: 1 << 4,
   PrioritizedReadyPayload: 1 << 5,
   MultipleGuildExperimentPopulations: 1 << 6,
   NonChannelReadStates: 1 << 7,
+  /**
+   * Client supports getting a new auth_token dynamically
+  */
   AuthTokenRefresh: 1 << 8,
   /**
    * Controls if the client will receive
@@ -24,8 +49,12 @@ export const ClientCapabilities = {
    *
    * Known changes when true:
    * New Guild DTOs are sent
+   * Typing indicators are sent procedurally
   */
   ClientStateV2: 1 << 10,
+  /**
+   * Client can support PASSIVE_GUILD_UPDATE events
+  */
   PassiveGuildUpdate: 1 << 11,
 };
 
