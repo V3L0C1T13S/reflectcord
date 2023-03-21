@@ -24,17 +24,12 @@ export const Role: QuarkConversion<API.Role, APIRole> = {
       id: id ? await toSnowflake(id) : "0", // FIXME
       permissions: (await Permissions.from_quark(permissions)).toString(),
       // FIXME: gradient conversion needed
-      color: role.colour ? hexToRgbCode(role.colour) ?? 0 : 0,
+      color: role.colour ? hexToRgbCode(role.colour) || 0 : 0,
       hoist: !!role.hoist,
       position: role.rank ?? 0,
       managed: false,
       mentionable: false,
     };
-
-    // FIXME: hack momento
-    if (!discordRole.color) {
-      discordRole.color = 0;
-    }
 
     return discordRole;
   },

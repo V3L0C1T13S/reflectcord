@@ -35,20 +35,33 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
 
   // FIXME: Spaghetti momento
   async from_quark(embed) {
-    if (embed.type === "None") return {};
+    if (embed.type === "None") {
+      const discordEmbed = {
+        title: "Unknown",
+        description: "Unparsable embed",
+      };
+
+      // @ts-ignore
+      discordEmbed.type = "rich";
+
+      return discordEmbed;
+    }
 
     const discordEmbed: APIEmbed = {};
     if (embed.url) discordEmbed.url = embed.url;
     if (embed.type === "Text" || embed.type === "Website") {
       if (embed.title) discordEmbed.title = embed.title;
       if (embed.description) discordEmbed.description = embed.description;
-      if (embed.colour) discordEmbed.color = hexToRgbCode(embed.colour) ?? 0;
+      if (embed.colour) discordEmbed.color = hexToRgbCode(embed.colour) || 0;
       if (embed.icon_url) {
         discordEmbed.footer ??= { text: "" };
         discordEmbed.footer.icon_url = embed.icon_url;
         discordEmbed.footer.proxy_icon_url = proxyFile(embed.icon_url);
       }
       if (embed.type === "Text") {
+        // @ts-ignore
+        discordEmbed.type = "rich";
+
         if (embed.media) {
           const imgUrl = `http://${reflectcordCDNURL}/attachments/${await hashToSnowflake(embed.media._id)}`;
           discordEmbed.image = {
