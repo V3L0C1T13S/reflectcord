@@ -58,6 +58,8 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
         discordEmbed.footer.icon_url = embed.icon_url;
         discordEmbed.footer.proxy_icon_url = proxyFile(embed.icon_url);
       }
+      // @ts-ignore
+      if (embed.type === "Website") discordEmbed.type = "link";
       if (embed.type === "Text") {
         // @ts-ignore
         discordEmbed.type = "rich";
@@ -367,6 +369,8 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
         Logger.warn(`Couldn't properly convert nitter embed ${e}`);
       }
     }
+
+    if (!discordEmbed.type) Logger.warn(`No embed for embed ${embed.type} and ${embed}`);
 
     return discordEmbed;
   },

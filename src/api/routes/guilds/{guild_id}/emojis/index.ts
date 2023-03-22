@@ -14,12 +14,12 @@ export default () => <Resource> {
 
     const serverId = await fromSnowflake(guild_id);
 
-    const emojis = await res.rvAPI.get(`/servers/${serverId}/emojis`) as API.Emoji[];
+    const emojis = await res.rvAPI.get(`/servers/${serverId as ""}/emojis`);
     if (!Array.isArray(emojis)) throw new HTTPError("Failed to get emojis");
 
     res.json(await Promise.all(emojis.map(async (x) => {
       const user = await res.rvAPIWrapper.users.fetch(x.creator_id);
-      const emoji = await Emoji.from_quark(x, { user: user.revolt });
+      const emoji = await Emoji.from_quark(x, { discordUser: user.discord });
 
       return emoji;
     })));
