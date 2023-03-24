@@ -76,6 +76,7 @@ export async function Connection(this: ws.Server, socket: WebSocket, request: In
     socket.rvAPI = new API({
       baseURL: revoltApiURL,
     });
+    // @ts-ignore
     socket.rvAPIWrapper = new APIWrapper(socket.rvAPI);
     socket.state = new SocketState();
 

@@ -526,7 +526,7 @@ export const MessageSendData: QuarkConversion<
     return {
       content: content ?? "** **",
       embeds: embeds
-        ? await Promise.all(embeds.map((x) => SendableEmbed.from_quark(x)))
+        ? await Promise.all(embeds.map((x) => SendableEmbed.from_quark(x))) as any // TODO: Types
         : undefined,
       nonce: data.nonce ?? undefined,
     };

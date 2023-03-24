@@ -49,6 +49,7 @@ export async function onIdentify(this: WebSocket, data: Payload<IdentifySchema>)
   });
 
   // HACK!
+  // @ts-ignore
   this.rvClient.api = this.rvAPI;
 
   // StateManager.insert(this);

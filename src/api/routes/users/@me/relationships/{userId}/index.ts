@@ -38,7 +38,7 @@ export default () => <Resource> {
     const rvUserId = await fromSnowflake(userId);
 
     await updateRelationship({
-      rvAPI: res.rvAPI,
+      rvAPI: res.rvAPI as any,
       userId: rvUserId,
       type: type ?? UserRelationshipType.Friends,
     });

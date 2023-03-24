@@ -24,6 +24,7 @@ export async function VortexIdentify(this: WebSocket, data: Payload) {
   this.rvAPI = createAPI({
     token,
   });
+  // @ts-ignore
   this.rvAPIWrapper = new APIWrapper(this.rvAPI);
 
   const user = await this.rvAPIWrapper.users.fetchSelf();

@@ -46,6 +46,7 @@ export async function onIdentify(this: WebSocket, data: Payload) {
   this.rvAPI = createAPI({
     token,
   });
+  // @ts-ignore
   this.rvAPIWrapper = new APIWrapper(this.rvAPI);
   this.sessionId = session_id;
   this.token = token;

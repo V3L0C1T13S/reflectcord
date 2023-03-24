@@ -66,6 +66,7 @@ declare global {
 export async function Authentication(req: Request, res: Response, next: NextFunction) {
   if (req.method === "OPTIONS") return res.sendStatus(204);
 
+  // @ts-ignore
   res.rvAPI = createAPI();
   res.rvAPIWrapper = new APIWrapper(res.rvAPI);
 
@@ -87,9 +88,11 @@ export async function Authentication(req: Request, res: Response, next: NextFunc
     if (req.token.startsWith("Bot ")) {
       req.token = req.token.substring(4);
 
+      // @ts-ignore
       res.rvAPI = createAPI(req.token);
       bot = true;
     } else {
+      // @ts-ignore
       res.rvAPI = createAPI({
         token: req.token,
       });
