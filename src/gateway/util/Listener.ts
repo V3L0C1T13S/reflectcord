@@ -53,6 +53,7 @@ import {
   multipleToSnowflake,
   GatewaySessionDTO,
   identifyClient,
+  createUserGatewayGuild,
 } from "@reflectcord/common/models";
 import { Logger, RabbitMQ } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
@@ -204,8 +205,6 @@ export async function startListener(
             .filter((x) => x.revolt.channel_type === "DirectMessage" || x.revolt.channel_type === "Group" || x.revolt.channel_type === "SavedMessages")
             .map((x) => x.discord);
 
-          const lazyGuilds: GatewayGuildCreateDispatchData[] = [];
-
           if (data.emojis) {
             await Promise.all(data.emojis
               .filter((x) => x.parent.type === "Server")
@@ -216,6 +215,8 @@ export async function startListener(
                 }),
               })));
           }
+
+          const lazyGuilds: GatewayGuildCreateDispatchData[] = [];
 
           const guilds = await Promise.all(data.servers
             .map(async (server) => {
@@ -246,43 +247,34 @@ export async function startListener(
 
               cacheServerCreateChannels.call(this, rvChannels, serverChannels);
 
-              const commonGuild = createCommonGatewayGuild(discordGuild, {
-                channels: serverChannels,
-                members: member ? [member.discord] : [],
-                member: member ? member.discord : null,
-              });
+              if (currentUser.bot || !this.capabilities.ClientStateV2) {
+                const commonGuild = createCommonGatewayGuild(discordGuild, {
+                  channels: serverChannels,
+                  members: member ? [member.discord] : [],
+                  member: member ? member.discord : null,
+                });
 
-              const legacyGuild = {
-                ...discordGuild,
-                ...commonGuild,
-              };
+                const legacyGuild = {
+                  ...discordGuild,
+                  ...commonGuild,
+                };
 
-              const botGuild = {
-                ...legacyGuild,
-                unavailable: false,
-              };
+                if (!currentUser.bot) return legacyGuild;
 
-              if (currentUser.bot) {
+                const botGuild = {
+                  ...legacyGuild,
+                  unavailable: false,
+                };
+
                 lazyGuilds.push(botGuild);
                 return { id: discordGuild.id, unavailable: true };
               }
 
-              if (!this.capabilities.ClientStateV2) return legacyGuild;
-
-              const guild = {
-                ...commonGuild,
-                data_mode: "full",
-                emojis: emojis
-                  ?.map((emoji) => createGatewayGuildEmoji(emoji.discord, discordGuild.id))
-                  ?? [],
-                id: discordGuild.id,
-                lazy: true,
-                premium_subscription_count: discordGuild.premium_subscription_count ?? 0,
-                properties: discordGuild,
-                roles: discordGuild.roles,
-                stickers: discordGuild.stickers,
-                version: 0,
-              };
+              const guild = await createUserGatewayGuild(discordGuild, {
+                channels: serverChannels,
+                members: member ? [member.discord] : [],
+                member: member ? member.discord : null,
+              });
 
               return guild;
             }));
@@ -440,8 +432,9 @@ export async function startListener(
             auth_session_id_hash: "",
           };
 
-          if (this.capabilities.UserSettingsProto && user_settings_proto) {
-            readyData.user_settings_proto = Buffer.from(user_settings_proto).toString("base64");
+          if (this.capabilities.UserSettingsProto) {
+            if (user_settings_proto) readyData.user_settings_proto = Buffer.from(user_settings_proto).toString("base64");
+            else readyData.user_settings_proto = null; // TODO: Tests
           } else readyData.user_settings = user_settings ?? DefaultUserSettings;
 
           if (currentUserDiscord.bot) {

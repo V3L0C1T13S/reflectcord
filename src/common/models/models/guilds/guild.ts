@@ -348,7 +348,7 @@ export async function createUserGatewayGuild(
     data_mode: "full",
     emojis: emojis
       ?.map((emoji) => createGatewayGuildEmoji(emoji, guild.id))
-    ?? [],
+      ?? [],
     id: guild.id,
     lazy: true,
     premium_subscription_count: guild.premium_subscription_count ?? 0,
