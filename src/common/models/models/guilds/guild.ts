@@ -33,6 +33,7 @@ import {
 } from "../emoji";
 import { toCompatibleISO } from "../../../utils/date";
 import { PartialFile } from "../attachment";
+import { CommonGatewayGuild, UserGatewayGuild } from "../../../sparkle";
 
 export type DiscordPartialGuild = {
   id: string,
@@ -50,30 +51,6 @@ export type revoltPartialServer = {
   flags?: Server["flags"],
   owner: Server["owner"]
 };
-
-export interface CommonGatewayGuild {
-  channels: APIChannel[];
-  joined_at: string;
-  large: boolean;
-  member_count?: number;
-  members: APIGuildMember[];
-  threads: unknown[];
-  stage_instances: unknown[];
-  guild_scheduled_events: unknown[];
-}
-
-export interface UserGatewayGuild extends CommonGatewayGuild {
-  id: string;
-  data_mode: "full" | "lazy"
-  stickers: APISticker[];
-  roles: APIRole[];
-  emojis: discordGatewayGuildEmoji[];
-  embedded_activities: unknown[];
-  properties: APIGuild;
-  lazy: boolean;
-  premium_subscription_count?: number;
-  version: number;
-}
 
 export const stubFeatures = [
   GuildFeature.Banner,
@@ -309,7 +286,7 @@ type UserGatewayGuildData = CommonGatewayGuildData & {
 export function createCommonGatewayGuild(
   guild: APIGuild,
   data: CommonGatewayGuildData,
-) {
+): CommonGatewayGuild {
   return {
     channels: data.channels,
     joined_at: data.member?.joined_at ?? toCompatibleISO(new Date().toISOString()),
