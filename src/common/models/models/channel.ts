@@ -382,8 +382,8 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
         const discordOverrides: APIOverwrite[] = [];
 
         const everyoneStub = {
-          id: await toSnowflake(channel.server),
           type: OverwriteType.Role,
+          id: await toSnowflake(channel.server),
           allow: "0",
           deny: "0",
         };
@@ -406,8 +406,8 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
           const deny = convertPermNumber(x.d).toString();
 
           discordOverrides.push({
-            id: roleId,
             type,
+            id: roleId,
             allow,
             deny,
           });
