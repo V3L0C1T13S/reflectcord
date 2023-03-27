@@ -54,3 +54,6 @@ Mainly responsible for documenting settings protobufs, along with tons of OPCode
 
 ### [ouwou - Discord Undocumented](https://github.com/ouwou/discord-undocumented)
 Documented features such as search and slash commands
+
+## Disclaimer
+Discord is trademark of Discord Inc. and solely mentioned for the sake of descriptivity. Mention of it does not imply any affiliation with or endorsement by Discord Inc.
