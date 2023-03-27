@@ -174,11 +174,18 @@ UserSettingsAFQ
       animate_emoji: textAndImages.animate_emoji ?? !!DefaultUserSettings.animate_emoji,
       theme: themeSettings["appearance:theme:base"] === "light" ? "light" : "dark",
       locale: LocaleMap[localeSettings["lang"]] ?? "en-US",
+      developer_mode: true,
+      status: extra?.status ?? null,
       guild_positions: orderingSettings?.servers
         ? await multipleToSnowflake(orderingSettings.servers)
         : [],
-      developer_mode: true,
-      status: extra?.status ?? null,
+      guild_folders: folderSettings.folders
+        ? await Promise.all(folderSettings.folders.map(async (x, i) => ({
+          color: x.color,
+          guild_ids: await multipleToSnowflake(x.servers),
+          id: i,
+          name: x.name,
+        }))) : [],
       user_guild_settings: notificationSettings.server
         ? await Promise.all((Object.entries(notificationSettings.server)
           .map(async ([server, value]) => ({
@@ -196,13 +203,6 @@ UserSettingsAFQ
             suppress_roles: false,
             version: 0,
           })))) : [],
-      guild_folders: folderSettings.folders
-        ? await Promise.all(folderSettings.folders.map(async (x, i) => ({
-          color: x.color,
-          guild_ids: await multipleToSnowflake(x.servers),
-          id: i,
-          name: x.name,
-        }))) : [],
       user_content: userContentSettings ?? null,
       gif_auto_play: textAndImages.gif_auto_play ?? DefaultUserSettings.gif_auto_play!,
       render_embeds: textAndImages.render_embeds ?? DefaultUserSettings.render_embeds!,
