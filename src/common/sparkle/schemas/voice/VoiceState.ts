@@ -1,3 +1,4 @@
+import { Tuple } from "../../../utils/check";
 /*
   Fosscord: A FOSS re-implementation and extension of the Discord.com backend.
   Copyright (C) 2023 Fosscord and Fosscord Contributors
@@ -18,7 +19,7 @@
 
 export const VoiceStateSchema = {
   $guild_id: String,
-  $channel_id: String,
+  $channel_id: new Tuple(String, Number),
   $self_mute: Boolean,
   $self_deaf: Boolean,
   $self_video: Boolean,
