@@ -57,7 +57,7 @@ export default () => <Resource> {
           application: await DiscoverableBot.from_quark(app),
         }))),
     }, ...await Promise.all(revoltBots.pageProps.popularTags
-      .map(async (name, i) => ({
+      ?.map(async (name, i) => ({
         id: "0",
         active: true,
         type: CollectionType.Category,
@@ -74,7 +74,7 @@ export default () => <Resource> {
             position: pos,
             application: await DiscoverableBot.from_quark(app),
           }))),
-      }))));
+      })) ?? []));
 
     res.json(categories);
   },

@@ -49,7 +49,8 @@ export interface DiscoveryBot {
 }
 
 export type pageProps = {
-  popularTags: string[],
+  popularTags?: string[],
+  relatedTags?: string[],
 }
 
 /**

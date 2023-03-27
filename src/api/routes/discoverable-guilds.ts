@@ -17,7 +17,7 @@ export default () => <Resource> {
 
     if (categories) {
       const categoryNumber = parseInt(categories, 10);
-      const categoryName = revoltData.pageProps.popularTags[categoryNumber];
+      const categoryName = revoltData.pageProps.popularTags?.[categoryNumber] ?? "FIXME_NO_CATEGORY";
 
       if (!categoryName) throw new HTTPError("Invalid category ID");
 

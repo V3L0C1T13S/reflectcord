@@ -22,10 +22,10 @@ export default () => <Resource> {
 
     const categoryId = typeof category_id === "string" ? parseInt(category_id, 10) : null;
     const categoryName = categoryId && categoryId !== 0
-      ? data.pageProps.popularTags[categoryId - 1] : null;
+      ? data.pageProps.popularTags?.[categoryId - 1] : null;
     if (!categoryName && categoryId) throw new HTTPError("Invalid category ID");
 
-    data.pageProps.popularTags.forEach((x, i) => {
+    data.pageProps.popularTags?.forEach((x, i) => {
       countsByCategory[i + 1] = revoltBots.filter((y) => y.tags.includes(x)).length;
     });
 

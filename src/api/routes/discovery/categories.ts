@@ -11,10 +11,10 @@ export default () => <Resource> {
     const discoveryURL = await getRevoltDiscoveryDataURL();
     const revoltServers = await axios.get<ServerDiscoveryResponse>(`${discoveryURL}/discover/servers.json`);
 
-    res.json(revoltServers.data.pageProps.popularTags.map((x, i) => ({
+    res.json(revoltServers.data.pageProps.popularTags?.map((x, i) => ({
       id: i,
       is_primary: false,
       name: startCase(x),
-    })));
+    })) ?? []);
   },
 };

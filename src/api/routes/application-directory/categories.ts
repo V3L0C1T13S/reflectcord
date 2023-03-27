@@ -12,9 +12,9 @@ export default () => <Resource> {
     const botResponse = await axios.get<BotDiscoveryResponse>(`${discoveryURL}/discover/bots.json`);
     const revoltBots = botResponse.data;
 
-    res.json(revoltBots.pageProps.popularTags.map((x, i) => ({
+    res.json(revoltBots.pageProps.popularTags?.map((x, i) => ({
       id: i + 1,
       name: startCase(x),
-    })));
+    })) ?? []);
   },
 };
