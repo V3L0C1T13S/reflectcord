@@ -193,7 +193,6 @@ export const Guild: QuarkConversion<Server, APIGuild, GuildATQ, GuildAFQ> = {
       icon: icon ? await hashToSnowflake(icon._id) : null,
       splash: null,
       guild_scheduled_events: [],
-      joined_at: toCompatibleISO(new Date().toISOString()),
       // max_video_channel_users: 25,
       // max_stage_video_channel_users: 0,
       stage_instances: [],
@@ -323,6 +322,7 @@ export async function createUserGatewayGuild(
 
   return {
     ...createCommonGatewayGuild(guild, data),
+    application_command_counts: {},
     data_mode: "full",
     emojis: emojis
       ?.map((emoji) => createGatewayGuildEmoji(emoji, guild.id))

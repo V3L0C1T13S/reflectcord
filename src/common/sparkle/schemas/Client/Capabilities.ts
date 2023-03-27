@@ -40,8 +40,16 @@ export const ClientCapabilities = {
   */
   AuthTokenRefresh: 1 << 8,
   /**
-   * Controls if the client will receive
-   * user_settings_proto (protobuf) or user_settings (JSON)
+   * Client fully supports settings protocol buffers, and we can
+   * ignore JSON user settings from being sent.
+   *
+   * Changes:
+   * user_settings field is no longer sent by READY
+   * USER_SETTINGS_UPDATE is no longer dispatched
+   *
+   * NOTES:
+   * Discord emits settings proto events no matter what, even
+   * if the client can't support them.
   */
   UserSettingsProto: 1 << 9,
   /**

@@ -27,6 +27,7 @@ export interface CommonGatewayGuild {
 }
 
 export interface UserGatewayGuild extends CommonGatewayGuild {
+  application_command_counts: unknown,
   id: string;
   data_mode: "full" | "lazy"
   stickers: APISticker[];

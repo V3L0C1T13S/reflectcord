@@ -384,6 +384,8 @@ export async function startListener(
           const readyData: ReadyData = {
             v: this.version,
             users: discordUsers,
+            user_settings_proto: user_settings_proto ? Buffer.from(user_settings_proto).toString("base64") : null,
+            user_settings: user_settings ?? DefaultUserSettings,
             user: currentUserDiscord,
             guilds,
             guild_experiments: [],
@@ -425,7 +427,6 @@ export async function startListener(
             merged_members: [mergedMembers],
             // V6 & V7 garbo
             indicators_confirmed: [],
-            notes: {},
             _trace: ["s2-gateway-prd-7-5"],
             shard: [0, 1],
             presences: friendPresences,
@@ -433,9 +434,12 @@ export async function startListener(
           };
 
           if (this.capabilities.UserSettingsProto) {
-            if (user_settings_proto) readyData.user_settings_proto = Buffer.from(user_settings_proto).toString("base64");
-            else readyData.user_settings_proto = null; // TODO: Tests
-          } else readyData.user_settings = user_settings ?? DefaultUserSettings;
+            // We opt to delete it here to avoid a race condition with Discord Mobile
+            delete readyData.user_settings;
+          }
+          if (!this.capabilities.LazyUserNotes) {
+            readyData.notes = {};
+          }
 
           if (currentUserDiscord.bot) {
             readyData.application = {
@@ -1159,7 +1163,9 @@ export async function startListener(
           };
 
           await Dispatch(this, GatewayDispatchCodes.UserSettingsProtoUpdate, body);
-          await Dispatch(this, GatewayDispatchCodes.UserSettingsUpdate, discordSettings);
+          if (!this.capabilities.UserSettingsProto) {
+            await Dispatch(this, GatewayDispatchCodes.UserSettingsUpdate, discordSettings);
+          }
 
           break;
         }

@@ -60,12 +60,15 @@ export interface ReadyData extends Omit<GatewayReadyDispatchData, "application">
   country_code: string,
   merged_members: APIGuildMember[][],
   indicators_confirmed: unknown,
-  notes: unknown,
+  notes?: unknown,
   _trace: string[],
   /**
    * Initial presence data for users
   */
   presences: GatewayFullUserPresence[],
-  tutorial: number | null,
+  tutorial: {
+    indicators_suppressed: boolean,
+    indicators_confirmed: string[],
+  } | null,
   session_type: "normal",
 }
