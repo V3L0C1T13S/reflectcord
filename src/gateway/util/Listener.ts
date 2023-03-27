@@ -299,13 +299,13 @@ export async function startListener(
             activities: sessionStatus.activities ?? [],
             client_info: {
               version: 0,
-              client: identifyClient(identifyPayload.properties.browser ?? "Discord Client"),
+              client: identifyClient(identifyPayload.properties?.browser ?? "Discord Client"),
             },
             status: identifyPayload?.presence?.status.toString() ?? "offline",
             session_id: this.session_id,
           };
-          if (identifyPayload.properties.os) {
-            currentSession.client_info.os = identifyPayload.properties.os;
+          if (identifyPayload.properties?.os) {
+            currentSession.client_info.os = identifyPayload.properties?.os;
           }
 
           const sessions = [new GatewaySessionDTO(currentSession)];
@@ -383,6 +383,7 @@ export async function startListener(
 
           const readyData: ReadyData = {
             v: this.version,
+            users: discordUsers,
             user: currentUserDiscord,
             guilds,
             guild_experiments: [],
@@ -403,7 +404,6 @@ export async function startListener(
               partial: false,
               version: 642,
             } : user_settings?.user_guild_settings ?? [],
-            users: discordUsers,
             experiments, // ily fosscord
             private_channels,
             resume_gateway_url: reflectcordWsURL,
@@ -822,16 +822,11 @@ export async function startListener(
             member: member ? member.discord : null,
           });
 
-          const userGuild = {
-            ...commonGuild,
-            id: guild.discord.id,
-            properties: guild.discord,
-            roles: guild.discord.roles,
-            emojis: guild.discord.emojis,
-            stickers: guild.discord.stickers,
-            premium_subscription_count: guild.discord.premium_subscription_count ?? 0,
-            embedded_activities: [],
-          };
+          const userGuild = await createUserGatewayGuild(guild.discord, {
+            channels,
+            members: member ? [member.discord] : [],
+            member: member ? member.discord : null,
+          });
 
           const botGuild = {
             ...commonGuild,

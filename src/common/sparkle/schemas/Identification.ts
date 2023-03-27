@@ -62,7 +62,7 @@ export const IdentifySchema = {
 
 export interface IdentifySchema {
   token: string,
-  properties: {
+  properties?: {
     os?: string;
     os_atch?: string;
     browser?: string;
