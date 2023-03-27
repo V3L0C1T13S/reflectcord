@@ -13,6 +13,7 @@ import {
 import { discordGatewayGuildEmoji } from "../../../models/models/emoji";
 
 export interface CommonGatewayGuild {
+  embedded_activities?: unknown[],
   channels: APIChannel[];
   joined_at: string;
   large: boolean;
@@ -31,7 +32,6 @@ export interface UserGatewayGuild extends CommonGatewayGuild {
   stickers: APISticker[];
   roles: APIRole[];
   emojis: discordGatewayGuildEmoji[];
-  embedded_activities: unknown[];
   properties: APIGuild;
   lazy: boolean;
   premium_subscription_count?: number;

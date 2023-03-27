@@ -133,9 +133,9 @@ export const Guild: QuarkConversion<Server, APIGuild, GuildATQ, GuildAFQ> = {
       name,
       owner_id: await toSnowflake(owner),
       description: description ?? null,
-      region: "0",
+      region: "deprecated",
       afk_channel_id: null,
-      afk_timeout: 3600,
+      afk_timeout: 300,
       widget_enabled: false,
       widget_channel_id: null,
       verification_level: GuildVerificationLevel.None,
@@ -146,12 +146,12 @@ export const Guild: QuarkConversion<Server, APIGuild, GuildATQ, GuildAFQ> = {
         const everyoneStub = {
           id,
           name: "@everyone",
-          color: 0,
           hoist: false,
           position: 0,
           permissions: convertPermNumber(server.default_permissions).toString(),
           managed: false,
-          mentionable: true,
+          mentionable: false,
+          color: 0,
         };
 
         discordRoles.push(everyoneStub);
@@ -193,7 +193,7 @@ export const Guild: QuarkConversion<Server, APIGuild, GuildATQ, GuildAFQ> = {
       icon: icon ? await hashToSnowflake(icon._id) : null,
       splash: null,
       guild_scheduled_events: [],
-      joined_at: Date.now().toString(),
+      joined_at: toCompatibleISO(new Date().toISOString()),
       // max_video_channel_users: 25,
       // max_stage_video_channel_users: 0,
       stage_instances: [],
@@ -288,6 +288,7 @@ export function createCommonGatewayGuild(
   data: CommonGatewayGuildData,
 ): CommonGatewayGuild {
   return {
+    embedded_activities: [],
     channels: data.channels,
     joined_at: data.member?.joined_at ?? toCompatibleISO(new Date().toISOString()),
     large: false,
@@ -332,7 +333,6 @@ export async function createUserGatewayGuild(
     properties: guild,
     roles: guild.roles,
     stickers: guild.stickers,
-    embedded_activities: [],
     version: 0,
   };
 }
