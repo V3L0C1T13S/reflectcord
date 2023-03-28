@@ -4,8 +4,15 @@ export const ClientCapabilities = {
   /**
    * Controls if notes will be sent during READY
    * or fetched by the client via the notes route
+   *
+   * Changes:
+   *
+   * notes field will no longer be sent by READY
   */
   LazyUserNotes: 1 << 0,
+  /**
+   * TODO: does anybody actually know what this is for?
+  */
   NoAffineUserIds: 1 << 1,
   /**
    * Client supports versioned read states
@@ -31,7 +38,33 @@ export const ClientCapabilities = {
    * Sent while false: GuildSettingEntry[]
   */
   VersionedUserGuildSettings: 1 << 3,
+  /**
+   * Client supports user object deduplication
+   *
+   * Changes:
+   *
+   * presences field is no longer sent by READY
+   *
+   * merged_presences, merged_members, and users fields become present
+   * in READY payload
+   *
+   * NOTES:
+   * Discord is very inconsistent with deduplicating user objects -
+   * sometimes members will have a full user field, other times they'll
+   * just have an id field. This could possibly be an optimization
+   * by the gateway that checks if the client has already received the
+   * user object, and if it has, to only send a user object with the id
+   * field.
+   * This also appears to be the case for PRESENCE_UPDATE
+  */
   DeduplicateUserObjects: 1 << 4,
+  /**
+   * Changes:
+   *
+   * Adds a guild_hashes property to guild objects
+   * This property doesn't seem to be required by any of the official
+   * clients, however (tests needed).
+  */
   PrioritizedReadyPayload: 1 << 5,
   MultipleGuildExperimentPopulations: 1 << 6,
   NonChannelReadStates: 1 << 7,

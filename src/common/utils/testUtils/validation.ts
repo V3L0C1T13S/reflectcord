@@ -10,5 +10,7 @@ export function isAGuild(data: any) {
 }
 
 export function isAGuildV2(data: any) {
-  return isAGuild(data.properties);
+  return (isAGuild(data.properties) && validateObject(data, {
+    id: "",
+  }));
 }
