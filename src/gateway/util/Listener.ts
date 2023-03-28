@@ -121,6 +121,7 @@ export async function startListener(
           break;
         }
         case "Ready": {
+          const startTime = performance.now();
           if (identifyPayload.capabilities) {
             const capabilitiesObject = IdentifyCapabilities(identifyPayload.capabilities);
             this.capabilities = capabilitiesObject;
@@ -426,7 +427,11 @@ export async function startListener(
             country_code: "US",
             // V6 & V7 garbo
             indicators_confirmed: [],
-            _trace: ["s2-gateway-prd-7-5"],
+            _trace: [
+              JSON.stringify(["gateway-prd-us-east1-c-hpdd", {
+                micros: (performance.now() - startTime).toInt(),
+              }]),
+            ],
             shard: [0, 1],
             auth_session_id_hash: "",
           };
