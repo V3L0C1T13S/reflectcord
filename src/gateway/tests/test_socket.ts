@@ -79,7 +79,12 @@ socket.onmessage = (data) => {
             if (!Array.isArray(merged_members)) throw new Error(`merged_members should be an array but its ${merged_members}`);
             if (!merged_presences) throw new Error(`expected merged_presences to be defined but we got ${merged_presences}`);
             if (presences) console.warn(`nonfatal payload inaccuracy! presences shouldn't be here but it was defined as ${presences}`);
-          } else if (users) console.warn(`nonfatal payload inaccuracy! ${users} shouldn't be present but it is!`);
+          } else {
+            if (!Array.isArray(presences)) throw new Error(`bad payload! expected presences to be array but its defined as ${presences}`);
+            if (users) console.warn(`nonfatal payload inaccuracy! users ${users} shouldn't be present but it is!`);
+            if (merged_members) console.warn(`nonfatal inaccuracy! merged_members is not supposed to be sent! ${merged_members}`);
+            if (merged_presences) console.warn(`nonfatal inaccuracy! merged_presences isnt supposed to be here but its defined as ${merged_presences}`);
+          }
 
           if (identifyPayload.capabilities & ClientCapabilities.UserSettingsProto) {
             if (user_settings) throw new Error(`fatal payload inaccuracy! we got ${user_settings} but we only want protobufs!`);
