@@ -67,6 +67,9 @@ export const ClientCapabilities = {
   */
   PrioritizedReadyPayload: 1 << 5,
   MultipleGuildExperimentPopulations: 1 << 6,
+  /**
+   * Client can support NonChannelReadState objects
+  */
   NonChannelReadStates: 1 << 7,
   /**
    * Client supports getting a new auth_token dynamically
