@@ -71,7 +71,7 @@ socket.onmessage = (data) => {
           console.log("GW Authenticated.");
 
           const {
-            users, user_settings, presences, merged_presences, merged_members,
+            users, user_settings, presences, merged_presences, merged_members, user_settings_proto,
           } = d.d!;
 
           if (identifyPayload.capabilities & ClientCapabilities.DeduplicateUserObjects) {
@@ -89,6 +89,7 @@ socket.onmessage = (data) => {
           if (identifyPayload.capabilities & ClientCapabilities.UserSettingsProto) {
             if (user_settings) throw new Error(`fatal payload inaccuracy! we got ${user_settings} but we only want protobufs!`);
           } else if (!user_settings) throw new Error(`fatal payload inaccuracy! we didn't get user_settings even though we don't support protobufs! got ${user_settings} instead.`);
+          if (!user_settings_proto) throw new Error(`fatal payload inaccuracy! some clients may expect a settings proto even without capabilities for it! got ${user_settings_proto}`);
 
           const testguild = d.d!.guilds[0];
           if (testguild) {
