@@ -43,7 +43,7 @@ export interface ReadyData extends Omit<GatewayReadyDispatchData, "application">
     partial: boolean,
     version: number,
   } | UserGuildSetting[],
-  users: APIUser[],
+  users?: APIUser[],
   experiments: number[][],
   private_channels: APIChannel[],
   sessions: GatewaySession[],
@@ -58,14 +58,15 @@ export interface ReadyData extends Omit<GatewayReadyDispatchData, "application">
     }
   },
   country_code: string,
-  merged_members: APIGuildMember[][],
+  merged_members?: APIGuildMember[][],
+  merged_presences?: { guilds: never[][]; friends: never[]; },
   indicators_confirmed: unknown,
   notes?: unknown,
   _trace: string[],
   /**
    * Initial presence data for users
   */
-  presences: GatewayFullUserPresence[],
+  presences?: GatewayFullUserPresence[],
   tutorial: {
     indicators_suppressed: boolean,
     indicators_confirmed: string[],

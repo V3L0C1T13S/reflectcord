@@ -424,12 +424,10 @@ export async function startListener(
               },
             },
             country_code: "US",
-            merged_members: [mergedMembers],
             // V6 & V7 garbo
             indicators_confirmed: [],
             _trace: ["s2-gateway-prd-7-5"],
             shard: [0, 1],
-            presences: friendPresences,
             auth_session_id_hash: "",
           };
 
@@ -439,6 +437,20 @@ export async function startListener(
           }
           if (!this.capabilities.LazyUserNotes) {
             readyData.notes = {};
+          }
+          if (this.capabilities.DeduplicateUserObjects) {
+            readyData.merged_members = [mergedMembers];
+            readyData.merged_presences = {
+              guilds: [
+                [],
+                [],
+              ],
+              friends: [],
+            };
+          } else {
+            readyData.presences = friendPresences;
+            // WORKAROUND: race condition on mobile
+            delete readyData.users;
           }
 
           if (currentUserDiscord.bot) {
