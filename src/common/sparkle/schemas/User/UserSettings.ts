@@ -26,11 +26,16 @@ export interface UserGuildSetting {
   version: number;
 }
 
+/**
+ * Represents a folder with guilds in it.
+ * NOTE: When this has no ID, color, and name, it is an
+ * unnested guild.
+*/
 export interface GuildFolder {
-  color: number;
+  color: number | null;
   guild_ids: string[];
-  id: number;
-  name: string;
+  id: number | null;
+  name: string | null;
 }
 
 export interface UserSettings {
@@ -62,6 +67,11 @@ export interface UserSettings {
   gateway_connected?: boolean;
   gif_auto_play?: boolean;
   guild_folders?: GuildFolder[];
+  /**
+   * Should we stop sending this? Discord doesn't appear to
+   * even use this anymore, and the clients all use guild_folders
+   * instead.
+   */
   guild_positions?: string[];
   inline_attachment_media?: boolean;
   inline_embed_media?: boolean;

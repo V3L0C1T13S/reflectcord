@@ -36,7 +36,7 @@ export interface RevoltNotificationSetting {
 // Custom - set by Reflectcord
 export interface RevoltFolderSetting {
   folders: {
-    color: number;
+    color: number; // Should we make this match revolts color?
     servers: string[];
     name: string;
   }[];
@@ -141,6 +141,15 @@ UserSettingsAFQ
       ? {
         servers: await multipleFromSnowflake(settings.guild_positions),
       } : null;
+    const folders: RevoltFolderSetting | null = settings.guild_folders ? {
+      folders: await Promise.all(settings.guild_folders
+        .filter((x) => !!x.id) // 1. Remove empty folders/guild_positions
+        .map(async (x) => ({ // 2. Map valid folders into Revolt
+          name: x.name ?? "FIXME_NULL_NAME",
+          color: x.color || 0,
+          servers: await multipleFromSnowflake(x.guild_ids),
+        }))),
+    } : null;
     const userContent: DiscordUserSettings["user_content"] = settings.user_content;
     const textAndImages: RevoltTextAndImagesSetting = {
       animate_emoji: !!settings.animate_emoji,
@@ -155,6 +164,7 @@ UserSettingsAFQ
     if (locale) rvSettings.locale = [Date.now(), JSON.stringify(locale)];
     if (theme) rvSettings.theme = [Date.now(), JSON.stringify(theme)];
     // if (ordering) rvSettings.ordering = [Date.now(), JSON.stringify(ordering)];
+    if (folders) rvSettings.folders = [Date.now(), JSON.stringify(folders)];
     if (userContent) rvSettings.user_content = [Date.now(), JSON.stringify(userContent)];
 
     return rvSettings;
@@ -180,12 +190,12 @@ UserSettingsAFQ
         ? await multipleToSnowflake(orderingSettings.servers)
         : [],
       guild_folders: folderSettings.folders
-        ? await Promise.all(folderSettings.folders.map(async (x, i) => ({
-          color: x.color,
-          guild_ids: await multipleToSnowflake(x.servers),
-          id: i,
+        ? await Promise.all([...folderSettings.folders.map(async (x, i) => ({
           name: x.name,
-        }))) : [],
+          id: i,
+          guild_ids: await multipleToSnowflake(x.servers),
+          color: x.color,
+        }))]) : [],
       user_guild_settings: notificationSettings.server
         ? await Promise.all((Object.entries(notificationSettings.server)
           .map(async ([server, value]) => ({
@@ -207,6 +217,15 @@ UserSettingsAFQ
       gif_auto_play: textAndImages.gif_auto_play ?? DefaultUserSettings.gif_auto_play!,
       render_embeds: textAndImages.render_embeds ?? DefaultUserSettings.render_embeds!,
     };
+
+    discordSettings.guild_positions?.forEach((x) => {
+      discordSettings.guild_folders?.push({
+        name: null,
+        id: null,
+        guild_ids: [x],
+        color: null,
+      });
+    });
 
     return discordSettings;
   },

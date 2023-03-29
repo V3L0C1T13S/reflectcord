@@ -16,13 +16,15 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Application } from "express";
+import { getServerConfig } from "@reflectcord/common/constants";
 import { Resource } from "express-automatic-routes";
 
-export default (express: Application) => <Resource> {
-  get: (req, res) => {
+export default () => <Resource> {
+  get: async (req, res) => {
+    const instanceInfo = await getServerConfig();
     res.json({
       ping: "pong!",
+      revolt: instanceInfo,
     });
   },
 };
