@@ -384,7 +384,7 @@ export async function settingsProtoToJSON(settings: Uint8Array) {
       guild_ids: x.guildIds,
       id: x.id?.value,
       name: x.name?.value,
-      color: x.color?.value,
+      color: x.color?.value?.toNumber(),
     })) ?? [],
     status: protoSettings.status?.status?.status ?? DefaultUserSettings.status,
     stream_notifications_enabled: protoSettings?.notifications?.notifyFriendsOnGoLive?.value
