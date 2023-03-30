@@ -33,7 +33,7 @@ export interface UserGuildSetting {
 */
 export interface GuildFolder {
   color: number | null;
-  guild_ids: string[];
+  guild_ids: string[]; // empty or undefined = delete
   id: string | null;
   name: string | null;
 }

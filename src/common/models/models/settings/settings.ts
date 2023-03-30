@@ -144,11 +144,11 @@ UserSettingsAFQ
       } : null;
     const folders: RevoltFolderSetting | null = settings.guild_folders ? {
       folders: await Promise.all(settings.guild_folders
-        .filter((x) => !!x.id) // 1. Remove empty folders/guild_positions
+        .filter((x) => !!x.id && !!x.guild_ids) // 1. Remove empty folders/guild_positions
         .map(async (x) => ({ // 2. Map valid folders into Revolt
           name: x.name ?? "FIXME_NULL_NAME",
           color: x.color || 0,
-          servers: await multipleFromSnowflake(x.guild_ids),
+          servers: await multipleFromSnowflake(x.guild_ids!),
           id: x.id!,
         }))),
     } : null;
@@ -192,12 +192,12 @@ UserSettingsAFQ
         ? await multipleToSnowflake(orderingSettings.servers)
         : [],
       guild_folders: folderSettings.folders
-        ? await Promise.all([...folderSettings.folders.map(async (x) => ({
+        ? await Promise.all(folderSettings.folders.map(async (x) => ({
           name: x.name,
           id: x.id,
           guild_ids: await multipleToSnowflake(x.servers),
           color: x.color,
-        }))]) : [],
+        }))) : [],
       user_guild_settings: notificationSettings.server
         ? await Promise.all((Object.entries(notificationSettings.server)
           .map(async ([server, value]) => ({
