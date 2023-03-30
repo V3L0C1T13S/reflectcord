@@ -1,6 +1,6 @@
 /* eslint-disable no-nested-ternary */
 /* eslint-disable no-bitwise */
-import { DefaultUserSettings, UserSettings as DiscordUserSettings } from "@reflectcord/common/sparkle";
+import { DefaultUserSettings, GuildFolder, UserSettings as DiscordUserSettings } from "@reflectcord/common/sparkle";
 import protobuf from "protobufjs";
 import { join } from "path";
 import { invert } from "lodash";
@@ -39,6 +39,7 @@ export interface RevoltFolderSetting {
     color: number; // Should we make this match revolts color?
     servers: string[];
     name: string;
+    id: string,
   }[];
 }
 
@@ -148,6 +149,7 @@ UserSettingsAFQ
           name: x.name ?? "FIXME_NULL_NAME",
           color: x.color || 0,
           servers: await multipleFromSnowflake(x.guild_ids),
+          id: x.id!,
         }))),
     } : null;
     const userContent: DiscordUserSettings["user_content"] = settings.user_content;
@@ -190,9 +192,9 @@ UserSettingsAFQ
         ? await multipleToSnowflake(orderingSettings.servers)
         : [],
       guild_folders: folderSettings.folders
-        ? await Promise.all([...folderSettings.folders.map(async (x, i) => ({
+        ? await Promise.all([...folderSettings.folders.map(async (x) => ({
           name: x.name,
-          id: i,
+          id: x.id,
           guild_ids: await multipleToSnowflake(x.servers),
           color: x.color,
         }))]) : [],
@@ -332,13 +334,17 @@ export async function settingsToProtoBuf(settings: DiscordUserSettings, extra?: 
     appearance: {
       theme: settings.theme === "light" ? 2 : 1,
       developerMode: settings.developer_mode ?? true,
+      mobileRedesignDisabled: true, // TODO
     },
     guildFolders: {
-      folders: settings.guild_folders?.map((x) => ({
-        guildIds: x.guild_ids,
-        id: x.id,
-        name: x.name,
-      })) ?? [],
+      folders: settings.guild_folders
+        ?.filter((x) => !!x.id) // FIXME: Discord crashes if you have unnested guilds here
+        ?.map((x) => ({
+          guildIds: x.guild_ids,
+          id: x.id ? { value: x.id } : undefined,
+          name: x.name ? { value: x.name } : undefined,
+          color: x.color ? { value: x.color } : undefined,
+        })) ?? [],
       guildPositions: settings.guild_positions,
     },
   };
@@ -374,6 +380,12 @@ export async function settingsProtoToJSON(settings: Uint8Array) {
       ?? DefaultUserSettings.timezone_offset,
     guild_positions: protoSettings.guildFolders?.guildPositions
       ?? DefaultUserSettings.guild_positions,
+    guild_folders: protoSettings.guildFolders?.folders?.map((x: any) => ({
+      guild_ids: x.guildIds,
+      id: x.id?.value,
+      name: x.name?.value,
+      color: x.color?.value,
+    })) ?? [],
     status: protoSettings.status?.status?.status ?? DefaultUserSettings.status,
     stream_notifications_enabled: protoSettings?.notifications?.notifyFriendsOnGoLive?.value
       ?? DefaultUserSettings.stream_notifications_enabled,

@@ -1,4 +1,6 @@
 syntax = "proto3";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
 package discord_protos.discord_users.v1;
 
 message Version {
@@ -26,6 +28,12 @@ message GuildSettings {
     map<fixed64, ChannelSettings> channels = 1;
     uint32 hub_progress = 2;
     uint32 guild_onboarding_progress = 3;
+    optional google.protobuf.Timestamp guild_recents_dismissed_at = 4;
+    bytes dismissed_guild_content = 5;
+}
+
+message AllGuildSettings {
+    map<fixed64, GuildSettings> guilds = 1;
 }
 
 message LastDismissedOutboundPromotionStartDate {
@@ -251,12 +259,8 @@ message PrivacySettings {
     DefaultMessageRequestRestricted default_message_request_restricted = 17;
 }
 
-message RtcPanelShowVoiceStates {
-    bool value = 1;
-}
-
 message DebugSettings {
-    RtcPanelShowVoiceStates rtc_panel_show_voice_states = 1;
+    optional google.protobuf.BoolValue rtc_panel_show_voice_states = 1;
 }
 
 message InstallShortcutDesktop {
@@ -317,43 +321,44 @@ enum Theme {
     LIGHT = 2;
 }
 
+message ClientThemeSettings {
+    optional google.protobuf.UInt64Value primary_color = 1;
+    optional google.protobuf.UInt32Value background_gradient_preset_id = 2;
+    optional google.protobuf.FloatValue background_gradient_angle = 3;
+}
+
 message AppearanceSettings {
     Theme theme = 1;
     bool developer_mode = 2;
-}
-
-message GuildFolderId {
-    string value = 1;
-}
-
-message GuildFolderName {
-    string value = 1;
+    optional ClientThemeSettings client_theme_settings = 3;
+    bool mobile_redesign_disabled = 4;
 }
 
 message GuildFolder {
-    repeated fixed64 guild_ids = 1 [packed=true];
-    GuildFolderId id = 2;
-    GuildFolderName name = 3;
+    repeated fixed64 guild_ids = 1;
+    optional google.protobuf.Int64Value id = 2;
+    optional google.protobuf.StringValue name = 3;
+    optional google.protobuf.UInt64Value color = 4;
 }
 
 message GuildFolderSettings {
     repeated GuildFolder folders = 1;
-    repeated fixed64 guild_positions = 2 [packed=true];
+    repeated fixed64 guild_positions = 2;
 }
 
 message PreloadedUserSettings {
-    Version versions = 1;
-    InboxSettings inbox = 2;
-    GuildSettings guilds = 3;
-    UserContentSettings user_content = 4;
-    VoiceAndVideoSettings voice_and_video = 5;
-    TextAndImagesSettings text_and_images = 6;
-    NotificationSettings notifications = 7;
-    PrivacySettings privacy = 8;
-    DebugSettings debug = 9;
-    GameLibrarySettings game_library = 10;
-    StatusSettings status = 11;
-    LocalizationSettings localization = 12;
-    AppearanceSettings appearance = 13;
-    GuildFolderSettings guild_folders = 14;
+    optional Version versions = 1;
+    optional InboxSettings inbox = 2;
+    optional GuildSettings guilds = 3;
+    optional UserContentSettings user_content = 4;
+    optional VoiceAndVideoSettings voice_and_video = 5;
+    optional TextAndImagesSettings text_and_images = 6;
+    optional NotificationSettings notifications = 7;
+    optional PrivacySettings privacy = 8;
+    optional DebugSettings debug = 9;
+    optional GameLibrarySettings game_library = 10;
+    optional StatusSettings status = 11;
+    optional LocalizationSettings localization = 12;
+    optional AppearanceSettings appearance = 13;
+    optional GuildFolderSettings guild_folders = 14;
 }

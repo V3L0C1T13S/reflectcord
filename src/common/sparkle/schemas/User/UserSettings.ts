@@ -34,7 +34,7 @@ export interface UserGuildSetting {
 export interface GuildFolder {
   color: number | null;
   guild_ids: string[];
-  id: number | null;
+  id: string | null;
   name: string | null;
 }
 
