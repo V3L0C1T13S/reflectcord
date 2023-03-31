@@ -1,3 +1,5 @@
+import { DiscordClientThemeSetting } from "common/models";
+
 export interface UserGuildChannelOverride {
   channel_id: string;
   collapsed: boolean;
@@ -98,7 +100,8 @@ export interface UserSettings {
     premiumTier0ModalDismissedAt?: {
       timestamp: string,
     }
-  } | null,
+  } | null;
+  client_theme_settings?: DiscordClientThemeSetting;
 }
 
 export type APIUserSettingsPATCHResponse = UserSettings & {

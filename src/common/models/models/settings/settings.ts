@@ -49,7 +49,18 @@ export interface RevoltTextAndImagesSetting {
   render_embeds?: boolean,
 }
 
+export interface DiscordClientThemeSetting {
+  primary_color?: string,
+  background_gradient_preset_id?: string,
+  background_gradient_angle?: number,
+}
+
+export interface DiscordSettings {
+  client_theme?: DiscordClientThemeSetting;
+}
+
 export interface RevoltSettings {
+  discord?: RevoltSetting;
   appearance?: RevoltSetting,
   theme?: RevoltSetting,
   locale?: RevoltSetting,
@@ -69,6 +80,7 @@ export const SettingsKeys = [
   "folders",
   "user_content",
   "text_and_images",
+  "discord",
 ];
 
 const LocaleMap: Record<string, string> = {
@@ -158,6 +170,8 @@ UserSettingsAFQ
       gif_auto_play: !!settings.gif_auto_play,
       render_embeds: !!settings.render_embeds,
     };
+    const discord: DiscordSettings = {};
+    if (settings.client_theme_settings) discord.client_theme = settings.client_theme_settings;
 
     const rvSettings: RevoltSettings = {
       text_and_images: [Date.now(), JSON.stringify(textAndImages)],
@@ -168,6 +182,7 @@ UserSettingsAFQ
     // if (ordering) rvSettings.ordering = [Date.now(), JSON.stringify(ordering)];
     if (folders) rvSettings.folders = [Date.now(), JSON.stringify(folders)];
     if (userContent) rvSettings.user_content = [Date.now(), JSON.stringify(userContent)];
+    if (discord) rvSettings.discord = [Date.now(), JSON.stringify(discord)];
 
     return rvSettings;
   },
@@ -180,6 +195,8 @@ UserSettingsAFQ
     const folderSettings: Partial<RevoltFolderSetting> = JSON.parse(settings.folders?.[1] ?? "{}");
     const userContentSettings: Partial<DiscordUserSettings["user_content"]> = JSON.parse(settings.user_content?.[1] ?? "{}");
     const textAndImages: RevoltTextAndImagesSetting = JSON.parse(settings.text_and_images?.[1] ?? "{}");
+    const customDiscord: DiscordSettings = JSON.parse(settings.discord?.[1] ?? "{}");
+    const clientThemeSettings = customDiscord.client_theme;
 
     const discordSettings: DiscordUserSettings = {
       ...DefaultUserSettings,
@@ -228,6 +245,8 @@ UserSettingsAFQ
         color: null,
       });
     });
+
+    if (clientThemeSettings) discordSettings.client_theme_settings = clientThemeSettings;
 
     return discordSettings;
   },
@@ -317,23 +336,34 @@ export async function settingsToProtoBuf(settings: DiscordUserSettings, extra?: 
     },
     status: {
       status: {
-        status: settings.status,
+        value: settings.status,
       },
       showCurrentGame: {
-        value: true,
+        value: settings.show_current_game,
       },
     },
     localization: {
       locale: {
-        localeCode: settings.locale,
+        localeCode: {
+          value: settings.locale,
+        },
         timezoneOffset: {
-          offset: settings.timezone_offset,
+          value: settings.timezone_offset,
         },
       },
     },
     appearance: {
       theme: settings.theme === "light" ? 2 : 1,
       developerMode: settings.developer_mode ?? true,
+      clientThemeSettings: settings.client_theme_settings ? {
+        primaryColor: { value: settings.client_theme_settings.primary_color },
+        backgroundGradientPresetId: {
+          value: settings.client_theme_settings.background_gradient_preset_id,
+        },
+        backgroundGradientAngle: {
+          value: settings.client_theme_settings.background_gradient_angle,
+        },
+      } : undefined,
       mobileRedesignDisabled: true, // TODO
     },
     guildFolders: {
@@ -375,8 +405,8 @@ export async function settingsProtoToJSON(settings: Uint8Array) {
       ?? DefaultUserSettings.animate_emoji,
     afk_timeout: protoSettings.voiceAndVideo?.afkTimeout?.value ?? DefaultUserSettings.afk_timeout,
     developer_mode: protoSettings.appearance?.developerMode ?? DefaultUserSettings.developer_mode,
-    locale: protoSettings.localization?.locale?.localeCode ?? DefaultUserSettings.locale,
-    timezone_offset: protoSettings.localization?.locale?.timezoneOffset
+    locale: protoSettings.localization?.locale?.localeCode?.value ?? DefaultUserSettings.locale,
+    timezone_offset: protoSettings.localization?.locale?.timezoneOffset?.value
       ?? DefaultUserSettings.timezone_offset,
     guild_positions: protoSettings.guildFolders?.guildPositions
       ?? DefaultUserSettings.guild_positions,
@@ -386,7 +416,7 @@ export async function settingsProtoToJSON(settings: Uint8Array) {
       name: x.name?.value,
       color: x.color?.value?.toNumber(),
     })) ?? [],
-    status: protoSettings.status?.status?.status ?? DefaultUserSettings.status,
+    status: protoSettings.status?.status?.value ?? DefaultUserSettings.status,
     stream_notifications_enabled: protoSettings?.notifications?.notifyFriendsOnGoLive?.value
       ?? DefaultUserSettings.stream_notifications_enabled,
     render_embeds: protoSettings.textAndImages?.renderEmbeds?.value
@@ -400,6 +430,15 @@ export async function settingsProtoToJSON(settings: Uint8Array) {
   }
   if (protoSettings.userContent) {
     jsonSettings.user_content = protoSettings.userContent;
+  }
+  if (protoSettings.appearance?.clientThemeSettings) {
+    jsonSettings.client_theme_settings = {
+      primary_color: protoSettings.appearance.clientThemeSettings.primaryColor?.value,
+      // eslint-disable-next-line max-len
+      background_gradient_preset_id: protoSettings.appearance.clientThemeSettings.backgroundGradientPresetId?.value,
+      // eslint-disable-next-line max-len
+      background_gradient_angle: protoSettings.appearance.clientThemeSettings.backgroundGradientAngle?.value,
+    };
   }
 
   return jsonSettings;

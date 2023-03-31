@@ -281,10 +281,6 @@ message GameLibrarySettings {
     DisableGamesTab disable_games_tab = 3;
 }
 
-message Status {
-    string status = 1;
-}
-
 message CustomStatus {
     string text = 1;
     fixed64 emoji_id = 2;
@@ -292,27 +288,15 @@ message CustomStatus {
     fixed64 expires_at_ms = 4;
 }
 
-message ShowCurrentGame {
-    bool value = 1;
-}
-
 message StatusSettings {
-    Status status = 1;
-    CustomStatus custom_status = 2;
-    ShowCurrentGame show_current_game = 3;
-}
-
-message Locale {
-    string locale_code = 1;
-}
-
-message TimezoneOffset {
-    int32 offset = 1;
+    optional google.protobuf.StringValue status = 1;
+    optional CustomStatus custom_status = 2;
+    optional google.protobuf.BoolValue show_current_game = 3;
 }
 
 message LocalizationSettings {
-    Locale locale = 1;
-    TimezoneOffset timezone_offset = 2;
+    optional google.protobuf.StringValue locale = 1;
+    optional google.protobuf.Int32Value timezone_offset = 2;
 }
 
 enum Theme {
