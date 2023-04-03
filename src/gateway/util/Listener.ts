@@ -385,7 +385,7 @@ export async function startListener(
             })
             : null;
 
-          const unreads = await this.rvAPI.get("/sync/unreads");
+          const unreads = await this.rvAPIWrapper.messages.fetchUnreads();
           const readStateEntries = await Promise.all(unreads.map((x) => ReadState.from_quark(x)));
 
           const readyData: ReadyData = {

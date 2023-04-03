@@ -1,15 +1,7 @@
 import { Request } from "express";
 import { Resource } from "express-automatic-routes";
-import { fromSnowflake } from "@reflectcord/common/models";
-
-interface AckRequest {
-  channel_id: string,
-  message_id: string,
-}
-
-interface AckBulkBody {
-  read_states: AckRequest[],
-}
+import { multipleFromSnowflake } from "@reflectcord/common/models";
+import { AckBulkBody } from "@reflectcord/common/sparkle";
 
 export default () => <Resource> {
   post: async (req: Request<{}, {}, AckBulkBody>, res) => {
@@ -18,9 +10,8 @@ export default () => <Resource> {
     // FIXME: We may need local rate limiting here
     await Promise.all(requests
       .map(async (x) => {
-        const rvChannel = await fromSnowflake(x.channel_id);
-        const rvMsg = await fromSnowflake(x.message_id);
-        await res.rvAPI.put(`/channels/${rvChannel as ""}/ack/${rvMsg as ""}`);
+        const [rvChannel, rvMsg] = await multipleFromSnowflake([x.channel_id, x.message_id]);
+        await res.rvAPIWrapper.messages.ack(rvChannel!, rvMsg!);
       }));
 
     res.sendStatus(204);

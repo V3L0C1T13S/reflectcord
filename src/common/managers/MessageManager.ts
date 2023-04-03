@@ -131,6 +131,10 @@ export class MessageManager extends BaseManager<string, MessageContainer> {
     });
   }
 
+  fetchUnreads() {
+    return this.rvAPI.get("/sync/unreads");
+  }
+
   async getMessage(channel: string, id: string) {
     const rvMessage = await this.rvAPI.get(`/channels/${channel as ""}/messages/${id as ""}`);
 

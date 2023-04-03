@@ -38,7 +38,7 @@ export interface RevoltFolderSetting {
   folders: {
     color: number; // Should we make this match revolts color?
     servers: string[];
-    name: string;
+    name?: string | null; // Blank name = server names
     id: string,
   }[];
 }
@@ -59,6 +59,11 @@ export interface DiscordSettings {
   client_theme?: DiscordClientThemeSetting;
 }
 
+export interface TutorialSettings {
+  suppressed?: boolean,
+  confirmed?: string[],
+}
+
 export interface RevoltSettings {
   discord?: RevoltSetting;
   appearance?: RevoltSetting,
@@ -69,6 +74,7 @@ export interface RevoltSettings {
   folders?: RevoltSetting,
   user_content?: RevoltSetting,
   text_and_images?: RevoltSetting,
+  tutorial?: RevoltSetting,
 }
 
 export const SettingsKeys = [
@@ -81,6 +87,7 @@ export const SettingsKeys = [
   "user_content",
   "text_and_images",
   "discord",
+  "tutorial",
 ];
 
 const LocaleMap: Record<string, string> = {
@@ -158,7 +165,7 @@ UserSettingsAFQ
       folders: await Promise.all(settings.guild_folders
         .filter((x) => !!x.id && !!x.guild_ids) // 1. Remove empty folders/guild_positions
         .map(async (x) => ({ // 2. Map valid folders into Revolt
-          name: x.name ?? "FIXME_NULL_NAME",
+          name: x.name,
           color: x.color || 0,
           servers: await multipleFromSnowflake(x.guild_ids!),
           id: x.id!,
@@ -196,6 +203,7 @@ UserSettingsAFQ
     const userContentSettings: Partial<DiscordUserSettings["user_content"]> = JSON.parse(settings.user_content?.[1] ?? "{}");
     const textAndImages: RevoltTextAndImagesSetting = JSON.parse(settings.text_and_images?.[1] ?? "{}");
     const customDiscord: DiscordSettings = JSON.parse(settings.discord?.[1] ?? "{}");
+
     const clientThemeSettings = customDiscord.client_theme;
 
     const discordSettings: DiscordUserSettings = {
@@ -210,7 +218,7 @@ UserSettingsAFQ
         : [],
       guild_folders: folderSettings.folders
         ? await Promise.all(folderSettings.folders.map(async (x) => ({
-          name: x.name,
+          name: x.name ?? null,
           id: x.id,
           guild_ids: await multipleToSnowflake(x.servers),
           color: x.color,

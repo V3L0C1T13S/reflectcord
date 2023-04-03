@@ -1,5 +1,5 @@
 import { Resource } from "express-automatic-routes";
-import { FieldErrors } from "../../../../../common/utils";
+import { FieldErrors } from "@reflectcord/common/utils";
 
 // FIXME
 export default () => <Resource> {

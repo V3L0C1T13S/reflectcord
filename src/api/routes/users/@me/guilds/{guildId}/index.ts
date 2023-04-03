@@ -1,11 +1,10 @@
 /* eslint-disable camelcase */
-import { Application } from "express";
 import { Resource } from "express-automatic-routes";
 import { fromSnowflake } from "@reflectcord/common/models";
 import { selfEnableServerLeaves } from "@reflectcord/common/constants";
 import { HTTPError } from "@reflectcord/common/utils";
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   delete: async (req, res) => {
     const { guildId } = req.params;
 
