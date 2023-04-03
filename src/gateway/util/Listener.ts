@@ -112,12 +112,18 @@ export async function startListener(
     try {
       switch (data.type) {
         case "Error": {
-          this.close(GatewayCloseCodes.AuthenticationFailed);
+          if (["InvalidSession", "AlreadyAuthenticated", "InvalidSession"].includes(data.error)) {
+            this.close(GatewayCloseCodes.AuthenticationFailed);
+          }
+          this.close(GatewayCloseCodes.UnknownError);
           break;
         }
         // @ts-ignore
         case "NotFound": {
           this.close(GatewayCloseCodes.AuthenticationFailed);
+          break;
+        }
+        case "Auth": {
           break;
         }
         case "Ready": {
@@ -460,7 +466,7 @@ export async function startListener(
 
           if (currentUserDiscord.bot) {
             readyData.application = {
-              id: currentUserDiscord.id,
+              id: currentUserDiscord.id, // @ts-ignore
               flags: 0,
             };
           }
