@@ -24,8 +24,9 @@ import { Client } from "revolt.js";
 import { API } from "revolt-api";
 import { APIWrapper } from "@reflectcord/common/rvapi";
 import { genSessionId, Logger } from "@reflectcord/common/utils";
-import { revoltApiURL } from "@reflectcord/common/constants";
+import { reflectcordWsURL, revoltApiURL } from "@reflectcord/common/constants";
 import { Deflate, Inflate } from "fast-zlib";
+import { Tracer } from "@reflectcord/common/debug";
 import { sendOp, setHeartbeat } from "../util";
 import { SocketState, WebSocket } from "../Socket";
 import { Message } from "./Message";
@@ -79,6 +80,7 @@ export async function Connection(this: ws.Server, socket: WebSocket, request: In
     // @ts-ignore
     socket.rvAPIWrapper = new APIWrapper(socket.rvAPI);
     socket.state = new SocketState();
+    socket.trace = new Tracer(new URL(reflectcordWsURL).host);
 
     setHeartbeat(socket);
 

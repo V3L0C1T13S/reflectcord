@@ -43,10 +43,12 @@ export async function onIdentify(this: WebSocket, data: Payload<IdentifySchema>)
 
   await startListener.call(this, token, identify);
 
+  this.trace.startTrace("bonfire_authenticate");
   await this.rvClient.loginBot(token).catch(() => {
     Logger.error("Revolt failed authentication");
     return this.close(GatewayCloseCodes.AuthenticationFailed);
   });
+  this.trace.stopTrace("bonfire_authenticate");
 
   // HACK!
   // @ts-ignore

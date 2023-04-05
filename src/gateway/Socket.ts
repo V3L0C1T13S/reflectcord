@@ -25,7 +25,8 @@ import WS from "ws";
 import { Deflate, Inflate } from "fast-zlib";
 import { MemberList } from "@reflectcord/common/utils/discord/MemberList";
 import { CapabilitiesObject } from "@reflectcord/common/sparkle";
-import { APIWrapper } from "../common/rvapi";
+import { Tracer } from "@reflectcord/common/debug";
+import { APIWrapper } from "@reflectcord/common/rvapi";
 import { Payload } from "./util";
 
 export class SocketState {
@@ -100,5 +101,6 @@ export interface WebSocket extends WS {
   typingConsumer?: Replies.Consume | undefined;
   state: SocketState;
   token: string;
-  capabilities: CapabilitiesObject
+  capabilities: CapabilitiesObject;
+  trace: Tracer;
 }

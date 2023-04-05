@@ -46,7 +46,6 @@ import {
   Role,
   createCommonGatewayGuild,
   createUserPresence,
-  createGatewayGuildEmoji,
   interactionTitle,
   findComponentByIndex,
   convertDescriptorToComponent,
@@ -66,7 +65,6 @@ import {
   ReadyData,
   DefaultUserSettings,
   Session,
-  ClientCapabilities,
   IdentifyCapabilities,
   DefaultCapabilities,
 } from "@reflectcord/common/sparkle";
@@ -74,6 +72,7 @@ import { reflectcordWsURL } from "@reflectcord/common/constants";
 import { VoiceState } from "@reflectcord/common/mongoose";
 import { emojiMap as reactionMap } from "@reflectcord/common/managers/";
 import { emojis as emojiMap } from "@reflectcord/common/emojilib";
+import { Tracer } from "@reflectcord/common/debug";
 import { WebSocket } from "../Socket";
 import { Dispatch } from "./send";
 import experiments from "./experiments.json";
@@ -127,7 +126,8 @@ export async function startListener(
           break;
         }
         case "Ready": {
-          const startTime = performance.now();
+          const { trace } = this;
+
           if (identifyPayload.capabilities) {
             const capabilitiesObject = IdentifyCapabilities(identifyPayload.capabilities);
             this.capabilities = capabilitiesObject;
@@ -135,9 +135,15 @@ export async function startListener(
             this.capabilities = DefaultCapabilities;
             Logger.warn("Client has no capabilities??");
           }
+
+          trace.startTrace("fetch_current_user");
+
           const currentUser = data.users.find((x) => x.relationship === "User");
           if (!currentUser) return this.close(GatewayCloseCodes.AuthenticationFailed);
 
+          trace.stopTrace("fetch_current_user");
+
+          trace.startTrace("reflectcord_init");
           this.bot = !!currentUser.bot;
 
           if (currentUser.bot) {
@@ -174,6 +180,9 @@ export async function startListener(
             }
           }, { noAck: true });
 
+          trace.stopTrace("reflectcord_init");
+
+          trace.startTrace("fetch_users");
           const users = await Promise.all(data.users
             .map(async (user) => this.rvAPIWrapper.users.createObj({
               revolt: user,
@@ -207,11 +216,16 @@ export async function startListener(
 
               return channelObj;
             }));
+          trace.stopTrace("fetch_users");
 
+          trace.startTrace("fetch_private_channels");
           const private_channels = channels
             .filter((x) => x.revolt.channel_type === "DirectMessage" || x.revolt.channel_type === "Group" || x.revolt.channel_type === "SavedMessages")
             .map((x) => x.discord);
 
+          trace.stopTrace("fetch_private_channels");
+
+          trace.startTrace("fetch_emojis");
           if (data.emojis) {
             await Promise.all(data.emojis
               .filter((x) => x.parent.type === "Server")
@@ -222,6 +236,10 @@ export async function startListener(
                 }),
               })));
           }
+
+          trace.stopTrace("fetch_emojis");
+
+          trace.startTrace("fetch_guilds");
 
           const lazyGuilds: GatewayGuildCreateDispatchData[] = [];
 
@@ -286,6 +304,9 @@ export async function startListener(
               return guild;
             }));
 
+          trace.stopTrace("fetch_guilds");
+
+          trace.startTrace("fetch_user_stage2");
           const mfaInfo = !currentUser.bot ? await this.rvAPI.get("/auth/mfa/") : null;
           const authInfo = !currentUser.bot ? await this.rvAPI.get("/auth/account/") : null;
           const currentUserDiscord = await selfUser.from_quark({
@@ -301,6 +322,9 @@ export async function startListener(
             discord: currentUserDiscord,
           });
 
+          trace.stopTrace("fetch_user_stage2");
+
+          trace.startTrace("fetch_sessions");
           const sessionStatus = await Status.from_quark(currentUser.status);
           const currentSession: Session = {
             activities: sessionStatus.activities ?? [],
@@ -316,7 +340,9 @@ export async function startListener(
           }
 
           const sessions = [new GatewaySessionDTO(currentSession)];
+          trace.stopTrace("fetch_sessions");
 
+          trace.startTrace("fetch_members");
           const memberData = (await Promise.all(data.members.map(async (x) => {
             const server = this.rvAPIWrapper.servers.$get(x._id.server);
             const member = {
@@ -330,7 +356,9 @@ export async function startListener(
 
             return { member, guild: server.discord };
           })));
+          trace.stopTrace("fetch_members");
 
+          trace.startTrace("create_merged_member_dtos");
           const mergedMembers = memberData.map((member_data) => {
             const { guild, member } = member_data;
 
@@ -354,7 +382,9 @@ export async function startListener(
 
             return mergedMember;
           });
+          trace.stopTrace("create_merged_member_dtos");
 
+          trace.startTrace("fetch_relationships");
           const relationships = await Promise.all(users
             .filter((u) => u.revolt.relationship !== "None" && u.revolt.relationship !== "User")
             .map(async (u) => ({
@@ -364,6 +394,9 @@ export async function startListener(
               },
               revolt: u.revolt,
             })));
+          trace.stopTrace("fetch_relationships");
+
+          trace.startTrace("fetch_presences");
 
           const friendPresences = await Promise.all(relationships
             .map((relationship) => createUserPresence({
@@ -371,22 +404,31 @@ export async function startListener(
               discordUser: relationship.discord.user,
             })));
 
+          trace.stopTrace("fetch_presences");
+
+          trace.startTrace("fetch_settings");
           const rvSettings = !currentUser.bot ? await this.rvAPI.post("/sync/settings/fetch", {
             keys: SettingsKeys,
-          }) as unknown as RevoltSettings : null;
+          }).catch(() => null) as unknown as RevoltSettings : null;
 
           const user_settings = rvSettings ? await UserSettings.from_quark(rvSettings, {
             status: sessionStatus.status?.toString() || null,
           }) : null;
 
+          trace.stopAndStart("fetch_settings", "fetch_settings_proto");
           const user_settings_proto = rvSettings
             ? await settingsToProtoBuf(user_settings as any, {
               customStatusText: currentUser.status?.text,
             })
             : null;
+          trace.stopTrace("fetch_settings_proto");
+
+          trace.startTrace("fetch_read_state");
 
           const unreads = await this.rvAPIWrapper.messages.fetchUnreads();
           const readStateEntries = await Promise.all(unreads.map((x) => ReadState.from_quark(x)));
+
+          trace.stopTrace("fetch_read_state");
 
           const readyData: ReadyData = {
             v: this.version,
@@ -434,9 +476,7 @@ export async function startListener(
             // V6 & V7 garbo
             indicators_confirmed: [],
             _trace: [
-              JSON.stringify(["gateway-prd-us-east1-c-hpdd", {
-                micros: (performance.now() - startTime).toInt(),
-              }]),
+              JSON.stringify(trace.toGatewayObject()),
             ],
             shard: [0, 1],
             auth_session_id_hash: "",
@@ -473,7 +513,9 @@ export async function startListener(
 
           await Dispatch(this, GatewayDispatchEvents.Ready, readyData);
 
+          trace.startTrace("start_internal_listener");
           await createInternalListener.call(this);
+          trace.stopTrace("start_internal_listener");
 
           await Promise.all(lazyGuilds
             .map((x) => Dispatch(this, GatewayDispatchEvents.GuildCreate, x).catch(Logger.error)));
