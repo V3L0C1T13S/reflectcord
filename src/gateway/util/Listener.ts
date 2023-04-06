@@ -54,6 +54,7 @@ import {
   GatewaySessionDTO,
   identifyClient,
   createUserGatewayGuild,
+  MergedMemberDTO,
 } from "@reflectcord/common/models";
 import { Logger, RabbitMQ } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
@@ -483,27 +484,15 @@ export async function startListener(
 
               mergedMembers[guildIndex] ??= [];
 
-              const hoistedRoles = guild.roles
-                .filter((role) => role.hoist && member.discord.roles
-                  .find((member_role) => member_role === role.id));
+              const mergedMember = new MergedMemberDTO(
+                member.discord,
+                member.discord.user!.id,
+                {
+                  guild_roles: guild.roles,
+                },
+              );
 
-              /**
-             * FIXME: When we eventually sort role positions correctly,
-             * this code will need to be adjusted
-            */
-              const hoisted_role = hoistedRoles
-                .sort((r1, r2) => r1.position - r2.position)[0];
-
-              const mergedMember: MergedMember = {
-                ...member.discord,
-                user_id: member.discord.user!.id, // FIXME: This might break
-              };
-
-              delete mergedMember.user;
-
-              if (hoisted_role) mergedMember.hoisted_role = hoisted_role;
-
-            mergedMembers[guildIndex]!.push(mergedMember);
+              mergedMembers[guildIndex]!.push(mergedMember);
             });
             trace.stopTrace("create_merged_member_dtos");
 

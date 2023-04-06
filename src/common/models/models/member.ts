@@ -1,7 +1,12 @@
 /* eslint-disable no-nested-ternary */
 /* eslint-disable camelcase */
 import {
-  APIGuildMember, APIUser, GuildMemberFlagsBitField, RESTPatchAPIGuildMemberJSONBody,
+  APIGuildMember,
+  APIRole,
+  APIUser,
+  GuildMemberFlags,
+  GuildMemberFlagsBitField,
+  RESTPatchAPIGuildMemberJSONBody,
 } from "discord.js";
 import { Member as RevoltMember } from "revolt-api";
 import { API } from "revolt.js";
@@ -77,20 +82,58 @@ export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, Memb
   },
 };
 
-export class MergedMemberDTO {
-  member: APIGuildMember;
+export class MergedMemberDTO implements MergedMember {
+  hoisted_role?: APIRole;
+  nick?: string | null;
+  avatar?: string | null;
+  roles: string[];
+  joined_at: string;
+  premium_since?: string | null;
+  deaf: boolean;
+  mute: boolean;
+  flags: GuildMemberFlags;
+  pending?: boolean;
+  communication_disabled_until?: string | null;
   user_id: string;
 
-  constructor(member: APIGuildMember, user_id: string) {
-    this.member = member;
+  constructor(member: APIGuildMember, user_id: string, extra?: {
+    guild_roles?: APIRole[],
+  }) {
     this.user_id = user_id;
+
+    if ("nick" in member) this.nick = member.nick;
+    if ("avatar" in member) this.avatar = member.avatar;
+    this.roles = member.roles;
+    this.joined_at = member.joined_at;
+    if ("premium_since" in member) this.premium_since = member.premium_since;
+    this.deaf = member.deaf;
+    this.mute = member.mute;
+    this.flags = member.flags;
+    if (member.pending) this.pending = member.pending;
+    if ("communication_disabled_until" in member) {
+      this.communication_disabled_until = member.communication_disabled_until;
+    }
+
+    if (extra?.guild_roles) {
+      const hoisted_role = this.findHighestHoistedRole(extra.guild_roles);
+
+      if (hoisted_role) this.hoisted_role = hoisted_role;
+    }
   }
 
-  toJSON(): MergedMember {
-    return {
-      ...this.member,
-      user_id: this.user_id,
-    };
+  findHighestHoistedRole(roles: APIRole[]) {
+    const hoistedRoles = roles
+      .filter((role) => role.hoist && this.roles
+        .find((member_role) => member_role === role.id));
+
+    /**
+     * FIXME: When we eventually sort role positions correctly,
+     * this code will need to be adjusted
+    */
+    const hoisted_role = hoistedRoles
+      .sort((r1, r2) => r1.position - r2.position)[0];
+
+    return hoisted_role;
   }
 }
 

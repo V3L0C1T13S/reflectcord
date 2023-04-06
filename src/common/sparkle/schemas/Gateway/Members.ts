@@ -8,7 +8,7 @@ import { APIGuildMember, APIRole } from "discord.js";
  * Discord clients support finding out what user they are just from
  * the user_id field.
 */
-export interface MergedMember extends APIGuildMember {
+export interface MergedMember extends Omit<APIGuildMember, "user"> {
   /**
    * Highest hoisted role this user has
   */
