@@ -41,6 +41,8 @@ const identifyPayload = {
   },
 };
 
+const wasteful = (msg: string) => console.warn(`wasteful payload inaccuracy! ${msg}`);
+
 socket.onopen = () => {
   console.log("connected");
 };
@@ -78,12 +80,19 @@ socket.onmessage = (data) => {
             if (!Array.isArray(users)) throw new Error(`bad payload! expected users to be an array but we got ${users}`);
             if (!Array.isArray(merged_members)) throw new Error(`merged_members should be an array but its ${merged_members}`);
             if (!merged_presences) throw new Error(`expected merged_presences to be defined but we got ${merged_presences}`);
-            if (presences) console.warn(`nonfatal payload inaccuracy! presences shouldn't be here but it was defined as ${presences}`);
+            if (presences) wasteful(`presences shouldn't be here but it was defined as ${presences}`);
+
+            if (!merged_members.every((x) => !!x.user_id)) {
+              throw new Error(`fatal payload inaccuracy! merged_member objects need a user_id! ${merged_members}`);
+            }
+            if (!merged_members.every((x) => !("user" in x))) {
+              wasteful(`merged_members should not have a full user object as this is solved by the user_id property instead! ${merged_members}`);
+            }
           } else {
             if (!Array.isArray(presences)) throw new Error(`bad payload! expected presences to be array but its defined as ${presences}`);
-            if (users) console.warn(`nonfatal payload inaccuracy! users ${users} shouldn't be present but it is!`);
-            if (merged_members) console.warn(`nonfatal inaccuracy! merged_members is not supposed to be sent! ${merged_members}`);
-            if (merged_presences) console.warn(`nonfatal inaccuracy! merged_presences isnt supposed to be here but its defined as ${merged_presences}`);
+            if (users) wasteful(`users ${users} shouldn't be present but it is!`);
+            if (merged_members) wasteful(`merged_members is not supposed to be sent! ${merged_members}`);
+            if (merged_presences) wasteful(`merged_presences isnt supposed to be here but its defined as ${merged_presences}`);
           }
 
           if (identifyPayload.capabilities & ClientCapabilities.UserSettingsProto) {
