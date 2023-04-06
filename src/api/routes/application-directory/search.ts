@@ -12,7 +12,7 @@ export default () => <Resource> {
 
     const discoveryURL = await getRevoltDiscoveryDataURL();
     const botResponse = await axios
-      .get<BotDiscoveryResponse>(`${discoveryURL}/discover/${query?.length && query.length > 0 ? `search.json?query=${query}&type=bots` : "bots.json"}`);
+      .get<BotDiscoveryResponse>(`${discoveryURL}/discover/${query?.length && query.length ? `search.json?query=${query}&type=bots` : "bots.json"}`);
     const { data } = botResponse;
     const revoltBots = data.pageProps.bots;
 

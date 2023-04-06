@@ -20,6 +20,7 @@
 import { GatewayCloseCodes } from "discord.js";
 import { Logger } from "@reflectcord/common/utils";
 import { IdentifySchema } from "@reflectcord/common/sparkle";
+import { revoltApiURL } from "@reflectcord/common/constants";
 import { startListener } from "../util/Listener";
 import { Payload } from "../util";
 import { WebSocket } from "../Socket";
@@ -43,12 +44,13 @@ export async function onIdentify(this: WebSocket, data: Payload<IdentifySchema>)
 
   await startListener.call(this, token, identify);
 
-  this.trace.startTrace("bonfire_authenticate");
+  const revoltTrace = this.trace.createTrace(new URL(revoltApiURL).host);
+  revoltTrace.createCall("bonfire_authenticate").start();
   await this.rvClient.loginBot(token).catch(() => {
     Logger.error("Revolt failed authentication");
     return this.close(GatewayCloseCodes.AuthenticationFailed);
   });
-  this.trace.stopTrace("bonfire_authenticate");
+  revoltTrace.stopCall("bonfire_authenticate");
 
   // HACK!
   // @ts-ignore

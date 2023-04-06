@@ -4,6 +4,7 @@
 import {
   APIChannel,
   APIUser,
+  ApplicationFlagsBitField,
   GatewayCloseCodes,
   GatewayDispatchEvents,
   GatewayGuildCreateDispatchData,
@@ -123,6 +124,13 @@ export async function startListener(
           break;
         }
         case "Auth": {
+          switch (data.event_type) {
+            case "DeleteAllSessions": {
+              this.close(GatewayCloseCodes.SessionTimedOut);
+              break;
+            }
+            default:
+          }
           break;
         }
         case "Ready": {
@@ -136,12 +144,12 @@ export async function startListener(
             Logger.warn("Client has no capabilities??");
           }
 
-          trace.startTrace("fetch_current_user");
+          trace.startTrace("get_user");
 
           const currentUser = data.users.find((x) => x.relationship === "User");
           if (!currentUser) return this.close(GatewayCloseCodes.AuthenticationFailed);
 
-          trace.stopTrace("fetch_current_user");
+          trace.stopTrace("get_user");
 
           trace.startTrace("reflectcord_init");
           this.bot = !!currentUser.bot;
@@ -358,33 +366,7 @@ export async function startListener(
           })));
           trace.stopTrace("fetch_members");
 
-          trace.startTrace("create_merged_member_dtos");
-          const mergedMembers = memberData.map((member_data) => {
-            const { guild, member } = member_data;
-
-            const hoistedRoles = guild.roles
-              .filter((role) => role.hoist && member.discord.roles
-                .find((member_role) => member_role === role.id));
-
-            /**
-             * FIXME: When we eventually sort role positions correctly,
-             * this code will need to be adjusted
-            */
-            const hoisted_role = hoistedRoles
-              .sort((r1, r2) => r1.position - r2.position)[0];
-
-            const mergedMember: MergedMember = {
-              ...member.discord,
-              user_id: member.discord.user!.id, // FIXME: This might break
-            };
-
-            if (hoisted_role) mergedMember.hoisted_role = hoisted_role;
-
-            return mergedMember;
-          });
-          trace.stopTrace("create_merged_member_dtos");
-
-          trace.startTrace("fetch_relationships");
+          trace.startTrace("relationships");
           const relationships = await Promise.all(users
             .filter((u) => u.revolt.relationship !== "None" && u.revolt.relationship !== "User")
             .map(async (u) => ({
@@ -394,7 +376,7 @@ export async function startListener(
               },
               revolt: u.revolt,
             })));
-          trace.stopTrace("fetch_relationships");
+          trace.stopTrace("relationships");
 
           trace.startTrace("fetch_presences");
 
@@ -475,12 +457,12 @@ export async function startListener(
             country_code: "US",
             // V6 & V7 garbo
             indicators_confirmed: [],
-            _trace: [
-              JSON.stringify(trace.toGatewayObject()),
-            ],
+            _trace: [],
             shard: [0, 1],
             auth_session_id_hash: "",
           };
+
+          trace.startTrace("clean_ready");
 
           if (this.capabilities.UserSettingsProto) {
             // We opt to delete it here to avoid a race condition with Discord Mobile
@@ -490,7 +472,42 @@ export async function startListener(
             readyData.notes = {};
           }
           if (this.capabilities.DeduplicateUserObjects) {
-            readyData.merged_members = [mergedMembers];
+            trace.startTrace("create_merged_member_dtos");
+            const mergedMembers: MergedMember[][] = [];
+
+            // TODO: Abstract into DTO
+            memberData.forEach((member_data) => {
+              const { guild, member } = member_data;
+
+              const guildIndex = guilds.findIndex((x) => x.id === guild.id);
+
+              mergedMembers[guildIndex] ??= [];
+
+              const hoistedRoles = guild.roles
+                .filter((role) => role.hoist && member.discord.roles
+                  .find((member_role) => member_role === role.id));
+
+              /**
+             * FIXME: When we eventually sort role positions correctly,
+             * this code will need to be adjusted
+            */
+              const hoisted_role = hoistedRoles
+                .sort((r1, r2) => r1.position - r2.position)[0];
+
+              const mergedMember: MergedMember = {
+                ...member.discord,
+                user_id: member.discord.user!.id, // FIXME: This might break
+              };
+
+              delete mergedMember.user;
+
+              if (hoisted_role) mergedMember.hoisted_role = hoisted_role;
+
+            mergedMembers[guildIndex]!.push(mergedMember);
+            });
+            trace.stopTrace("create_merged_member_dtos");
+
+            readyData.merged_members = mergedMembers;
             readyData.merged_presences = {
               guilds: [
                 [],
@@ -506,11 +523,14 @@ export async function startListener(
 
           if (currentUserDiscord.bot) {
             readyData.application = {
-              id: currentUserDiscord.id, // @ts-ignore
-              flags: 0,
+              id: currentUserDiscord.id,
+              flags: new ApplicationFlagsBitField().toJSON(),
             };
           }
 
+          trace.stopTrace("clean_ready");
+
+          readyData._trace.push(JSON.stringify(trace.toGatewayObject()));
           await Dispatch(this, GatewayDispatchEvents.Ready, readyData);
 
           trace.startTrace("start_internal_listener");
@@ -835,6 +855,7 @@ export async function startListener(
 
             if (!this.bot) {
               const stubGatewayHash = {
+                omitted: false,
                 hash: "NpY9iQ",
               };
               const stubHash = {

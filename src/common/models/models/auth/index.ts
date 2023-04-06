@@ -76,13 +76,15 @@ export const DataMFALogin: QuarkConversion<RevoltDataLogin, MFALoginSchema> = {
   },
 };
 
-export const DataLogin: QuarkConversion<RevoltDataLogin, LoginSchema> = {
-  async to_quark(data) {
+export const DataLogin: QuarkConversion<RevoltDataLogin, LoginSchema, {
+  friendly_name?: string | null | undefined,
+}> = {
+  async to_quark(data, extra) {
     const rvData = {
       email: data.login ?? data.email,
       password: data.password,
       // captcha: data.captcha_key ?? null,
-      friendly_name: data.login_source ?? null,
+      friendly_name: data.login_source ?? extra?.friendly_name ?? null,
     };
 
     return rvData;

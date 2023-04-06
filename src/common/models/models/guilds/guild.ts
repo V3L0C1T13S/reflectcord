@@ -193,9 +193,6 @@ export const Guild: QuarkConversion<Server, APIGuild, GuildATQ, GuildAFQ> = {
       icon: icon ? await hashToSnowflake(icon._id) : null,
       splash: null,
       guild_scheduled_events: [],
-      // max_video_channel_users: 25,
-      // max_stage_video_channel_users: 0,
-      stage_instances: [],
     };
   },
 };
@@ -317,10 +314,10 @@ export function createBotGatewayGuild(
 export async function createUserGatewayGuild(
   guild: APIGuild,
   data: UserGatewayGuildData,
-): Promise<UserGatewayGuild> {
+) {
   const { emojis } = guild;
 
-  return {
+  const userGuild: UserGatewayGuild = {
     ...createCommonGatewayGuild(guild, data),
     application_command_counts: {},
     data_mode: "full",
@@ -334,5 +331,15 @@ export async function createUserGatewayGuild(
     roles: guild.roles,
     stickers: guild.stickers,
     version: 0,
+    safety_alerts_channel_id: null,
+    home_header: null,
+    latest_onboarding_question_id: null,
+    max_video_channel_users: 25,
+    max_stage_video_channel_users: 50,
   };
+
+  // @ts-ignore
+  delete userGuild.members;
+
+  return userGuild;
 }

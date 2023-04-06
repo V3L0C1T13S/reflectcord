@@ -1,7 +1,7 @@
 /* eslint-disable no-nested-ternary */
 /* eslint-disable camelcase */
 import {
-  APIGuildMember, APIUser, RESTPatchAPIGuildMemberJSONBody,
+  APIGuildMember, APIUser, GuildMemberFlagsBitField, RESTPatchAPIGuildMemberJSONBody,
 } from "discord.js";
 import { Member as RevoltMember } from "revolt-api";
 import { API } from "revolt.js";
@@ -70,7 +70,7 @@ export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, Memb
       avatar: discordAvatar,
       pending: false,
       user,
-      flags: 0,
+      flags: new GuildMemberFlagsBitField().toJSON(),
     };
 
     return discordMember;

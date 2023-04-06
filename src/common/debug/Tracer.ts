@@ -61,7 +61,7 @@ export class Trace {
     if (!this.startTime) throw new Error(`attempted to stop trace ${this.name} but it wasn't started`);
     this.stopTime = performance.now();
 
-    this.micros = (this.stopTime - this.startTime).toInt() * 1000;
+    this.micros = (this.stopTime - this.startTime);
   }
 
   getMicros() {

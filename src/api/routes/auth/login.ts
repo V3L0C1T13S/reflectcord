@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { Application, Request, Response } from "express";
+import { Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
 import { LoginSchema } from "@reflectcord/common/sparkle";
@@ -7,18 +7,18 @@ import { APILoginResponse, DataLogin, ResponseLogin } from "@reflectcord/common/
 import { FieldErrors, HTTPError } from "@reflectcord/common/utils";
 import { isAxiosError } from "axios";
 
-export async function loginToRevolt(api: API.API, body: LoginSchema) {
+export async function loginToRevolt(api: API.API, body: LoginSchema, name?: string) {
   const loginResponse = await api.post(
     "/auth/session/login",
-    await DataLogin.to_quark(body),
+    await DataLogin.to_quark(body, {}),
   );
 
   return loginResponse;
 }
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   post: async (req: Request<{}, {}, LoginSchema>, res: Response<APILoginResponse>) => {
-    const loginResponse = await loginToRevolt(res.rvAPI, req.body).catch((err) => {
+    const loginResponse = await loginToRevolt(res.rvAPI, req.body, `${req.headers["user-agent"] ?? "Unknown client"} via Reflectcord`).catch((err) => {
       if (isAxiosError(err)) {
         if (!err.response) throw new HTTPError("A bad error response was returned.", 500);
         switch (err.response.data.type) {
@@ -49,7 +49,7 @@ export default (express: Application) => <Resource> {
     if (loginResponse.result === "Disabled") {
       throw FieldErrors({
         login: {
-          message: "Your account has been disabled. Please undisable it on your Revolt instance.",
+          message: "Your account has been disabled. Ask your administrator for further assistance",
           code: "INVALID_LOGIN",
         },
       });
