@@ -43,8 +43,8 @@ For clients, it's generally recommended you use Diproxi to proxy discord.com req
 
 ## Credits
 
-### [Fosscord](https://github.com/fosscord)
-Server structure, larger utilities, 99% of the work reverse engineering the gateway, more obscure parts of Discords API, the entire WebRTC stack, API middlewares, the client downloader, and more is thanks to the work of Fosscord and its contributors. Seriously, check them out!
+### [Spacebar](https://github.com/spacebarchat)
+Server structure, larger utilities, 99% of the work reverse engineering the gateway, more obscure parts of Discords API, the entire WebRTC stack, API middlewares, and more is thanks to the work of Spacebar Chat and its contributors. Seriously, check them out!
 
 ### [Litecord](https://gitlab.com/litecord/litecord)
 Documented a bunch of undocumented OPCodes, reverse engineered OP8
