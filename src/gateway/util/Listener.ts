@@ -56,7 +56,7 @@ import {
   createUserGatewayGuild,
   MergedMemberDTO,
 } from "@reflectcord/common/models";
-import { Logger, RabbitMQ } from "@reflectcord/common/utils";
+import { Logger, RabbitMQ, genAnalyticsToken } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
 import {
   GatewayUserChannelUpdateOptional,
@@ -248,8 +248,25 @@ export async function startListener(
 
           trace.stopTrace("fetch_emojis");
 
-          trace.startTrace("fetch_guilds");
+          trace.startTrace("fetch_user_stage2");
+          const mfaInfo = !currentUser.bot ? await this.rvAPI.get("/auth/mfa/") : null;
+          const authInfo = !currentUser.bot ? await this.rvAPI.get("/auth/account/") : null;
+          const currentUserDiscord = await selfUser.from_quark({
+            user: currentUser,
+            authInfo: authInfo ?? {
+              _id: currentUser._id,
+              email: "fixme@gmail.com",
+            },
+            mfaInfo,
+          });
+          this.rvAPIWrapper.users.createObj({
+            revolt: currentUser,
+            discord: currentUserDiscord,
+          });
 
+          trace.stopTrace("fetch_user_stage2");
+
+          trace.startTrace("fetch_guilds");
           const lazyGuilds: GatewayGuildCreateDispatchData[] = [];
 
           const guilds = await Promise.all(data.servers
@@ -270,9 +287,6 @@ export async function startListener(
 
               const discordGuild = rvServer.discord;
 
-              const member = await rvServer.extra?.members
-                .fetch(rvServer.revolt._id, this.rv_user_id);
-
               const serverChannels = await HandleChannelsAndCategories(
                 rvChannels,
                 server.categories,
@@ -280,6 +294,27 @@ export async function startListener(
               );
 
               cacheServerCreateChannels.call(this, rvChannels, serverChannels);
+
+              /**
+               * Yes. Another caching hack. I really need to rewrite this... eventually.
+               *
+               * On the plus side: no more API abuse if we cache right here right now.
+              * */
+              const revoltMembers = data.members
+                .filter((x) => x._id.server === rvServer.revolt._id);
+              await Promise.all(revoltMembers.map(async (x) => {
+                const rvMember = {
+                  revolt: x,
+                  discord: await Member.from_quark(x, {
+                    discordUser: this.rvAPIWrapper.users.get(x._id.user)?.discord,
+                  }),
+                };
+
+                rvServer.extra?.members.createObj(rvMember);
+              }));
+
+              const member = await rvServer.extra?.members
+                .fetch(rvServer.revolt._id, this.rv_user_id);
 
               if (currentUser.bot || !this.capabilities.ClientStateV2) {
                 const commonGuild = createCommonGatewayGuild(discordGuild, {
@@ -315,24 +350,6 @@ export async function startListener(
 
           trace.stopTrace("fetch_guilds");
 
-          trace.startTrace("fetch_user_stage2");
-          const mfaInfo = !currentUser.bot ? await this.rvAPI.get("/auth/mfa/") : null;
-          const authInfo = !currentUser.bot ? await this.rvAPI.get("/auth/account/") : null;
-          const currentUserDiscord = await selfUser.from_quark({
-            user: currentUser,
-            authInfo: authInfo ?? {
-              _id: currentUser._id,
-              email: "fixme@gmail.com",
-            },
-            mfaInfo,
-          });
-          this.rvAPIWrapper.users.createObj({
-            revolt: currentUser,
-            discord: currentUserDiscord,
-          });
-
-          trace.stopTrace("fetch_user_stage2");
-
           trace.startTrace("fetch_sessions");
           const sessionStatus = await Status.from_quark(currentUser.status);
           const currentSession: Session = {
@@ -354,6 +371,9 @@ export async function startListener(
           trace.startTrace("fetch_members");
           const memberData = (await Promise.all(data.members.map(async (x) => {
             const server = this.rvAPIWrapper.servers.$get(x._id.server);
+            const existing = server.extra?.members.get(x._id.user);
+            if (existing) return { member: existing, guild: server.discord };
+
             const member = {
               revolt: x,
               discord: await Member.from_quark(x, {
@@ -446,7 +466,7 @@ export async function startListener(
             friend_suggestion_count: 0,
             guild_join_requests: [],
             connected_accounts: [],
-            analytics_token: "",
+            analytics_token: genAnalyticsToken(this.user_id),
             tutorial: null,
             session_type: "normal",
             api_code_version: 1,

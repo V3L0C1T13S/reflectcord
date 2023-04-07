@@ -80,7 +80,7 @@ export async function Connection(this: ws.Server, socket: WebSocket, request: In
     // @ts-ignore
     socket.rvAPIWrapper = new APIWrapper(socket.rvAPI);
     socket.state = new SocketState();
-    socket.trace = new Tracer(new URL(reflectcordWsURL).host);
+    socket.trace = new Tracer(`gateway-prd-${new URL(reflectcordWsURL).host}`);
 
     setHeartbeat(socket);
 

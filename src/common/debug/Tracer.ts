@@ -79,7 +79,7 @@ export class Trace {
 
   toGatewayObject() {
     const jsonTraces: any[] = [this.name, {
-      micros: this.getMicros(),
+      micros: this.getMicros() * 1000,
       calls: this.calls.map((x) => x.toGatewayObject()).flat(),
     }];
 
@@ -87,6 +87,12 @@ export class Trace {
   }
 }
 
+/**
+ * Simple trace utility for use with Discords Gateway.
+ *
+ * NOTE: Discord will NOT recognize your trace if you don't format the
+ * name as gateway-blah-serverid
+*/
 export class Tracer {
   name: string;
 
@@ -133,10 +139,10 @@ export class Tracer {
 
   toGatewayObject() {
     const jsonTraces = [this.name, {
-      micros: Object.values(this.traces)
+      micros: (Object.values(this.traces)
         .filter((x) => !!x.micros)
         .map((x) => x.micros)
-        .reduce((x, y) => (x! + y!)),
+        .reduce((x, y) => (x! + y!)) || 0) * 1000,
       calls: Object.values(this.traces).map((x) => x.toGatewayObject()).flat(),
     }];
 

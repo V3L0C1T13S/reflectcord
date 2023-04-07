@@ -50,6 +50,9 @@ export interface ReadyData extends Omit<GatewayReadyDispatchData, "application">
   friend_suggestion_count: number,
   guild_join_requests: unknown[],
   connected_accounts: ConnectedAccount[],
+  /**
+   * Refer to genAnalyticsToken function
+  */
   analytics_token: string,
   api_code_version: number, // TODO: Document
   consents: {
@@ -62,6 +65,11 @@ export interface ReadyData extends Omit<GatewayReadyDispatchData, "application">
   merged_presences?: { guilds: never[][]; friends: never[]; },
   indicators_confirmed: unknown,
   notes?: unknown,
+  /**
+   * Trace information sent by the gateway. Useful for debugging
+   * if performance problems are in the client or in your
+   * server.
+  */
   _trace: string[],
   /**
    * Initial presence data for users

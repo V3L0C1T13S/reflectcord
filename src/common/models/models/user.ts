@@ -20,9 +20,9 @@ import Long from "long";
 import { Badges } from "../../rvapi";
 import { UserRelationshipType } from "../../sparkle";
 import { QuarkConversion } from "../QuarkConversion";
-import { fromSnowflake, hashToSnowflake, toSnowflake } from "../util";
+import { fromSnowflake, toSnowflake } from "../util";
 import { priviligedUsers } from "../../constants/admin";
-import { genSessionId } from "../../utils/discord";
+import { genAnalyticsToken } from "../../utils/discord";
 import { Omit } from "../../utils";
 import { PartialFile } from "./attachment";
 
@@ -215,7 +215,7 @@ export const selfUser: QuarkConversion<revoltUserInfo, APIUser, selfUserATQ, sel
       premium_usage_flags: 2,
       purchased_flags: 5,
       locale: "en-US",
-      analytics_token: extra?.genAnalyticsToken ? genSessionId() : null,
+      analytics_token: extra?.genAnalyticsToken ? genAnalyticsToken(discordUser.id) : null,
       verified: true,
     };
   },

@@ -16,7 +16,7 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-function genRanHex(size: number) {
+export function genRanHex(size: number) {
   return [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join("");
 }
 
