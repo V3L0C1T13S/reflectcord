@@ -36,6 +36,9 @@ export function identifyClient(browser: string) {
     case "Discord Client": {
       return "desktop";
     }
+    case "Discord Android": {
+      return "mobile";
+    }
     default: {
       Logger.log(`Unknown browser ${browser}. Returning web`);
       return "web";

@@ -59,11 +59,21 @@ export const ClientCapabilities = {
   */
   DeduplicateUserObjects: 1 << 4,
   /**
+   * Split some READY data across READY and READY_SUPPLEMENTAL, giving only
+   * essential information in READY.
+   *
+   * This can significantly improve startup times on bandwidth-limited
+   * connections, such as mobile networks.
+   *
    * Changes:
    *
-   * Adds a guild_hashes property to guild objects
-   * This property doesn't seem to be required by any of the official
-   * clients, however (tests needed).
+   * Enables the READY_SUPPLEMENTAL event. Note that this also appears
+   * to require DeduplicateUserObjects at a minimum. For simplicity
+   * sake, it might be better to just send READY_SUPPLEMENTAL even
+   * if other capabilities are not met.
+   *
+   * merged_presences will not be sent in the initial READY payload.
+   * Instead, it will be sent in the READY_SUPPLEMENTAL event.
   */
   PrioritizedReadyPayload: 1 << 5,
   MultipleGuildExperimentPopulations: 1 << 6,

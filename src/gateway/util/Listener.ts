@@ -55,6 +55,7 @@ import {
   identifyClient,
   createUserGatewayGuild,
   MergedMemberDTO,
+  fromSnowflake,
 } from "@reflectcord/common/models";
 import { Logger, RabbitMQ, genAnalyticsToken } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
@@ -69,12 +70,13 @@ import {
   Session,
   IdentifyCapabilities,
   DefaultCapabilities,
+  ReadySupplementalData,
+  MergedPresences,
 } from "@reflectcord/common/sparkle";
 import { reflectcordWsURL } from "@reflectcord/common/constants";
 import { VoiceState } from "@reflectcord/common/mongoose";
-import { emojiMap as reactionMap } from "@reflectcord/common/managers/";
+import { MemberContainer, emojiMap as reactionMap } from "@reflectcord/common/managers";
 import { emojis as emojiMap } from "@reflectcord/common/emojilib";
-import { Tracer } from "@reflectcord/common/debug";
 import { WebSocket } from "../Socket";
 import { Dispatch } from "./send";
 import experiments from "./experiments.json";
@@ -191,7 +193,7 @@ export async function startListener(
 
           trace.stopTrace("reflectcord_init");
 
-          trace.startTrace("fetch_users");
+          trace.startTrace("get_users");
           const users = await Promise.all(data.users
             .map(async (user) => this.rvAPIWrapper.users.createObj({
               revolt: user,
@@ -199,7 +201,9 @@ export async function startListener(
             })));
 
           const discordUsers = users.map((user) => user.discord);
+          trace.stopTrace("get_users");
 
+          trace.startTrace("get_channels");
           const channels = await Promise.all(data.channels
             .map(async (channel) => {
               const recipients: APIUser[] = [];
@@ -225,16 +229,15 @@ export async function startListener(
 
               return channelObj;
             }));
-          trace.stopTrace("fetch_users");
+          trace.stopTrace("get_channels");
 
-          trace.startTrace("fetch_private_channels");
+          trace.startTrace("get_private_channels");
           const private_channels = channels
             .filter((x) => x.revolt.channel_type === "DirectMessage" || x.revolt.channel_type === "Group" || x.revolt.channel_type === "SavedMessages")
             .map((x) => x.discord);
+          trace.stopTrace("get_private_channels");
 
-          trace.stopTrace("fetch_private_channels");
-
-          trace.startTrace("fetch_emojis");
+          trace.startTrace("get_emojis");
           if (data.emojis) {
             await Promise.all(data.emojis
               .filter((x) => x.parent.type === "Server")
@@ -245,10 +248,9 @@ export async function startListener(
                 }),
               })));
           }
+          trace.stopTrace("get_emojis");
 
-          trace.stopTrace("fetch_emojis");
-
-          trace.startTrace("fetch_user_stage2");
+          trace.startTrace("get_user_stage2");
           const mfaInfo = !currentUser.bot ? await this.rvAPI.get("/auth/mfa/") : null;
           const authInfo = !currentUser.bot ? await this.rvAPI.get("/auth/account/") : null;
           const currentUserDiscord = await selfUser.from_quark({
@@ -264,9 +266,9 @@ export async function startListener(
             discord: currentUserDiscord,
           });
 
-          trace.stopTrace("fetch_user_stage2");
+          trace.stopTrace("get_user_stage2");
 
-          trace.startTrace("fetch_guilds");
+          trace.startTrace("get_guilds");
           const lazyGuilds: GatewayGuildCreateDispatchData[] = [];
 
           const guilds = await Promise.all(data.servers
@@ -302,7 +304,7 @@ export async function startListener(
               * */
               const revoltMembers = data.members
                 .filter((x) => x._id.server === rvServer.revolt._id);
-              await Promise.all(revoltMembers.map(async (x) => {
+              const members = (await Promise.all(revoltMembers.map(async (x) => {
                 const rvMember = {
                   revolt: x,
                   discord: await Member.from_quark(x, {
@@ -310,8 +312,10 @@ export async function startListener(
                   }),
                 };
 
-                rvServer.extra?.members.createObj(rvMember);
-              }));
+                return rvServer.extra?.members.createObj(rvMember);
+              }))).filter((x): x is MemberContainer => !!x);
+
+              const discordMembers = members.map((x) => x.discord);
 
               const member = await rvServer.extra?.members
                 .fetch(rvServer.revolt._id, this.rv_user_id);
@@ -319,8 +323,8 @@ export async function startListener(
               if (currentUser.bot || !this.capabilities.ClientStateV2) {
                 const commonGuild = createCommonGatewayGuild(discordGuild, {
                   channels: serverChannels,
-                  members: member ? [member.discord] : [],
-                  member: member ? member.discord : null,
+                  members: discordMembers,
+                  member: member?.discord ?? null,
                 });
 
                 const legacyGuild = {
@@ -341,16 +345,16 @@ export async function startListener(
 
               const guild = await createUserGatewayGuild(discordGuild, {
                 channels: serverChannels,
-                members: member ? [member.discord] : [],
-                member: member ? member.discord : null,
+                members: discordMembers,
+                member: member?.discord ?? null,
               });
 
               return guild;
             }));
 
-          trace.stopTrace("fetch_guilds");
+          trace.stopTrace("get_guilds");
 
-          trace.startTrace("fetch_sessions");
+          trace.startTrace("get_sessions");
           const sessionStatus = await Status.from_quark(currentUser.status);
           const currentSession: Session = {
             activities: sessionStatus.activities ?? [],
@@ -358,7 +362,7 @@ export async function startListener(
               version: 0,
               client: identifyClient(identifyPayload.properties?.browser ?? "Discord Client"),
             },
-            status: identifyPayload?.presence?.status.toString() ?? "offline",
+            status: identifyPayload?.presence?.status.toString() ?? sessionStatus.status ?? "offline",
             session_id: this.session_id,
           };
           if (identifyPayload.properties?.os) {
@@ -366,9 +370,9 @@ export async function startListener(
           }
 
           const sessions = [new GatewaySessionDTO(currentSession)];
-          trace.stopTrace("fetch_sessions");
+          trace.stopTrace("get_sessions");
 
-          trace.startTrace("fetch_members");
+          trace.startTrace("get_members");
           const memberData = (await Promise.all(data.members.map(async (x) => {
             const server = this.rvAPIWrapper.servers.$get(x._id.server);
             const existing = server.extra?.members.get(x._id.user);
@@ -385,7 +389,7 @@ export async function startListener(
 
             return { member, guild: server.discord };
           })));
-          trace.stopTrace("fetch_members");
+          trace.stopTrace("get_members");
 
           trace.startTrace("relationships");
           const relationships = await Promise.all(users
@@ -399,17 +403,21 @@ export async function startListener(
             })));
           trace.stopTrace("relationships");
 
-          trace.startTrace("fetch_presences");
-
+          trace.startTrace("get_presences");
           const friendPresences = await Promise.all(relationships
             .map((relationship) => createUserPresence({
               user: relationship.revolt,
               discordUser: relationship.discord.user,
+              deduplicate: this.capabilities.DeduplicateUserObjects,
             })));
+          const mergedPresences: MergedPresences = {
+            guilds: [],
+            friends: friendPresences,
+          };
 
-          trace.stopTrace("fetch_presences");
+          trace.stopTrace("get_presences");
 
-          trace.startTrace("fetch_settings");
+          trace.startTrace("user_settings");
           const rvSettings = !currentUser.bot ? await this.rvAPI.post("/sync/settings/fetch", {
             keys: SettingsKeys,
           }).catch(() => null) as unknown as RevoltSettings : null;
@@ -418,21 +426,22 @@ export async function startListener(
             status: sessionStatus.status?.toString() || null,
           }) : null;
 
-          trace.stopAndStart("fetch_settings", "fetch_settings_proto");
+          trace.stopAndStart("user_settings", "user_settings_proto");
           const user_settings_proto = rvSettings
             ? await settingsToProtoBuf(user_settings as any, {
               customStatusText: currentUser.status?.text,
             })
             : null;
-          trace.stopTrace("fetch_settings_proto");
+          trace.stopTrace("user_settings_proto");
 
-          trace.startTrace("fetch_read_state");
+          trace.startTrace("serialized_read_states");
 
           const unreads = await this.rvAPIWrapper.messages.fetchUnreads();
           const readStateEntries = await Promise.all(unreads.map((x) => ReadState.from_quark(x)));
 
-          trace.stopTrace("fetch_read_state");
+          trace.stopTrace("serialized_read_states");
 
+          trace.startTrace("build_ready");
           const readyData: ReadyData = {
             v: this.version,
             users: discordUsers,
@@ -482,6 +491,7 @@ export async function startListener(
             shard: [0, 1],
             auth_session_id_hash: "",
           };
+          trace.stopTrace("build_ready");
 
           trace.startTrace("clean_ready");
 
@@ -493,10 +503,9 @@ export async function startListener(
             readyData.notes = {};
           }
           if (this.capabilities.DeduplicateUserObjects) {
-            trace.startTrace("create_merged_member_dtos");
+            trace.startTrace("merged_members");
             const mergedMembers: MergedMember[][] = [];
 
-            // TODO: Abstract into DTO
             memberData.forEach((member_data) => {
               const { guild, member } = member_data;
 
@@ -514,16 +523,12 @@ export async function startListener(
 
               mergedMembers[guildIndex]!.push(mergedMember);
             });
-            trace.stopTrace("create_merged_member_dtos");
+            trace.stopTrace("merged_members");
 
             readyData.merged_members = mergedMembers;
-            readyData.merged_presences = {
-              guilds: [
-                [],
-                [],
-              ],
-              friends: [],
-            };
+            if (!this.capabilities.PrioritizedReadyPayload) {
+              readyData.merged_presences = mergedPresences;
+            }
           } else {
             readyData.presences = friendPresences;
             // WORKAROUND: race condition on mobile
@@ -549,20 +554,17 @@ export async function startListener(
           await Promise.all(lazyGuilds
             .map((x) => Dispatch(this, GatewayDispatchEvents.GuildCreate, x).catch(Logger.error)));
 
-          if (!currentUserDiscord.bot) {
-            const supplementalData = {
-              disclose: [],
+          if (!currentUserDiscord.bot && this.capabilities.PrioritizedReadyPayload) {
+            const supplementalData: ReadySupplementalData = {
+              merged_presences: mergedPresences,
+              merged_members: [],
+              lazy_private_channels: [],
               guilds: await Promise.all(guilds.map(async (x) => ({
+                voice_states: (await VoiceState.find({ guild_id: x.id })),
                 id: x.id,
                 embedded_activities: [],
-                voice_states: (await VoiceState.find({ guild_id: x.id })),
               }))),
-              lazy_private_channels: [],
-              merged_members: [],
-              merged_presences: {
-                friends: friendPresences,
-                guilds: [],
-              },
+              disclose: [],
             };
 
             await Dispatch(this, GatewayDispatchCodes.ReadySupplemental, supplementalData);
@@ -575,6 +577,7 @@ export async function startListener(
               .catch(Logger.error);
             Dispatch(this, GatewayDispatchEvents.PresenceUpdate, {
               user: currentUserDiscord,
+              user_id: currentUserDiscord.id,
               ...currentSession,
               client_status: {
                 desktop: currentSession.status,
@@ -1117,14 +1120,36 @@ export async function startListener(
             }),
           }, data.clear);
 
-          if (data.id !== this.rv_user_id) {
-            if (data.data.status || data.data.online !== null || data.data.online !== undefined) {
-              const updated = await createUserPresence({
-                user: user.revolt,
-                discordUser: user.discord,
-              });
+          if (data.data.status || data.data.online !== null || data.data.online !== undefined) {
+            const updated = await createUserPresence({
+              user: user.revolt,
+              discordUser: user.discord,
+            });
 
+            if (data.id !== this.rv_user_id) {
               await Dispatch(this, GatewayDispatchEvents.PresenceUpdate, updated);
+            } else {
+              // TODO: what is this mysterious "all" session for?
+              await Dispatch(this, GatewayDispatchCodes.SessionsReplace, [{
+                active: true,
+                activities: updated.activities,
+                client_info: {
+                  client: "unknown",
+                  os: "unknown",
+                  version: 0,
+                },
+                session_id: "all",
+                status: updated.status,
+              }, {
+                activities: updated.activities,
+                client_info: {
+                  client: identifyClient(identifyPayload.properties?.browser ?? "Discord Client"),
+                  os: identifyPayload?.properties?.os ?? "linux",
+                  version: 0,
+                },
+                session_id: this.session_id,
+                status: updated.status,
+              }]);
             }
 
             return;

@@ -1,17 +1,30 @@
 import {
-  APIChannel, APIGuildMember, APIUnavailableGuild, APIUser, GatewayReadyDispatchData,
+  APIChannel,
+  APIUnavailableGuild, APIUser, GatewayReadyDispatchData,
 } from "discord.js";
 import {
-  UserGuildSetting, UserSettings, ReadStateObject, ConnectedAccount, Session, GatewaySession,
+  UserGuildSetting, UserSettings, ReadStateObject, ConnectedAccount, GatewaySession,
 } from "../User";
 import { UserRelationshipType } from "../../types";
-import { GatewayFullUserPresence, GatewaySessionDTO } from "../../../models";
+import { GatewayFullUserPresence } from "../../../models";
+import { MergedMember } from "./Members";
 
 interface GatewayRelationshipData {
   id: string;
   type: UserRelationshipType;
   nickname: string;
   user: APIUser;
+}
+
+export interface MergedPresences {
+  /**
+   * Presences for everyone in your merged_members array (excluding yourself)
+  */
+  guilds: GatewayFullUserPresence[][],
+  /**
+   * Presences for your friends
+  */
+  friends: GatewayFullUserPresence[],
 }
 
 export interface ReadyData extends Omit<GatewayReadyDispatchData, "application"> {
@@ -61,8 +74,8 @@ export interface ReadyData extends Omit<GatewayReadyDispatchData, "application">
     }
   },
   country_code: string,
-  merged_members?: APIGuildMember[][],
-  merged_presences?: { guilds: never[][]; friends: never[]; },
+  merged_members?: MergedMember[][],
+  merged_presences?: MergedPresences,
   indicators_confirmed: unknown,
   notes?: unknown,
   /**
@@ -80,4 +93,27 @@ export interface ReadyData extends Omit<GatewayReadyDispatchData, "application">
     indicators_confirmed: string[],
   } | null,
   session_type: "normal",
+}
+
+export interface ReadySupplementalData {
+  merged_presences: MergedPresences,
+  /**
+   * Member information about people in your users array for mutual
+   * servers. This is primarily to populate your direct message headers
+   * with the users server profile.
+  */
+  merged_members: MergedMember[][],
+  /**
+   * Does anybody know if this is ever populated with anything?
+  */
+  lazy_private_channels: APIChannel[],
+  guilds: {
+    /**
+     * Voice states for guilds you are in.
+    */
+    voice_states: any[],
+    id: string,
+    embedded_activities: unknown[],
+  }[],
+  disclose: unknown[],
 }

@@ -1,5 +1,7 @@
 /* eslint-disable no-redeclare */
-import { RESTPatchAPIChannelJSONBody, RESTPostAPIGuildChannelJSONBody } from "discord.js";
+import {
+  APIDMChannel, APIGroupDMChannel, RESTPatchAPIChannelJSONBody, RESTPostAPIGuildChannelJSONBody,
+} from "discord.js";
 import { Tuple } from "../../../utils/check";
 
 export const ChannelCreateBody = {
@@ -17,3 +19,5 @@ export interface APIChannelPatchBody extends RESTPatchAPIChannelJSONBody {
 }
 
 export type ChannelCreateBody = RESTPostAPIGuildChannelJSONBody;
+
+export type APIPrivateChannel = APIDMChannel | APIGroupDMChannel;

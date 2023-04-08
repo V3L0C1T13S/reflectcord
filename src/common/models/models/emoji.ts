@@ -2,10 +2,9 @@ import {
   APIEmoji, APIPartialEmoji, APIReaction, APIUser,
 } from "discord.js";
 import { API } from "revolt.js";
-import { toSnowflake } from "@reflectcord/common/models";
 import { emojis } from "../../emojilib";
 import { QuarkConversion } from "../QuarkConversion";
-import { tryFromSnowflake, tryToSnowflake } from "../util";
+import { tryFromSnowflake, tryToSnowflake, toSnowflake } from "../util";
 import { User } from "./user";
 
 export type EmojiATQ = {};

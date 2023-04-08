@@ -404,12 +404,15 @@ export const Relationship: QuarkConversion<RelationshipStatus, UserRelationshipT
   },
 };
 
-export type GatewayFullUserPresence = Omit<GatewayPresenceUpdateDispatchData, "guild_id"> & {
+export type GatewayFullUserPresence = Omit<
+  GatewayPresenceUpdateDispatchData, "guild_id" | "user"
+> & {
   guild_id?: string;
   last_modified?: number;
   since?: number;
   afk?: boolean;
   user_id?: string;
+  user?: GatewayPresenceUpdateDispatchData["user"],
 };
 
 export interface RevoltPresenceData {
@@ -417,6 +420,7 @@ export interface RevoltPresenceData {
   discordUser?: APIUser,
   server?: string,
   guild_id?: string,
+  deduplicate?: boolean,
 }
 
 export async function createUserPresence(
@@ -435,10 +439,11 @@ export async function createUserPresence(
     },
     status: realStatus as any,
     last_modified: Date.now(),
-    // FIXME: Discord has inconsistent behaviour with the user object
-    user,
     user_id: user.id,
   };
+
+  if (data.deduplicate) presence.user_id = user.id;
+  else presence.user = user;
 
   if (status.status === "idle" && status.since && status.afk) {
     presence.since = status.since;

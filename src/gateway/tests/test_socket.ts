@@ -13,17 +13,23 @@
 import { BitField, GatewayDispatchEvents, GatewayOpcodes } from "discord.js";
 import { WebSocket } from "ws";
 import { TestingToken } from "@reflectcord/common/rvapi";
-import { ClientCapabilities, GatewayDispatchCodes } from "@reflectcord/common/sparkle";
+import {
+  ClientCapabilities, GatewayDispatchCodes, ReadyData, ReadySupplementalData,
+} from "@reflectcord/common/sparkle";
 import { isAGuild, isAGuildV2 } from "@reflectcord/common/utils/testUtils/validation";
 
-const gatewayDomain = "gateway.discord.gg";
-const socket = new WebSocket(`wss://${gatewayDomain}?v=9&encoding=json`);
+const USE_DISCORD = true;
+
+const gatewayDomain = USE_DISCORD ? "wss://gateway.discord.gg?v=9&encoding=json" : "ws://localhost:3002?v=9&encoding=json";
+const socket = new WebSocket(gatewayDomain);
 
 const discordClientCapabilities = 4093;
 const openCordCapabilities = 93;
 const discordMobileCapabilities = 351;
 const randomCapabilities = new BitField();
 randomCapabilities.add(ClientCapabilities.DeduplicateUserObjects);
+randomCapabilities.add(ClientCapabilities.PrioritizedReadyPayload);
+randomCapabilities.add(ClientCapabilities.ClientStateV2);
 
 const identifyPayload = {
   token: TestingToken,
@@ -74,20 +80,23 @@ socket.onmessage = (data) => {
 
           const {
             users, user_settings, presences, merged_presences, merged_members, user_settings_proto,
-          } = d.d!;
+          } = d.d! as ReadyData;
 
           if (identifyPayload.capabilities & ClientCapabilities.DeduplicateUserObjects) {
             if (!Array.isArray(users)) throw new Error(`bad payload! expected users to be an array but we got ${users}`);
             if (!Array.isArray(merged_members)) throw new Error(`merged_members should be an array but its ${merged_members}`);
-            if (!merged_presences) throw new Error(`expected merged_presences to be defined but we got ${merged_presences}`);
             if (presences) wasteful(`presences shouldn't be here but it was defined as ${presences}`);
 
-            if (!merged_members.every((x) => !!x.user_id)) {
+            if (!merged_members.every((x) => x.every((member) => !!member.user_id))) {
               throw new Error(`fatal payload inaccuracy! merged_member objects need a user_id! ${merged_members}`);
             }
-            if (!merged_members.every((x) => !("user" in x))) {
+            if (!merged_members.every((x) => !x.every((member) => ("user" in member)))) {
               wasteful(`merged_members should not have a full user object as this is solved by the user_id property instead! ${merged_members}`);
             }
+
+            if (identifyPayload.capabilities & ClientCapabilities.PrioritizedReadyPayload) {
+              if (merged_presences) wasteful(`merged_presences shouldn't be sent in READY if we support PrioritizedReadyPayload but it was defined as ${merged_presences}`);
+            } else if (!merged_presences) throw new Error(`expected merged_presences to be defined but we got ${merged_presences}`);
           } else {
             if (!Array.isArray(presences)) throw new Error(`bad payload! expected presences to be array but its defined as ${presences}`);
             if (users) wasteful(`users ${users} shouldn't be present but it is!`);
@@ -120,6 +129,11 @@ socket.onmessage = (data) => {
         }
         case GatewayDispatchCodes.ReadySupplemental: {
           console.log("Supplemental received");
+
+          const { merged_members, merged_presences } = d.d! as ReadySupplementalData;
+
+          if (!Array.isArray(merged_members)) throw new Error(`fatal payload inaccuracy! expected merged_members to be an array but we got ${merged_members}`);
+          if (!merged_presences) throw new Error(`fatal payload inaccuracy! expected merged_presences to be defined but we got ${merged_presences}`);
           break;
         }
         case GatewayDispatchCodes.UserSettingsUpdate: {
