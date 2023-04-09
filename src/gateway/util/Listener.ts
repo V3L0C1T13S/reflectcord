@@ -5,6 +5,7 @@ import {
   APIChannel,
   APIUser,
   ApplicationFlagsBitField,
+  ChannelType,
   GatewayCloseCodes,
   GatewayDispatchEvents,
   GatewayGuildCreateDispatchData,
@@ -56,6 +57,7 @@ import {
   createUserGatewayGuild,
   MergedMemberDTO,
   fromSnowflake,
+  GatewayPrivateChannelDTO,
 } from "@reflectcord/common/models";
 import { Logger, RabbitMQ, genAnalyticsToken } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
@@ -72,6 +74,7 @@ import {
   DefaultCapabilities,
   ReadySupplementalData,
   MergedPresences,
+  APIPrivateChannel,
 } from "@reflectcord/common/sparkle";
 import { reflectcordWsURL } from "@reflectcord/common/constants";
 import { VoiceState } from "@reflectcord/common/mongoose";
@@ -234,7 +237,7 @@ export async function startListener(
           trace.startTrace("get_private_channels");
           const private_channels = channels
             .filter((x) => x.revolt.channel_type === "DirectMessage" || x.revolt.channel_type === "Group" || x.revolt.channel_type === "SavedMessages")
-            .map((x) => x.discord);
+            .map((x) => x.discord) as APIPrivateChannel[];
           trace.stopTrace("get_private_channels");
 
           trace.startTrace("get_emojis");
@@ -468,7 +471,9 @@ export async function startListener(
               version: 642,
             } : user_settings?.user_guild_settings ?? [],
             experiments, // ily fosscord
-            private_channels,
+            private_channels: this.capabilities.DeduplicateUserObjects
+              ? private_channels.map((x) => new GatewayPrivateChannelDTO(x))
+              : private_channels,
             resume_gateway_url: reflectcordWsURL,
             session_id: this.session_id,
             sessions,
@@ -1168,16 +1173,36 @@ export async function startListener(
           break;
         }
         case "EmojiCreate": {
-          if (data.parent.type !== "Server") return;
-
-          const emoji = this.rvAPIWrapper.emojis.createObj({
+          this.rvAPIWrapper.emojis.createObj({
             revolt: data,
             discord: await Emoji.from_quark(data),
           });
 
+          if (data.parent.type !== "Server") return;
+
+          const emojis = this.rvAPIWrapper.emojis.getServerEmojis(data.parent.id);
+
           await Dispatch(this, GatewayDispatchEvents.GuildEmojisUpdate, {
             guild_id: await toSnowflake(data.parent.id),
-            emojis: [emoji.discord],
+            emojis: emojis.map((x) => x.discord),
+          });
+
+          break;
+        }
+        case "EmojiDelete": {
+          const emoji = this.rvAPIWrapper.emojis.get(data.id);
+
+          if (emoji?.revolt.parent.type !== "Server") return;
+
+          this.rvAPIWrapper.emojis.delete(data.id);
+
+          const guildId = emoji.discord.id;
+          const emojis = this.rvAPIWrapper.emojis
+            .getServerEmojis(emoji.revolt.parent.id);
+
+          await Dispatch(this, GatewayDispatchEvents.GuildEmojisUpdate, {
+            guild_id: guildId,
+            emojis: emojis.map((x) => x.discord),
           });
 
           break;

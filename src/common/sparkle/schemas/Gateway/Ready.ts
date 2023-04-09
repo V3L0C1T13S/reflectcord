@@ -8,6 +8,7 @@ import {
 import { UserRelationshipType } from "../../types";
 import { GatewayFullUserPresence } from "../../../models";
 import { MergedMember } from "./Members";
+import { GatewayPrivateChannel } from "./Channel";
 
 interface GatewayRelationshipData {
   id: string;
@@ -58,7 +59,7 @@ export interface ReadyData extends Omit<GatewayReadyDispatchData, "application">
   } | UserGuildSetting[],
   users?: APIUser[],
   experiments: number[][],
-  private_channels: APIChannel[],
+  private_channels: APIChannel[] | GatewayPrivateChannel[],
   sessions: GatewaySession[],
   friend_suggestion_count: number,
   guild_join_requests: unknown[],

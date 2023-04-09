@@ -11,6 +11,7 @@ import {
   APIOverwrite,
   APIPartialChannel,
   APIUser,
+  ChannelFlags,
   ChannelType as discordChannelType,
   OverwriteType,
   RESTPatchAPIChannelJSONBody,
@@ -23,7 +24,7 @@ import {
 } from "../util";
 import { User } from "./user";
 import { convertPermNumber } from "./permissions";
-import { APIChannelPatchBody } from "../../sparkle";
+import { APIChannelPatchBody, APIPrivateChannel, GatewayPrivateChannel } from "../../sparkle";
 
 function alphabetPosition(text: string) {
   return [...text].map((a) => parseInt(a, 36) - 10).filter((a) => a >= 0);
@@ -599,3 +600,32 @@ DataEditChannel, APIChannelPatchBody
     return body;
   },
 };
+
+export class GatewayPrivateChannelDTO implements GatewayPrivateChannel {
+  last_message_id?: string | null;
+  recipient_ids: string[];
+  is_spam?: boolean;
+  owner_id?: string;
+  icon?: string | null;
+  name?: string | null;
+  last_pin_timestamp?: string | null;
+  type: discordChannelType.DM | discordChannelType.GroupDM;
+  flags?: ChannelFlags;
+  id: string;
+
+  constructor(channel: APIPrivateChannel) {
+    if (!channel.recipients) throw new Error(`channel ${channel.id} has no recipients`);
+
+    this.recipient_ids = channel.recipients.map((x) => x.id);
+
+    if (channel.type === discordChannelType.DM) this.is_spam = false;
+    if ("owner_id" in channel) this.owner_id = channel.owner_id;
+    if ("icon" in channel) this.icon = channel.icon;
+    if ("last_message_id" in channel) this.last_message_id = channel.last_message_id;
+    if ("name" in channel) this.name = channel.name;
+    if ("last_pin_timestamp" in channel) this.last_pin_timestamp = channel.last_pin_timestamp;
+    this.type = channel.type;
+    if ("flags" in channel) this.flags = channel.flags;
+    this.id = channel.id;
+  }
+}

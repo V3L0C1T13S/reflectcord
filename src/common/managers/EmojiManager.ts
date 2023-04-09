@@ -34,4 +34,9 @@ export class EmojiManager extends BaseManager<string, EmojiContainer> {
       }),
     });
   }
+
+  getServerEmojis(server: string) {
+    return [...this.values()]
+      .filter((x) => x.revolt.parent.type === "Server" && x.revolt.parent.id === server);
+  }
 }

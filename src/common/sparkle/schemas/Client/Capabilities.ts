@@ -48,6 +48,10 @@ export const ClientCapabilities = {
    * merged_presences, merged_members, and users fields become present
    * in READY payload
    *
+   * private_channels will no longer be a standard APIPrivateChannel.
+   * It will instead be replaced with a GatewayPrivateChannel, which
+   * uses recipient_ids instead of full recipients.
+   *
    * NOTES:
    * Discord is very inconsistent with deduplicating user objects -
    * sometimes members will have a full user field, other times they'll

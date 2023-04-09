@@ -1,29 +1,65 @@
 import { NextFunction, Request, Response } from "express";
 import { getIpAddress } from "@reflectcord/common/utils";
 import { RateLimiterMemory } from "rate-limiter-flexible";
-import { API_PREFIX_TRAILING_SLASH } from "./Auth";
 
-const opts = {
-  points: 6, // 6 points
-  duration: 1, // Per second
-};
+type RatelimitRoute = {
+  limit: number,
+  path: string,
+}
 
-const rateLimiter = new RateLimiterMemory(opts);
+export const routes: RatelimitRoute[] = [
+  {
+    limit: 20,
+    path: "/users",
+  },
+  {
+    limit: 10,
+    path: "/bots",
+  },
+  {
+    limit: 15,
+    path: "/channels",
+  },
+  {
+    limit: 3,
+    path: "/auth",
+  },
+];
+
+export const limiters:{ route: RatelimitRoute, limiter: RateLimiterMemory }[] = routes
+  .map((x) => ({
+    limiter: new RateLimiterMemory({
+      points: x.limit,
+      duration: 10,
+    }),
+    route: x,
+  }));
 
 export function rateLimit() {
   return async (req: Request, res: Response, next: NextFunction) => {
-    const bucketId = req.originalUrl.replace(API_PREFIX_TRAILING_SLASH, "");
+    console.log(req.path);
+    const rateLimiter = limiters.find((x) => req.path.startsWith(x.route.path));
+    if (!rateLimiter) {
+      console.log(`no limiter for ${req.path}`);
+      return next();
+    }
     const executorId = getIpAddress(req);
 
-    const offender = executorId + bucketId;
+    const offender = executorId + rateLimiter.route.path;
+    const current = (await rateLimiter.limiter.get(offender));
 
-    rateLimiter.consume(offender, 2)
+    res.set("X-RateLimit-Limit", rateLimiter.route.limit.toString());
+    res.set("X-RateLimit-Remaining", current?.remainingPoints.toString() ?? "0");
+    res.set("X-RateLimit-Reset-After", rateLimiter.limiter.duration.toString());
+    res.set("X-RateLimit-Bucket", rateLimiter.route.path);
+
+    rateLimiter.limiter.consume(offender, 1)
       .then(() => {
         next();
       })
       .catch(() => {
         res.status(429)
-          .set("X-RateLimit-Limit", "6");
+          .send();
       });
   };
 }
