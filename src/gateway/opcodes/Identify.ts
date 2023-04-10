@@ -35,12 +35,27 @@ export async function onIdentify(this: WebSocket, data: Payload<IdentifySchema>)
   const identify = data.d!;
 
   let { token } = identify;
+  const { shard } = identify;
 
   if (token.startsWith("Bot ")) {
     token = token.slice("Bot ".length, token.length);
   }
 
   this.token = token;
+
+  if (shard) {
+    [this.shard_id, this.shard_count] = shard;
+
+    if (
+      this.shard_count == null
+      || this.shard_id == null
+      || this.shard_id > this.shard_count
+      || this.shard_id < 0
+      || this.shard_count <= 0
+    ) {
+      return this.close(GatewayCloseCodes.InvalidShard);
+    }
+  }
 
   await startListener.call(this, token, identify);
 

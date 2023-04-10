@@ -7,7 +7,7 @@ type RatelimitRoute = {
   path: string,
 }
 
-export const routes: RatelimitRoute[] = [
+const routes: RatelimitRoute[] = [
   {
     limit: 20,
     path: "/users",
@@ -26,7 +26,7 @@ export const routes: RatelimitRoute[] = [
   },
 ];
 
-export const limiters:{ route: RatelimitRoute, limiter: RateLimiterMemory }[] = routes
+const limiters:{ route: RatelimitRoute, limiter: RateLimiterMemory }[] = routes
   .map((x) => ({
     limiter: new RateLimiterMemory({
       points: x.limit,
@@ -49,7 +49,8 @@ export function rateLimit() {
     const current = (await rateLimiter.limiter.get(offender));
 
     res.set("X-RateLimit-Limit", rateLimiter.route.limit.toString());
-    res.set("X-RateLimit-Remaining", current?.remainingPoints.toString() ?? "0");
+    res.set("X-RateLimit-Remaining", current?.remainingPoints.toString() ?? rateLimiter.route.limit.toString());
+    res.set("X-RateLimit-Reset", rateLimiter.limiter.msDuration.toString());
     res.set("X-RateLimit-Reset-After", rateLimiter.limiter.duration.toString());
     res.set("X-RateLimit-Bucket", rateLimiter.route.path);
 
@@ -59,7 +60,12 @@ export function rateLimit() {
       })
       .catch(() => {
         res.status(429)
-          .send();
+          .set("X-RateLimit-Scope", "user")
+          .json({
+            message: "You are being rate limited.",
+            retry_after: rateLimiter.limiter.blockDuration,
+            global: false,
+          });
       });
   };
 }

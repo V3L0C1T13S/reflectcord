@@ -493,9 +493,11 @@ export async function startListener(
             // V6 & V7 garbo
             indicators_confirmed: [],
             _trace: [],
-            shard: [0, 1],
             auth_session_id_hash: "",
           };
+          if (this.shard_id && this.shard_count) {
+            readyData.shard = [this.shard_id, this.shard_count];
+          }
           trace.stopTrace("build_ready");
 
           trace.startTrace("clean_ready");
@@ -613,7 +615,7 @@ export async function startListener(
               last_message_id: data._id,
             },
             discord: {
-              last_message_id: await toSnowflake(data._id),
+              last_message_id: msgObj.discord.id,
             },
           });
 
