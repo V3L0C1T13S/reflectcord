@@ -5,7 +5,6 @@ import {
   APIChannel,
   APIUser,
   ApplicationFlagsBitField,
-  ChannelType,
   GatewayCloseCodes,
   GatewayDispatchEvents,
   GatewayGuildCreateDispatchData,
@@ -79,7 +78,7 @@ import {
 import { reflectcordWsURL } from "@reflectcord/common/constants";
 import { VoiceState } from "@reflectcord/common/mongoose";
 import { MemberContainer, emojiMap as reactionMap } from "@reflectcord/common/managers";
-import { emojis as emojiMap } from "@reflectcord/common/emojilib";
+import { emojis as emojiMap, isBuiltinEmoji } from "@reflectcord/common/emojilib";
 import { WebSocket } from "../Socket";
 import { Dispatch } from "./send";
 import experiments from "./experiments.json";
@@ -268,6 +267,7 @@ export async function startListener(
             revolt: currentUser,
             discord: currentUserDiscord,
           });
+          this.rvAPIWrapper.users.selfId = currentUser._id;
 
           trace.stopTrace("get_user_stage2");
 
@@ -671,11 +671,12 @@ export async function startListener(
             return;
           }
 
-          const isInEmojiMap = !!emojiMap[data.emoji_id];
-          const emoji = !isInEmojiMap ? await this.rvAPIWrapper.emojis.fetch(data.emoji_id) : null;
+          const emoji = await this.rvAPIWrapper.emojis.fetch(data.emoji_id);
           const channel = await this.rvAPIWrapper.channels.fetch(data.channel_id);
           const message = await this.rvAPIWrapper.messages.fetch(data.channel_id, data.id);
           const interactionEmbed = message.revolt.embeds?.last();
+
+          message.revolt.reactions?.[data.emoji_id]?.push(data.user_id);
 
           if (interactionEmbed?.type === "Text" && interactionEmbed.title === interactionTitle && interactionEmbed.description) {
             const revoltReactionNumber = reactionMap[data.emoji_id];
@@ -699,6 +700,10 @@ export async function startListener(
                   },
                   type: InteractionType.MessageComponent,
                   channel_id: channel.discord.id,
+                  channel: {
+                    id: channel.discord.id,
+                    type: channel.discord.type,
+                  },
                   token: message.discord.id,
                   version: 1,
                   message: message.discord,
@@ -721,8 +726,6 @@ export async function startListener(
             }
           }
 
-          if (!emoji) return;
-
           const body: GatewayMessageReactionAddDispatchData = {
             user_id: await toSnowflake(data.user_id),
             channel_id: message.discord.channel_id,
@@ -744,6 +747,9 @@ export async function startListener(
           }
 
           const emoji = await this.rvAPIWrapper.emojis.fetch(data.emoji_id);
+          const message = this.rvAPIWrapper.messages.get(data.id);
+
+          message?.revolt.reactions?.[data.emoji_id]?.remove(data.user_id);
 
           const body: GatewayMessageReactionRemoveDispatchData = {
             user_id: await toSnowflake(data.user_id),
@@ -765,6 +771,9 @@ export async function startListener(
             return;
           }
           const emoji = await this.rvAPIWrapper.emojis.fetch(data.emoji_id);
+          const message = this.rvAPIWrapper.messages.get(data.id);
+
+          delete message?.revolt.reactions?.[data.emoji_id];
 
           const body: GatewayMessageReactionRemoveEmojiDispatchData = {
             channel_id: await toSnowflake(data.channel_id),

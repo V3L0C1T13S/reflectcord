@@ -3,6 +3,8 @@ import { API } from "revolt.js";
 import { Emoji } from "@reflectcord/common/models";
 import { BaseManager } from "./BaseManager";
 import { QuarkContainer } from "./types";
+import { isBuiltinEmoji } from "../emojilib";
+import { systemUserID } from "../rvapi/users";
 
 export type EmojiContainer = QuarkContainer<API.Emoji, APIEmoji>;
 export type emojiI = QuarkContainer<Partial<API.Emoji>, Partial<APIEmoji>>;
@@ -25,7 +27,17 @@ export class EmojiManager extends BaseManager<string, EmojiContainer> {
   async fetch(id: string) {
     if (this.has(id)) return this.$get(id);
 
-    const res = await this.rvAPI.get(`/custom/emoji/${encodeURI(id) as ""}`);
+    const builtinEmoji = isBuiltinEmoji(id);
+    console.log(builtinEmoji);
+
+    const res: API.Emoji = !builtinEmoji
+      ? await this.rvAPI.get(`/custom/emoji/${encodeURI(id) as ""}`)
+      : {
+        _id: id,
+        creator_id: systemUserID,
+        name: id,
+        parent: { type: "Detached" },
+      };
 
     return this.createObj({
       revolt: res,

@@ -1,11 +1,10 @@
 /* eslint-disable camelcase */
 import { Resource } from "express-automatic-routes";
-import { Application } from "express";
 import { HTTPError, REACTION_EXTRACT_ID } from "@reflectcord/common/utils";
 import { fromSnowflake, tryFromSnowflake, User } from "@reflectcord/common/models";
 import { emojis as emojisMap } from "@reflectcord/common/emojilib";
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   delete: async (req, res) => {
     const { channel_id, message_id, emoji } = req.params;
 

@@ -115,7 +115,8 @@ export type MessageAFQ = Partial<{
   mentions: API.User[] | null | undefined,
   server: string | null,
   api_version: number,
-  replied_message: APIMessage | null
+  replied_message: APIMessage | null,
+  selfUserId: string | null,
 }>
 
 export const MessageReference: QuarkConversion<
@@ -278,7 +279,9 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
 
         return MessageType.Default;
       })(),
-      reactions: await Reactions.from_quark(reactions),
+      reactions: await Reactions.from_quark(reactions, {
+        selfId: extra?.selfUserId ?? null,
+      }),
     };
 
     const interactionEmbed = discordMessage.embeds?.last();

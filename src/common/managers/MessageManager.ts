@@ -91,6 +91,7 @@ export class MessageManager extends BaseManager<string, MessageContainer> {
       replied_message: repliedMessage?.discord ?? null,
       ...extra,
       user: extra?.user ?? authorInfo?.revolt,
+      selfUserId: this.apiWrapper.users.selfId ?? null,
     });
 
     this.createObj({
@@ -227,7 +228,7 @@ export class MessageManager extends BaseManager<string, MessageContainer> {
   }
 
   async bulkDelete(channel: string, ids: string[]) {
-    await this.rvAPI.delete(`/channels/${channel}/messages/bulk`, {
+    await this.rvAPI.delete(`/channels/${channel as ""}/messages/bulk`, {
       ids,
     });
   }
@@ -275,5 +276,6 @@ export class MessageManager extends BaseManager<string, MessageContainer> {
     applyDiscord("embeds");
     applyDiscord("mentions");
     applyDiscord("components");
+    applyDiscord("reactions");
   }
 }
