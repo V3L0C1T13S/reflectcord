@@ -57,6 +57,8 @@ export interface DiscordClientThemeSetting {
 
 export interface DiscordSettings {
   client_theme?: DiscordClientThemeSetting;
+  mobile_redesign_enabled?: boolean,
+  developer_mode?: boolean,
 }
 
 export interface TutorialSettings {
@@ -179,6 +181,10 @@ UserSettingsAFQ
     };
     const discord: DiscordSettings = {};
     if (settings.client_theme_settings) discord.client_theme = settings.client_theme_settings;
+    if (settings.mobile_redesign_enabled) {
+      discord.mobile_redesign_enabled = settings.mobile_redesign_enabled;
+    }
+    if ("developer_mode" in settings) discord.developer_mode = settings.developer_mode;
 
     const rvSettings: RevoltSettings = {
       text_and_images: [Date.now(), JSON.stringify(textAndImages)],
@@ -211,7 +217,7 @@ UserSettingsAFQ
       animate_emoji: textAndImages.animate_emoji ?? !!DefaultUserSettings.animate_emoji,
       theme: themeSettings["appearance:theme:base"] === "light" ? "light" : "dark",
       locale: LocaleMap[localeSettings["lang"]] ?? "en-US",
-      developer_mode: true,
+      developer_mode: customDiscord.developer_mode ?? !!DefaultUserSettings.developer_mode,
       status: extra?.status ?? null,
       guild_positions: orderingSettings?.servers
         ? await multipleToSnowflake(orderingSettings.servers)
@@ -253,6 +259,10 @@ UserSettingsAFQ
         color: null,
       });
     });
+
+    if (customDiscord.mobile_redesign_enabled) {
+      discordSettings.mobile_redesign_enabled = customDiscord.mobile_redesign_enabled;
+    }
 
     if (clientThemeSettings) discordSettings.client_theme_settings = clientThemeSettings;
 
@@ -362,7 +372,7 @@ export async function settingsToProtoBuf(settings: DiscordUserSettings, extra?: 
     },
     appearance: {
       theme: settings.theme === "light" ? 2 : 1,
-      developerMode: settings.developer_mode ?? true,
+      developerMode: settings.developer_mode,
       clientThemeSettings: settings.client_theme_settings ? {
         primaryColor: { value: settings.client_theme_settings.primary_color },
         backgroundGradientPresetId: {
@@ -372,7 +382,7 @@ export async function settingsToProtoBuf(settings: DiscordUserSettings, extra?: 
           value: settings.client_theme_settings.background_gradient_angle,
         },
       } : undefined,
-      mobileRedesignDisabled: true, // TODO
+      mobileRedesignDisabled: settings.mobile_redesign_enabled,
     },
     guildFolders: {
       folders: settings.guild_folders
@@ -398,7 +408,18 @@ export async function settingsToProtoBuf(settings: DiscordUserSettings, extra?: 
   return res;
 }
 
-export async function settingsProtoToJSON(settings: Uint8Array) {
+const parseGoogleProtobufBool = (
+  val: { value?: boolean },
+  fallback: boolean,
+) => (val ? !!val.value : fallback);
+
+/**
+ * Convert a settings protocol buffer into plain JSON
+ * @param settings The Uint8Array buffer for the settings
+ * @param current Current JSON settings. Needed for partial updates, otherwise resort to defaults.
+ * @returns Protobuf settings in their JSON equivalents.
+ */
+export async function settingsProtoToJSON(settings: Uint8Array, current?: DiscordUserSettings) {
   const root = await protobuf.load(settingsProtoFile);
 
   const PreloadedSettings = root.lookupType("PreloadedUserSettings");
@@ -407,31 +428,49 @@ export async function settingsProtoToJSON(settings: Uint8Array) {
 
   const protoSettings = PreloadedSettings.decode(settings).toJSON();
 
+  const fallbackSettings = current ?? DefaultUserSettings;
+
+  // TODO: rework this garbage since it doesn't work well with partials
   const jsonSettings: DiscordUserSettings = {
-    ...DefaultUserSettings,
+    ...fallbackSettings,
     animate_emoji: protoSettings.textAndImages?.animateEmoji?.value
-      ?? DefaultUserSettings.animate_emoji,
-    afk_timeout: protoSettings.voiceAndVideo?.afkTimeout?.value ?? DefaultUserSettings.afk_timeout,
-    developer_mode: protoSettings.appearance?.developerMode ?? DefaultUserSettings.developer_mode,
-    locale: protoSettings.localization?.locale?.localeCode?.value ?? DefaultUserSettings.locale,
+      ?? fallbackSettings.animate_emoji,
+    afk_timeout: protoSettings.voiceAndVideo?.afkTimeout?.value ?? fallbackSettings.afk_timeout,
+    // developer_mode: protoSettings.appearance?.developerMode ?? fallbackSettings.developer_mode,
+    locale: protoSettings.localization?.locale?.localeCode?.value ?? fallbackSettings.locale,
     timezone_offset: protoSettings.localization?.locale?.timezoneOffset?.value
-      ?? DefaultUserSettings.timezone_offset,
+      ?? fallbackSettings.timezone_offset,
     guild_positions: protoSettings.guildFolders?.guildPositions
-      ?? DefaultUserSettings.guild_positions,
+      ?? fallbackSettings.guild_positions,
     guild_folders: protoSettings.guildFolders?.folders?.map((x: any) => ({
       guild_ids: x.guildIds,
       id: x.id?.value,
       name: x.name?.value,
       color: x.color?.value?.toNumber(),
     })) ?? [],
-    status: protoSettings.status?.status?.value ?? DefaultUserSettings.status,
-    stream_notifications_enabled: protoSettings?.notifications?.notifyFriendsOnGoLive?.value
-      ?? DefaultUserSettings.stream_notifications_enabled,
-    render_embeds: protoSettings.textAndImages?.renderEmbeds?.value
-      ?? DefaultUserSettings.render_embeds,
-    gif_auto_play: protoSettings.textAndImages?.gifAutoPlay?.value
-      ?? DefaultUserSettings.gif_auto_play,
+    status: protoSettings.status?.status?.value ?? fallbackSettings.status,
+    stream_notifications_enabled: parseGoogleProtobufBool(
+      protoSettings?.notifications?.notifyFriendsOnGoLive,
+      !!fallbackSettings.stream_notifications_enabled,
+    ),
+    render_embeds: parseGoogleProtobufBool(
+      protoSettings.textAndImages?.renderEmbeds,
+      !!fallbackSettings.render_embeds,
+    ),
+    gif_auto_play: parseGoogleProtobufBool(
+      protoSettings.textAndImages?.gifAutoPlay,
+      !!fallbackSettings.gif_auto_play,
+    ),
+    show_current_game: parseGoogleProtobufBool(
+      protoSettings.status?.showCurrentGame,
+      !!fallbackSettings.show_current_game,
+    ),
   };
+
+  if (protoSettings.appearance) {
+    jsonSettings.developer_mode = !!protoSettings.appearance.developerMode;
+    jsonSettings.mobile_redesign_enabled = !!protoSettings.appearance.mobileRedesignEnabled;
+  }
 
   if (protoSettings.appearance?.theme) {
     jsonSettings.theme = protoSettings.appearance.theme === "LIGHT" ? "light" : "dark";

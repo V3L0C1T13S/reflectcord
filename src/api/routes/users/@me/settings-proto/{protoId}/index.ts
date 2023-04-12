@@ -36,7 +36,14 @@ export default () => <Resource> {
 
     const settingsData = Buffer.from(settings, "base64");
 
-    const settingsJSON = await settingsProtoToJSON(settingsData);
+    const currentSettings = await res.rvAPI.post("/sync/settings/fetch", {
+      keys: SettingsKeys,
+    });
+
+    const settingsJSON = await settingsProtoToJSON(
+      settingsData,
+      await UserSettings.from_quark(currentSettings),
+    );
     const user = await res.rvAPIWrapper.users.getSelf(true);
 
     switch (protoId) {

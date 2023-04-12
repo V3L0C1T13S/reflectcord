@@ -57,6 +57,7 @@ import {
   MergedMemberDTO,
   fromSnowflake,
   GatewayPrivateChannelDTO,
+  GatewayReactionPartialEmojiDTO,
 } from "@reflectcord/common/models";
 import { Logger, RabbitMQ, genAnalyticsToken } from "@reflectcord/common/utils";
 import { userStartTyping } from "@reflectcord/common/events";
@@ -730,11 +731,16 @@ export async function startListener(
             user_id: await toSnowflake(data.user_id),
             channel_id: message.discord.channel_id,
             message_id: message.discord.id,
-            emoji: await PartialEmoji.from_quark(emoji.revolt),
+            emoji: new GatewayReactionPartialEmojiDTO(emoji.discord),
           };
 
-          if (emoji.revolt.parent.type === "Server") {
-            body.guild_id = await toSnowflake(emoji.revolt.parent.id);
+          if ("server" in channel.revolt && "guild_id" in channel.discord) {
+            body.guild_id = channel.discord.guild_id;
+            const server = await this.rvAPIWrapper.servers.fetch(channel.revolt.server);
+            if (server.extra) {
+              body.member = (await server.extra.members
+                .fetch(server.revolt._id, data.user_id)).discord;
+            }
           }
 
           await Dispatch(this, GatewayDispatchEvents.MessageReactionAdd, body);
@@ -747,19 +753,20 @@ export async function startListener(
           }
 
           const emoji = await this.rvAPIWrapper.emojis.fetch(data.emoji_id);
+          const channel = await this.rvAPIWrapper.channels.fetch(data.channel_id);
           const message = this.rvAPIWrapper.messages.get(data.id);
 
           message?.revolt.reactions?.[data.emoji_id]?.remove(data.user_id);
 
           const body: GatewayMessageReactionRemoveDispatchData = {
             user_id: await toSnowflake(data.user_id),
-            channel_id: await toSnowflake(data.channel_id),
-            message_id: await toSnowflake(data.id),
-            emoji: await PartialEmoji.from_quark(emoji.revolt),
+            channel_id: channel.discord.id,
+            message_id: message?.discord.id ?? await toSnowflake(data.id),
+            emoji: new GatewayReactionPartialEmojiDTO(emoji.discord),
           };
 
-          if (emoji.revolt.parent.type === "Server") {
-            body.guild_id = await toSnowflake(emoji.revolt.parent.id);
+          if ("guild_id" in channel.discord) {
+            body.guild_id = channel.discord.guild_id;
           }
 
           await Dispatch(this, GatewayDispatchEvents.MessageReactionRemove, body);
@@ -771,18 +778,19 @@ export async function startListener(
             return;
           }
           const emoji = await this.rvAPIWrapper.emojis.fetch(data.emoji_id);
+          const channel = await this.rvAPIWrapper.channels.fetch(data.channel_id);
           const message = this.rvAPIWrapper.messages.get(data.id);
 
           delete message?.revolt.reactions?.[data.emoji_id];
 
           const body: GatewayMessageReactionRemoveEmojiDispatchData = {
-            channel_id: await toSnowflake(data.channel_id),
-            message_id: await toSnowflake(data.id),
-            emoji: await PartialEmoji.from_quark(emoji.revolt),
+            channel_id: channel.discord.id,
+            message_id: message?.discord.id ?? await toSnowflake(data.id),
+            emoji: new GatewayReactionPartialEmojiDTO(emoji.discord),
           };
 
-          if (emoji.revolt.parent.type === "Server") {
-            body.guild_id = await toSnowflake(emoji.revolt.parent.id);
+          if ("guild_id" in channel.discord) {
+            body.guild_id = channel.discord.guild_id;
           }
 
           await Dispatch(this, GatewayDispatchEvents.MessageReactionRemoveEmoji, body);

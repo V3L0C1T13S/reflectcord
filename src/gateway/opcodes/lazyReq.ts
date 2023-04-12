@@ -28,6 +28,7 @@ import {
   LazyRequest, GatewayDispatchCodes, LazyRange, SyncItem, LazyGroup, LazyOpMember, LazyItem,
 } from "@reflectcord/common/sparkle";
 import { MemberContainer } from "@reflectcord/common/managers";
+import { Logger } from "@reflectcord/common/utils";
 import { Payload, Dispatch } from "../util";
 import { WebSocket } from "../Socket";
 import { check } from "./instanceOf";
@@ -310,16 +311,20 @@ export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
     if (!channels) return;
   }
 
-  if (!channels) throw new Error("Must provide channel ranges");
+  if (activities !== undefined) subscribedServer.activities = activities;
+  if (typing !== undefined) subscribedServer.typing = typing;
+  if (threads !== undefined) subscribedServer.threads = threads;
+
+  if (!channels) {
+    Logger.warn("FIXME: weird op14 behavior by newer clients");
+    return;
+  }
 
   const channel_id = Object.keys(channels || {}).first();
   if (!channel_id) return;
 
   const rvChannelId = await fromSnowflake(channel_id);
 
-  if (activities !== undefined) subscribedServer.activities = activities;
-  if (typing !== undefined) subscribedServer.typing = typing;
-  if (threads !== undefined) subscribedServer.threads = threads;
   // eslint-disable-next-line no-multi-assign
   const lazyChannel = this.lazy_channels[rvChannelId] ??= {};
   lazyChannel.messages = true;

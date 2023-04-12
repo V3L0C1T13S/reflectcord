@@ -102,6 +102,7 @@ export interface UserSettings {
     }
   } | null;
   client_theme_settings?: DiscordClientThemeSetting;
+  mobile_redesign_enabled?: boolean,
 }
 
 export type APIUserSettingsPATCHResponse = UserSettings & {

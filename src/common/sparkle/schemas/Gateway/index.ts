@@ -9,3 +9,4 @@ export * from "./Members";
 export * from "./Ready";
 export * from "./Guild";
 export * from "./Channel";
+export * from "./Emoji";

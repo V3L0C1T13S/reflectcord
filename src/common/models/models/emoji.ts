@@ -6,6 +6,7 @@ import { emojis } from "../../emojilib";
 import { QuarkConversion } from "../QuarkConversion";
 import { tryFromSnowflake, tryToSnowflake, toSnowflake } from "../util";
 import { User } from "./user";
+import { ReactionPartialEmoji } from "../../sparkle";
 
 export type EmojiATQ = {};
 
@@ -156,3 +157,15 @@ export const Reactions: QuarkConversion<API.Message["reactions"]
     }));
   },
 };
+
+export class GatewayReactionPartialEmojiDTO implements ReactionPartialEmoji {
+  name: string | null;
+  id: string | null;
+  animated?: boolean;
+
+  constructor(emoji: ReactionPartialEmoji) {
+    this.name = emoji.name;
+    this.id = emoji.id;
+    if (emoji.animated) this.animated = emoji.animated;
+  }
+}
