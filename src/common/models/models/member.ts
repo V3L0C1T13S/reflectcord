@@ -60,7 +60,9 @@ export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, Memb
           username: member.nickname ?? "fixme",
           avatar: member.avatar ?? null,
         });
-    const discordAvatar = member.avatar ? await PartialFile.from_quark(member.avatar) : null;
+    const discordAvatar = member.avatar
+      ? await PartialFile.from_quark(member.avatar, { skipConversion: true })
+      : null;
 
     const discordMember: APIGuildMember = {
       // id: await toSnowflake(_id.user),

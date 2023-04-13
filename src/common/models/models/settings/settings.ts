@@ -47,6 +47,8 @@ export interface RevoltTextAndImagesSetting {
   animate_emoji?: boolean,
   gif_auto_play?: boolean,
   render_embeds?: boolean,
+  render_reactions?: boolean,
+  convert_emoticons?: boolean,
 }
 
 export interface DiscordClientThemeSetting {
@@ -59,6 +61,10 @@ export interface DiscordSettings {
   client_theme?: DiscordClientThemeSetting;
   mobile_redesign_enabled?: boolean,
   developer_mode?: boolean,
+  compact_mode?: boolean,
+  status?: {
+    show_current_game?: boolean,
+  }
 }
 
 export interface TutorialSettings {
@@ -178,13 +184,18 @@ UserSettingsAFQ
       animate_emoji: !!settings.animate_emoji,
       gif_auto_play: !!settings.gif_auto_play,
       render_embeds: !!settings.render_embeds,
+      render_reactions: !!settings.render_reactions,
+      convert_emoticons: !!settings.convert_emoticons,
     };
     const discord: DiscordSettings = {};
     if (settings.client_theme_settings) discord.client_theme = settings.client_theme_settings;
-    if (settings.mobile_redesign_enabled) {
+    if ("mobile_redesign_enabled" in settings) {
       discord.mobile_redesign_enabled = settings.mobile_redesign_enabled;
     }
     if ("developer_mode" in settings) discord.developer_mode = settings.developer_mode;
+    if ("message_display_compact" in settings) discord.compact_mode = settings.message_display_compact;
+    discord.status ??= {};
+    if ("show_current_game" in settings) discord.status.show_current_game = settings.show_current_game;
 
     const rvSettings: RevoltSettings = {
       text_and_images: [Date.now(), JSON.stringify(textAndImages)],
@@ -215,6 +226,7 @@ UserSettingsAFQ
     const discordSettings: DiscordUserSettings = {
       ...DefaultUserSettings,
       animate_emoji: textAndImages.animate_emoji ?? !!DefaultUserSettings.animate_emoji,
+      convert_emoticons: textAndImages.convert_emoticons ?? !!DefaultUserSettings.convert_emoticons,
       theme: themeSettings["appearance:theme:base"] === "light" ? "light" : "dark",
       locale: LocaleMap[localeSettings["lang"]] ?? "en-US",
       developer_mode: customDiscord.developer_mode ?? !!DefaultUserSettings.developer_mode,
@@ -249,6 +261,9 @@ UserSettingsAFQ
       user_content: userContentSettings ?? null,
       gif_auto_play: textAndImages.gif_auto_play ?? DefaultUserSettings.gif_auto_play!,
       render_embeds: textAndImages.render_embeds ?? DefaultUserSettings.render_embeds!,
+      render_reactions: textAndImages.render_reactions ?? !!DefaultUserSettings.render_reactions,
+      message_display_compact: customDiscord.compact_mode
+        ?? !!DefaultUserSettings.message_display_compact,
     };
 
     discordSettings.guild_positions?.forEach((x) => {
@@ -262,6 +277,9 @@ UserSettingsAFQ
 
     if (customDiscord.mobile_redesign_enabled) {
       discordSettings.mobile_redesign_enabled = customDiscord.mobile_redesign_enabled;
+    }
+    if (customDiscord.status) {
+      if ("show_current_game" in customDiscord.status) discordSettings.show_current_game = customDiscord.status.show_current_game;
     }
 
     if (clientThemeSettings) discordSettings.client_theme_settings = clientThemeSettings;
@@ -433,8 +451,10 @@ export async function settingsProtoToJSON(settings: Uint8Array, current?: Discor
   // TODO: rework this garbage since it doesn't work well with partials
   const jsonSettings: DiscordUserSettings = {
     ...fallbackSettings,
-    animate_emoji: protoSettings.textAndImages?.animateEmoji?.value
-      ?? fallbackSettings.animate_emoji,
+    animate_emoji: parseGoogleProtobufBool(
+      protoSettings.textAndImages?.animateEmoji,
+      !!fallbackSettings.animate_emoji,
+    ),
     afk_timeout: protoSettings.voiceAndVideo?.afkTimeout?.value ?? fallbackSettings.afk_timeout,
     // developer_mode: protoSettings.appearance?.developerMode ?? fallbackSettings.developer_mode,
     locale: protoSettings.localization?.locale?.localeCode?.value ?? fallbackSettings.locale,
@@ -457,6 +477,14 @@ export async function settingsProtoToJSON(settings: Uint8Array, current?: Discor
       protoSettings.textAndImages?.renderEmbeds,
       !!fallbackSettings.render_embeds,
     ),
+    render_reactions: parseGoogleProtobufBool(
+      protoSettings.textAndImages?.renderReactions,
+      !!fallbackSettings.render_reactions,
+    ),
+    convert_emoticons: parseGoogleProtobufBool(
+      protoSettings.textAndImages?.convertEmoticons,
+      !!fallbackSettings.convert_emoticons,
+    ),
     gif_auto_play: parseGoogleProtobufBool(
       protoSettings.textAndImages?.gifAutoPlay,
       !!fallbackSettings.gif_auto_play,
@@ -464,6 +492,10 @@ export async function settingsProtoToJSON(settings: Uint8Array, current?: Discor
     show_current_game: parseGoogleProtobufBool(
       protoSettings.status?.showCurrentGame,
       !!fallbackSettings.show_current_game,
+    ),
+    message_display_compact: parseGoogleProtobufBool(
+      protoSettings?.textAndImages?.messageDisplayCompact,
+      !!fallbackSettings.message_display_compact,
     ),
   };
 

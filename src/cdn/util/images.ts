@@ -137,7 +137,7 @@ export async function handleImgRequest(
   if (!id) return res.sendStatus(404);
 
   // Discord adds .png to the end, for some reason.
-  const realId = skipConversion ? id : await hashFromSnowflake(id.replace(/\.[^/.]+$/, ""));
+  const realId = skipConversion ? id.replace(/\.[^/.]+$/, "") : await hashFromSnowflake(id.replace(/\.[^/.]+$/, ""));
   if (!realId) return res.sendStatus(500);
 
   const avatarData = await downloadImage(type, realId);

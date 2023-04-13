@@ -53,12 +53,10 @@ export default (express: Application) => <Resource> {
       const mentions = x.mentions?.map((id) => msgs.users.find((u) => u._id === id)!)
         .filter((u) => !!u);
 
-      if (user) {
-        res.rvAPIWrapper.users.createObj({
-          revolt: user,
-          discord: await User.from_quark(user),
-        });
-      }
+      const userContainer = user ? res.rvAPIWrapper.users.createObj({
+        revolt: user,
+        discord: await User.from_quark(user),
+      }) : null;
 
       return (await res.rvAPIWrapper.messages.convertMessageObj(x, {
         mentions: false,

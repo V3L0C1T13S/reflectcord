@@ -110,7 +110,9 @@ export default (express: Application) => <Resource> {
 
     res.json({
       accent_color: null,
-      avatar: updatedSelf?.avatar ? await PartialFile.from_quark(updatedSelf.avatar) : null,
+      avatar: updatedSelf?.avatar
+        ? await PartialFile.from_quark(updatedSelf.avatar, { skipConversion: true })
+        : null,
       bio: fullUpdatedSelf?.content ?? null,
       banner: fullUpdatedSelf?.background
         ? await hashToSnowflake(fullUpdatedSelf.background._id) : null,

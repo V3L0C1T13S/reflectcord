@@ -15,6 +15,6 @@ export default () => <Resource> {
       const downloadedIcon = await axios.get(`cdn.discordapp.com/app-icons/${app_id}/${avatar_id}`, { responseType: "arraybuffer" });
 
       res.send(downloadedIcon.data);
-    } else handleImgRequest(req, res, "avatars", avatar_id);
+    } else handleImgRequest(req, res, "avatars", avatar_id, true);
   },
 };

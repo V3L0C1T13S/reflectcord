@@ -2,7 +2,7 @@ import {
   APIEmoji, APIPartialEmoji, APIReaction, APIUser,
 } from "discord.js";
 import { API } from "revolt.js";
-import { emojis } from "../../emojilib";
+import { emojis, isBuiltinEmoji } from "../../emojilib";
 import { QuarkConversion } from "../QuarkConversion";
 import { tryFromSnowflake, tryToSnowflake, toSnowflake } from "../util";
 import { User } from "./user";
@@ -21,7 +21,7 @@ export const PartialEmoji: QuarkConversion<API.Emoji, APIPartialEmoji> = {
 
     return {
       name: name ?? "fixme",
-      animated: animated ?? false,
+      animated: !!animated,
       _id: id ? await tryFromSnowflake(id) : "0",
       creator_id: "0",
       parent: {
@@ -33,7 +33,7 @@ export const PartialEmoji: QuarkConversion<API.Emoji, APIPartialEmoji> = {
   async from_quark(emoji) {
     const { name, _id, animated } = emoji;
 
-    const unicodeEmoji = emojis[_id]?.[0];
+    const unicodeEmoji = isBuiltinEmoji(_id);
 
     const id = unicodeEmoji ? null : await tryToSnowflake(_id);
     const emojiName = unicodeEmoji ? _id : name;
@@ -41,7 +41,7 @@ export const PartialEmoji: QuarkConversion<API.Emoji, APIPartialEmoji> = {
     return {
       name: emojiName,
       id,
-      animated: animated ?? false,
+      animated: !!animated,
       require_colons: !unicodeEmoji,
     };
   },
@@ -77,20 +77,16 @@ export const Emoji: QuarkConversion<API.Emoji, APIEmoji, EmojiATQ, EmojiAFQ> = {
   },
 };
 
-export interface discordGatewayGuildEmoji extends APIEmoji {
-  guildId: string | null;
-  allNamesString: string;
+export interface discordGatewayGuildEmoji extends Omit<APIEmoji, "managed"> {
+  managed: boolean,
 }
 
 export function createGatewayGuildEmoji(
   emoji: APIEmoji,
-  guildId?: string,
 ): discordGatewayGuildEmoji {
   return {
     ...emoji,
     managed: false,
-    allNamesString: `:${emoji.name}:`,
-    guildId: guildId ?? null,
   };
 }
 
@@ -105,9 +101,7 @@ API.Emoji, discordGatewayGuildEmoji, EmojiATQ, EmojiAFQ
   async from_quark(emoji, extra) {
     const discordEmoji = await Emoji.from_quark(emoji, extra);
 
-    const guildId = emoji.parent.type === "Server" ? await toSnowflake(emoji.parent.id) : undefined;
-
-    return createGatewayGuildEmoji(discordEmoji, guildId);
+    return createGatewayGuildEmoji(discordEmoji);
   },
 };
 

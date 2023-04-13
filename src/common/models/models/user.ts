@@ -121,7 +121,7 @@ export const User: QuarkConversion<RevoltUser, APIUser, UserATQ, UserAFQ> = {
       id: await toSnowflake(_id),
       accent_color: null,
       avatar: user.avatar
-        ? await PartialFile.from_quark(user.avatar)
+        ? await PartialFile.from_quark(user.avatar, { skipConversion: true })
         : null,
       avatar_decoration: null,
       bot: !!user.bot,

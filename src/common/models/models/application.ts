@@ -51,7 +51,9 @@ export const Application: QuarkConversion<Bot, APIApplication, ApplicationATQ, A
       verify_key: "fixme",
       flags: stubFlags.bitfield.toInt(),
       name: extra?.user?.username ?? "fixme",
-      icon: extra?.user?.avatar ? await PartialFile.from_quark(extra.user.avatar) : null,
+      icon: extra?.user?.avatar
+        ? await PartialFile.from_quark(extra.user.avatar, { skipConversion: true })
+        : null,
       bot_require_code_grant: false,
       summary: "",
       team: null,

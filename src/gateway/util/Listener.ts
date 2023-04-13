@@ -415,7 +415,20 @@ export async function startListener(
               deduplicate: this.capabilities.DeduplicateUserObjects,
             })));
           const mergedPresences: MergedPresences = {
-            guilds: [],
+            // FIXME: this code sucks absolute balls
+            guilds: await Promise.all(guilds.map((x) => {
+              const guildMembers = memberData
+                .filter(
+                  (member) => x.id === member.guild.id
+                  && member.member.revolt._id.user !== this.rv_user_id,
+                );
+
+              return Promise.all(guildMembers.map((member) => createUserPresence({
+                user: this.rvAPIWrapper.users.$get(member.member.revolt._id.user).revolt,
+                discordUser: member.member.discord.user!,
+                deduplicate: this.capabilities.DeduplicateUserObjects,
+              })));
+            })),
             friends: friendPresences,
           };
 

@@ -322,7 +322,7 @@ export async function createUserGatewayGuild(
     application_command_counts: {},
     data_mode: "full",
     emojis: emojis
-      ?.map((emoji) => createGatewayGuildEmoji(emoji, guild.id))
+      ?.map((emoji) => createGatewayGuildEmoji(emoji))
       ?? [],
     id: guild.id,
     lazy: true,

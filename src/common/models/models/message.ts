@@ -246,10 +246,6 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
         : [],
       pinned: false,
       type: (() => {
-        if (extra?.api_version && extra?.api_version < 7) {
-          return MessageType.Default;
-        }
-
         if (reply) {
           return MessageType.Reply;
         }
@@ -325,7 +321,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
 
     if (masquerade?.name) {
       discordMessage.webhook_id = discordMessage.author.id;
-      discordMessage.application_id = discordMessage.author.id;
+      // discordMessage.application_id = discordMessage.author.id;
       discordMessage.author = {
         ...discordMessage.author,
         discriminator: "0000",
