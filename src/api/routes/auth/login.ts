@@ -6,6 +6,7 @@ import { LoginSchema } from "@reflectcord/common/sparkle";
 import { APILoginResponse, DataLogin, ResponseLogin } from "@reflectcord/common/models";
 import { FieldErrors, HTTPError } from "@reflectcord/common/utils";
 import { isAxiosError } from "axios";
+import { RevoltSession } from "../../../common/mongoose/Session";
 
 export async function loginToRevolt(api: API.API, body: LoginSchema, name?: string) {
   const loginResponse = await api.post(
@@ -52,6 +53,15 @@ export default () => <Resource> {
           message: "Your account has been disabled. Ask your administrator for further assistance",
           code: "INVALID_LOGIN",
         },
+      });
+    }
+
+    if (loginResponse.result === "Success") {
+      await RevoltSession.create({
+        _id: loginResponse._id,
+        token: loginResponse.token,
+        user_id: loginResponse.user_id,
+        friendly_name: loginResponse.name,
       });
     }
 

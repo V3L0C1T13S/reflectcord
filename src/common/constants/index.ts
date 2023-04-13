@@ -59,6 +59,9 @@ export const TwitterAPIBearer = process.env["TWITTER_API_BEARER"] ?? null;
 export const discordBaseURL = process.env["DISCORD_BASE_URL"] ?? "https://discord.com";
 export const discordBaseAPIURL = `${discordBaseURL}/api/v9`;
 
+export const useHTTPS = !!process.env["USE_HTTPS"];
+export const urlScheme = useHTTPS ? "https" : "http";
+
 let revoltConfig: API.RevoltConfig;
 let autumnConfig: {
   tags: {

@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { reflectcordCDNURL } from "@reflectcord/common/constants";
+import { reflectcordCDNURL, urlScheme } from "@reflectcord/common/constants";
 import { APIAttachment } from "discord.js";
 import { API } from "revolt.js";
 import { QuarkConversion } from "../QuarkConversion";
@@ -41,7 +41,7 @@ export const Attachment: QuarkConversion<API.File, APIAttachment> = {
     const { _id, size, content_type } = attachment;
 
     const id = await hashToSnowflake(_id);
-    const url = `http://${reflectcordCDNURL}/attachments/${id}/${attachment.filename}`;
+    const url = `${urlScheme}://${reflectcordCDNURL}/attachments/${id}/${attachment.filename}`;
 
     const { width, height } = (() => {
       if (attachment.metadata.type === "Image" || attachment.metadata.type === "Video") {

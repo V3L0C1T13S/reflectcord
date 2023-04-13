@@ -2,7 +2,9 @@
 import { Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { PostSearchResponse } from "gifbox.js/src/types/Responses";
-import { gifBoxAPIUrl, gifBoxURL, reflectcordCDNURL } from "@reflectcord/common/constants";
+import {
+  gifBoxAPIUrl, gifBoxURL, reflectcordCDNURL, urlScheme,
+} from "@reflectcord/common/constants";
 import { GifboxClient } from "@reflectcord/common/rvapi";
 import { HTTPError } from "@reflectcord/common/utils";
 
@@ -10,7 +12,7 @@ export function convertGifsArray(gifs: PostSearchResponse, video = false) {
   return gifs.hits.map((x) => {
     const gbSrc = `${gifBoxAPIUrl}/file/posts/${x.file.fileName}`;
     const gbURL = `${gifBoxURL}/view/${x._id}-${x.slug}`;
-    const cdnPreview = video ? `http://${reflectcordCDNURL}/gifs/${x.file.fileName}` : gbSrc;
+    const cdnPreview = video ? `${urlScheme}://${reflectcordCDNURL}/gifs/${x.file.fileName}` : gbSrc;
 
     return {
       id: x._id,

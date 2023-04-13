@@ -19,6 +19,10 @@ export interface RevoltThemeSetting {
   "appearance:theme:base": "light" | "dark",
   "appearance:theme:font": string,
   "appearance:theme:monoFont": string,
+  "appearance:theme:overrides"?: {
+    accent?: string, // CSS accent color
+    background?: string, // CSS background color
+  },
 }
 
 export interface RevoltLocaleSetting {
@@ -295,7 +299,7 @@ UserSettingsAFQ
       });
     });
 
-    if (customDiscord.mobile_redesign_enabled) {
+    if ("mobile_redesign_enabled" in customDiscord) {
       discordSettings.mobile_redesign_enabled = customDiscord.mobile_redesign_enabled;
     }
     if (customDiscord.status) {

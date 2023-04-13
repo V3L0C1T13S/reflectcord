@@ -14,7 +14,7 @@ import {
 import { proxyFile } from "../../rvapi";
 import { QuarkConversion } from "../QuarkConversion";
 import {
-  AutumnURL, embedEnableSpecials, reflectcordCDNURL, TwitterAPIBearer,
+  AutumnURL, embedEnableSpecials, reflectcordCDNURL, TwitterAPIBearer, urlScheme,
 } from "../../constants";
 import { hashToSnowflake } from "../util";
 
@@ -65,7 +65,7 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
         discordEmbed.type = "rich";
 
         if (embed.media) {
-          const imgUrl = `http://${reflectcordCDNURL}/attachments/${await hashToSnowflake(embed.media._id)}`;
+          const imgUrl = `${urlScheme}://${reflectcordCDNURL}/attachments/${await hashToSnowflake(embed.media._id)}`;
           discordEmbed.image = {
             url: imgUrl,
             proxy_url: imgUrl,
@@ -115,7 +115,7 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
         const isAutumn = mediaInfo.url?.startsWith(AutumnURL);
 
         if (isAutumn) {
-          mediaInfo.proxy_url = `http://${reflectcordCDNURL}/attachments/${attachmentId ? await hashToSnowflake(attachmentId) : "fixme"}`;
+          mediaInfo.proxy_url = `${urlScheme}://${reflectcordCDNURL}/attachments/${attachmentId ? await hashToSnowflake(attachmentId) : "fixme"}`;
         }
 
         discordEmbed.video = mediaInfo;

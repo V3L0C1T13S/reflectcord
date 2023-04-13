@@ -1,6 +1,8 @@
 import { Application } from "express";
 import { Resource } from "express-automatic-routes";
-import { gifBoxAPIUrl, gifBoxURL, reflectcordCDNURL } from "@reflectcord/common/constants";
+import {
+  gifBoxAPIUrl, gifBoxURL, reflectcordCDNURL, urlScheme,
+} from "@reflectcord/common/constants";
 import { GifboxClient } from "@reflectcord/common/rvapi";
 
 export default (express: Application) => <Resource> {
@@ -12,7 +14,7 @@ export default (express: Application) => <Resource> {
     res.json(popularGifs.map((x) => {
       const gbSrc = `${gifBoxAPIUrl}/file/posts/${x.file.fileName}`;
       const gbURL = `${gifBoxURL}/view/${x._id}-${x.slug}`;
-      const cdnPreview = `http://${reflectcordCDNURL}/gifs/${x.file.fileName}`;
+      const cdnPreview = `${urlScheme}://${reflectcordCDNURL}/gifs/${x.file.fileName}`;
 
       return {
         id: x._id,

@@ -21,6 +21,7 @@ import { GatewayCloseCodes } from "discord.js";
 import { Logger } from "@reflectcord/common/utils";
 import { IdentifySchema } from "@reflectcord/common/sparkle";
 import { revoltApiURL } from "@reflectcord/common/constants";
+import { RevoltSession } from "@reflectcord/common/mongoose";
 import { startListener } from "../util/Listener";
 import { Payload } from "../util";
 import { WebSocket } from "../Socket";
@@ -59,12 +60,21 @@ export async function onIdentify(this: WebSocket, data: Payload<IdentifySchema>)
 
   await startListener.call(this, token, identify);
 
+  this.trace.startTrace("get_session");
+  const existingSession = await RevoltSession.findOne({ token });
+  this.trace.stopTrace("get_session");
+
   const revoltTrace = this.trace.createTrace(new URL(revoltApiURL).host);
   revoltTrace.createCall("bonfire_authenticate").start();
-  await this.rvClient.loginBot(token).catch(() => {
-    Logger.error("Revolt failed authentication");
-    return this.close(GatewayCloseCodes.AuthenticationFailed);
-  });
+  if (existingSession) {
+    await this.rvClient.useExistingSession(existingSession)
+      .catch(() => this.close(GatewayCloseCodes.AuthenticationFailed));
+  } else {
+    await this.rvClient.loginBot(token).catch(() => {
+      Logger.error("Revolt failed authentication");
+      return this.close(GatewayCloseCodes.AuthenticationFailed);
+    });
+  }
   revoltTrace.stopCall("bonfire_authenticate");
 
   // HACK!

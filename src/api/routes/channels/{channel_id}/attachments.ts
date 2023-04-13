@@ -1,4 +1,4 @@
-import { reflectcordCDNURL } from "@reflectcord/common/constants";
+import { reflectcordCDNURL, urlScheme } from "@reflectcord/common/constants";
 import { Resource } from "express-automatic-routes";
 import { ulid } from "ulid";
 import { UploadedFile } from "@reflectcord/common/mongoose";
@@ -22,7 +22,7 @@ export default () => <Resource> {
         return {
           id: Number(x.id),
           upload_filename: `${uploadId}/${x.filename}`,
-          upload_url: `http://${reflectcordCDNURL}/attachments?upload_id=${uploadId}`,
+          upload_url: `${urlScheme}://${reflectcordCDNURL}/attachments?upload_id=${uploadId}`,
         };
       })),
     });
