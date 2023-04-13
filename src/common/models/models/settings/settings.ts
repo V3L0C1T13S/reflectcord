@@ -51,6 +51,11 @@ export interface RevoltTextAndImagesSetting {
   convert_emoticons?: boolean,
 }
 
+export interface RevoltInboxSetting {
+  current_tab?: number,
+  viewed_tutorial?: boolean,
+}
+
 export interface DiscordClientThemeSetting {
   primary_color?: string,
   background_gradient_preset_id?: string,
@@ -83,6 +88,7 @@ export interface RevoltSettings {
   user_content?: RevoltSetting,
   text_and_images?: RevoltSetting,
   tutorial?: RevoltSetting,
+  inbox_settings?: RevoltSetting,
 }
 
 export const SettingsKeys = [
@@ -96,6 +102,7 @@ export const SettingsKeys = [
   "text_and_images",
   "discord",
   "tutorial",
+  "inbox_settings",
 ];
 
 const LocaleMap: Record<string, string> = {
@@ -197,8 +204,15 @@ UserSettingsAFQ
     discord.status ??= {};
     if ("show_current_game" in settings) discord.status.show_current_game = settings.show_current_game;
 
+    const inboxSettings: RevoltInboxSetting = {};
+    if (settings.inbox_settings) {
+      if ("viewed_tutorial" in settings.inbox_settings) inboxSettings.viewed_tutorial = settings.inbox_settings.viewed_tutorial;
+      if ("current_tab" in settings.inbox_settings) inboxSettings.current_tab = settings.inbox_settings.current_tab;
+    }
+
     const rvSettings: RevoltSettings = {
       text_and_images: [Date.now(), JSON.stringify(textAndImages)],
+      inbox_settings: [Date.now(), JSON.stringify(inboxSettings)],
     };
 
     if (locale) rvSettings.locale = [Date.now(), JSON.stringify(locale)];
@@ -219,6 +233,7 @@ UserSettingsAFQ
     const folderSettings: Partial<RevoltFolderSetting> = JSON.parse(settings.folders?.[1] ?? "{}");
     const userContentSettings: Partial<DiscordUserSettings["user_content"]> = JSON.parse(settings.user_content?.[1] ?? "{}");
     const textAndImages: RevoltTextAndImagesSetting = JSON.parse(settings.text_and_images?.[1] ?? "{}");
+    const inboxSettings: RevoltInboxSetting = JSON.parse(settings.inbox_settings?.[1] ?? "{}");
     const customDiscord: DiscordSettings = JSON.parse(settings.discord?.[1] ?? "{}");
 
     const clientThemeSettings = customDiscord.client_theme;
@@ -264,6 +279,11 @@ UserSettingsAFQ
       render_reactions: textAndImages.render_reactions ?? !!DefaultUserSettings.render_reactions,
       message_display_compact: customDiscord.compact_mode
         ?? !!DefaultUserSettings.message_display_compact,
+      inbox_settings: {
+        current_tab: inboxSettings.current_tab ?? DefaultUserSettings.inbox_settings?.current_tab!,
+        viewed_tutorial: inboxSettings.viewed_tutorial
+              ?? DefaultUserSettings.inbox_settings?.viewed_tutorial!,
+      },
     };
 
     discordSettings.guild_positions?.forEach((x) => {
@@ -292,6 +312,20 @@ export type extraSettingsData = Partial<{
   customStatusText: string | null | undefined,
 }>;
 
+/**
+ * This is a workaround for the protobuf parser
+ * thinking that we want enums as their string value
+ *
+ * Spoiler alert: we want the exact opposite
+*/
+const inboxTabs: Record<string, number> = {
+  UNSPECIFIED: 0,
+  MENTIONS: 1,
+  UNREADS: 2,
+  TODOS: 3,
+  FOR_YOU: 4,
+};
+
 export async function settingsToProtoBuf(settings: DiscordUserSettings, extra?: extraSettingsData) {
   const root = await protobuf.load(settingsProtoFile);
 
@@ -304,8 +338,8 @@ export async function settingsToProtoBuf(settings: DiscordUserSettings, extra?: 
       data_version: 1 | 0,
     },
     inbox: {
-      currentTab: 0,
-      viewedTutorial: true,
+      currentTab: settings.inbox_settings?.current_tab ?? 0,
+      viewedTutorial: !!settings.inbox_settings?.viewed_tutorial,
     },
     guilds: {
       channels: [],
@@ -502,6 +536,15 @@ export async function settingsProtoToJSON(settings: Uint8Array, current?: Discor
   if (protoSettings.appearance) {
     jsonSettings.developer_mode = !!protoSettings.appearance.developerMode;
     jsonSettings.mobile_redesign_enabled = !!protoSettings.appearance.mobileRedesignEnabled;
+  }
+
+  if (protoSettings.inbox) {
+    jsonSettings.inbox_settings = {
+      current_tab: inboxTabs[protoSettings.inbox.currentTab
+        ?? fallbackSettings.inbox_settings?.current_tab] ?? 0,
+      viewed_tutorial: protoSettings.inbox.viewedTutorial
+        ?? fallbackSettings.inbox_settings?.viewed_tutorial,
+    };
   }
 
   if (protoSettings.appearance?.theme) {

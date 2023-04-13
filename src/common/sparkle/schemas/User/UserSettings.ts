@@ -40,6 +40,11 @@ export interface GuildFolder {
   name: string | null;
 }
 
+export interface InboxSettings {
+  current_tab?: number,
+  viewed_tutorial?: boolean,
+}
+
 export interface UserSettings {
   afk_timeout?: number;
   allow_accessibility_detection?: boolean;
@@ -103,6 +108,7 @@ export interface UserSettings {
   } | null;
   client_theme_settings?: DiscordClientThemeSetting;
   mobile_redesign_enabled?: boolean,
+  inbox_settings?: InboxSettings,
 }
 
 export type APIUserSettingsPATCHResponse = UserSettings & {
@@ -149,4 +155,8 @@ export const DefaultUserSettings: UserSettings = {
   timezone_offset: 0,
   view_nsfw_guilds: true,
   user_guild_settings: [],
+  inbox_settings: {
+    current_tab: 0,
+    viewed_tutorial: false,
+  },
 };
