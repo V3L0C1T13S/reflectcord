@@ -67,7 +67,7 @@ export async function onIdentify(this: WebSocket, data: Payload<IdentifySchema>)
   const revoltTrace = this.trace.createTrace(new URL(revoltApiURL).host);
   revoltTrace.createCall("bonfire_authenticate").start();
   if (existingSession) {
-    await this.rvClient.useExistingSession(existingSession)
+    await this.rvClient.useExistingSession(existingSession.toJSON())
       .catch(() => this.close(GatewayCloseCodes.AuthenticationFailed));
   } else {
     await this.rvClient.loginBot(token).catch(() => {
