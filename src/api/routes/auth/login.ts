@@ -6,12 +6,15 @@ import { LoginSchema } from "@reflectcord/common/sparkle";
 import { APILoginResponse, DataLogin, ResponseLogin } from "@reflectcord/common/models";
 import { FieldErrors, HTTPError } from "@reflectcord/common/utils";
 import { isAxiosError } from "axios";
-import { RevoltSession } from "../../../common/mongoose/Session";
+import DeviceDetector from "device-detector-js";
+import { RevoltSession } from "@reflectcord/common/mongoose";
 
 export async function loginToRevolt(api: API.API, body: LoginSchema, name?: string) {
   const loginResponse = await api.post(
     "/auth/session/login",
-    await DataLogin.to_quark(body, {}),
+    await DataLogin.to_quark(body, {
+      friendly_name: name,
+    }),
   );
 
   return loginResponse;
@@ -19,7 +22,9 @@ export async function loginToRevolt(api: API.API, body: LoginSchema, name?: stri
 
 export default () => <Resource> {
   post: async (req: Request<{}, {}, LoginSchema>, res: Response<APILoginResponse>) => {
-    const loginResponse = await loginToRevolt(res.rvAPI, req.body, `${req.headers["user-agent"] ?? "Unknown client"} via Reflectcord`).catch((err) => {
+    const detector = new DeviceDetector();
+    const device = detector.parse(req.headers["user-agent"] ?? "");
+    const loginResponse = await loginToRevolt(res.rvAPI, req.body, `${device.client?.name} on ${device.os?.name}`).catch((err) => {
       if (isAxiosError(err)) {
         if (!err.response) throw new HTTPError("A bad error response was returned.", 500);
         switch (err.response.data.type) {
@@ -61,7 +66,8 @@ export default () => <Resource> {
         _id: loginResponse._id,
         token: loginResponse.token,
         user_id: loginResponse.user_id,
-        friendly_name: loginResponse.name,
+        name: loginResponse.name,
+        result: loginResponse.result,
       });
     }
 

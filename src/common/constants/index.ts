@@ -62,6 +62,8 @@ export const discordBaseAPIURL = `${discordBaseURL}/api/v9`;
 export const useHTTPS = !!process.env["USE_HTTPS"];
 export const urlScheme = useHTTPS ? "https" : "http";
 
+export const revoltWsFormat: "json" | "msgpack" = process.env["WS_FORMAT"] as "json" ?? "msgpack";
+
 let revoltConfig: API.RevoltConfig;
 let autumnConfig: {
   tags: {

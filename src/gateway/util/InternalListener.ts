@@ -54,6 +54,16 @@ async function internalConsumer(this: WebSocket, opts: eventOpts) {
 
         break;
       }
+      case "INTERNAL_START_TYPING": {
+        if (data.token !== this.token) return;
+
+        await this.rvClient.websocket.send({
+          type: "BeginTyping",
+          channel: data.channel,
+        });
+
+        return;
+      }
       default: {
         break;
       }

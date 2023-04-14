@@ -66,7 +66,10 @@ export async function onIdentify(this: WebSocket, data: Payload<IdentifySchema>)
 
   const revoltTrace = this.trace.createTrace(new URL(revoltApiURL).host);
   revoltTrace.createCall("bonfire_authenticate").start();
+  // We can take a shortcut straight into user mode if we know
+  // that the session exists.
   if (existingSession) {
+    this.rvSession = existingSession;
     await this.rvClient.useExistingSession(existingSession.toJSON())
       .catch(() => this.close(GatewayCloseCodes.AuthenticationFailed));
   } else {

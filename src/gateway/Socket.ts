@@ -25,6 +25,7 @@ import WS from "ws";
 import { Deflate, Inflate } from "fast-zlib";
 import { MemberList } from "@reflectcord/common/utils/discord/MemberList";
 import { CapabilitiesObject } from "@reflectcord/common/sparkle";
+import { RevoltSession, RevoltSessionSchema } from "@reflectcord/common/mongoose";
 import { Tracer } from "@reflectcord/common/debug";
 import { APIWrapper } from "@reflectcord/common/rvapi";
 import { Payload } from "./util";
@@ -103,4 +104,5 @@ export interface WebSocket extends WS {
   token: string;
   capabilities: CapabilitiesObject;
   trace: Tracer;
+  rvSession?: any;
 }

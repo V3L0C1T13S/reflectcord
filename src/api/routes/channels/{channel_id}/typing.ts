@@ -3,6 +3,7 @@ import { Resource } from "express-automatic-routes";
 import { HTTPError, RabbitMQ } from "@reflectcord/common/utils";
 import { fromSnowflake } from "@reflectcord/common/models";
 import { userStartTyping } from "@reflectcord/common/events";
+import { emitEvent } from "@reflectcord/common/Events";
 
 export default () => <Resource> {
   post: async (req, res) => {
@@ -11,10 +12,14 @@ export default () => <Resource> {
 
     const rvId = await fromSnowflake(channel_id);
 
-    RabbitMQ.channel?.sendToQueue(userStartTyping, Buffer.from(JSON.stringify({
-      token: req.token,
-      channel: rvId,
-    })));
+    await emitEvent({
+      channel_id: rvId,
+      event: "INTERNAL_START_TYPING",
+      data: {
+        token: req.token,
+        channel: rvId,
+      },
+    });
 
     res.sendStatus(204);
   },

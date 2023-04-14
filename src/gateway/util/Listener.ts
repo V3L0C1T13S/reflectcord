@@ -60,7 +60,6 @@ import {
   GatewayReactionPartialEmojiDTO,
 } from "@reflectcord/common/models";
 import { Logger, RabbitMQ, genAnalyticsToken } from "@reflectcord/common/utils";
-import { userStartTyping } from "@reflectcord/common/events";
 import {
   GatewayUserChannelUpdateOptional,
   IdentifySchema,
@@ -178,21 +177,6 @@ export async function startListener(
           this.rv_user_id = currentUser._id;
 
           this.is_deprecated = isDeprecatedClient.call(this);
-
-          this.typingConsumer = await RabbitMQ.channel?.consume(userStartTyping, (msg) => {
-            if (!msg) return;
-
-            const { channel, token: userToken } = JSON.parse(msg.content.toString());
-
-            if (userToken === token) {
-              this.rvClient.websocket.send({
-                type: "BeginTyping",
-                channel,
-              });
-
-              Logger.log(`started typing in ${channel}`);
-            }
-          }, { noAck: true });
 
           trace.stopTrace("reflectcord_init");
 

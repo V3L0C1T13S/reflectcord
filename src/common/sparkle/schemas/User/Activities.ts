@@ -65,6 +65,7 @@ export const ActivitySchema = {
         $artist_ids: [String],
       },
       $session_id: String,
+      $buttons: [Object],
     },
   ],
   $since: Number,

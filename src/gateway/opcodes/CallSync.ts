@@ -2,7 +2,7 @@
 /* eslint-disable camelcase */
 import { fromSnowflake } from "@reflectcord/common/models";
 import { Logger } from "@reflectcord/common/utils";
-import { ChannelType, GatewayDispatchEvents } from "discord.js";
+import { ChannelType } from "discord.js";
 import { VoiceState } from "@reflectcord/common/mongoose";
 import { GatewayDispatchCodes } from "@reflectcord/common/sparkle";
 import { Dispatch } from "../util";
