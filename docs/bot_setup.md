@@ -25,3 +25,8 @@ const discordClient = new Client({
 	...
 });
 ```
+
+## Troubleshooting
+
+### Setting your token correctly
+One of the most common issues that you may encounter is your API wrapper not properly supporting scopes. These are optional on regular Discord, so some API wrappers may not automatically use them. To force your API wrapper to use scoped tokens, simply prepend "Bot " to your token.
