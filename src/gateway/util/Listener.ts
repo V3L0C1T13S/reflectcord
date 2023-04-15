@@ -945,11 +945,14 @@ export async function startListener(
             member: member ? member.discord : null,
           });
 
-          const userGuild = await createUserGatewayGuild(guild.discord, {
-            channels,
+          const userGuild = {
+            ...await createUserGatewayGuild(guild.discord, {
+              channels,
+              members: member ? [member.discord] : [],
+              member: member ? member.discord : null,
+            }),
             members: member ? [member.discord] : [],
-            member: member ? member.discord : null,
-          });
+          };
 
           const botGuild = {
             ...commonGuild,
@@ -1149,31 +1152,30 @@ export async function startListener(
 
             if (data.id !== this.rv_user_id) {
               await Dispatch(this, GatewayDispatchEvents.PresenceUpdate, updated);
-            } else {
-              // TODO: what is this mysterious "all" session for?
-              await Dispatch(this, GatewayDispatchCodes.SessionsReplace, [{
-                active: true,
-                activities: updated.activities,
-                client_info: {
-                  client: "unknown",
-                  os: "unknown",
-                  version: 0,
-                },
-                session_id: "all",
-                status: updated.status,
-              }, {
-                activities: updated.activities,
-                client_info: {
-                  client: identifyClient(identifyPayload.properties?.browser ?? "Discord Client"),
-                  os: identifyPayload?.properties?.os ?? "linux",
-                  version: 0,
-                },
-                session_id: this.session_id,
-                status: updated.status,
-              }]);
-            }
 
-            return;
+              return;
+            }
+            // TODO: what is this mysterious "all" session for?
+            await Dispatch(this, GatewayDispatchCodes.SessionsReplace, [{
+              active: true,
+              activities: updated.activities,
+              client_info: {
+                client: "unknown",
+                os: "unknown",
+                version: 0,
+              },
+              session_id: "all",
+              status: updated.status,
+            }, {
+              activities: updated.activities,
+              client_info: {
+                client: identifyClient(identifyPayload.properties?.browser ?? "Discord Client"),
+                os: identifyPayload?.properties?.os ?? "linux",
+                version: 0,
+              },
+              session_id: this.session_id,
+              status: updated.status,
+            }]);
           }
 
           await Dispatch(this, GatewayDispatchEvents.UserUpdate, user.discord);

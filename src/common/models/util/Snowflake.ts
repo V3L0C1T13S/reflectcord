@@ -66,7 +66,7 @@ export async function tryToSnowflake(id: string) {
   }
 }
 
-export async function tryFromSnowflake(id: string) {
+export async function tryFromSnowflake(id: string | number) {
   try {
     const res = await fromSnowflake(id);
     return res;
@@ -74,6 +74,14 @@ export async function tryFromSnowflake(id: string) {
     return id;
   }
 }
+
+export const multipleTryToSnowflake = (ids: string[]) => Promise.all(
+  ids.map((id) => tryToSnowflake(id)),
+);
+
+export const multipleTryFromSnowflake = (ids: string[] | number[]) => Promise.all(
+  ids.map((id) => tryFromSnowflake(id)),
+);
 
 export async function hashToSnowflake(id: string) {
   const sfData = await hashes.findOneAndUpdate({

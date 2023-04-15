@@ -1,12 +1,18 @@
 /* eslint-disable no-nested-ternary */
 /* eslint-disable no-bitwise */
-import { DefaultUserSettings, GuildFolder, UserSettings as DiscordUserSettings } from "@reflectcord/common/sparkle";
+import {
+  DefaultUserSettings, UserSettings as DiscordUserSettings,
+} from "@reflectcord/common/sparkle";
 import protobuf from "protobufjs";
 import { join } from "path";
 import { invert } from "lodash";
 import { QuarkConversion } from "../../QuarkConversion";
 import {
-  fromSnowflake, multipleFromSnowflake, multipleToSnowflake, toSnowflake,
+  multipleFromSnowflake,
+  multipleToSnowflake,
+  multipleTryFromSnowflake,
+  multipleTryToSnowflake,
+  toSnowflake,
 } from "../../util";
 
 const protoDir = join(__dirname, "../../../../../resources");
@@ -35,6 +41,7 @@ export interface RevoltOrderingSetting {
 
 export interface RevoltNotificationSetting {
   server: Record<string, string>;
+  channel: Record<string, string>;
 }
 
 // Custom - set by Reflectcord
@@ -53,6 +60,9 @@ export interface RevoltTextAndImagesSetting {
   render_embeds?: boolean,
   render_reactions?: boolean,
   convert_emoticons?: boolean,
+  inline_attachment_media?: boolean,
+  inline_embed_media?: boolean,
+  emoji_picker_collapsed_sections?: string[],
 }
 
 export interface RevoltInboxSetting {
@@ -81,6 +91,17 @@ export interface TutorialSettings {
   confirmed?: string[],
 }
 
+export interface RevoltFavorite {
+  nickname: string,
+  position: number,
+  // parent_id: string,
+}
+
+export interface RevoltFavoriteSettings {
+  favorite_channels: Record<string, RevoltFavorite>;
+  muted?: boolean,
+}
+
 export interface RevoltSettings {
   discord?: RevoltSetting;
   appearance?: RevoltSetting,
@@ -93,6 +114,7 @@ export interface RevoltSettings {
   text_and_images?: RevoltSetting,
   tutorial?: RevoltSetting,
   inbox_settings?: RevoltSetting,
+  favorites?: RevoltSetting,
 }
 
 export const SettingsKeys = [
@@ -107,6 +129,7 @@ export const SettingsKeys = [
   "discord",
   "tutorial",
   "inbox_settings",
+  // "favorites",
 ];
 
 const LocaleMap: Record<string, string> = {
@@ -197,6 +220,12 @@ UserSettingsAFQ
       render_embeds: !!settings.render_embeds,
       render_reactions: !!settings.render_reactions,
       convert_emoticons: !!settings.convert_emoticons,
+      inline_attachment_media: !!settings.inline_attachment_media,
+      inline_embed_media: !!settings.inline_embed_media,
+      emoji_picker_collapsed_sections: settings.emoji_picker_collapsed_sections
+        ? (await multipleTryFromSnowflake(settings.emoji_picker_collapsed_sections))
+          .map((x) => x.toString())
+        : [],
     };
     const discord: DiscordSettings = {};
     if (settings.client_theme_settings) discord.client_theme = settings.client_theme_settings;
@@ -214,6 +243,24 @@ UserSettingsAFQ
       if ("current_tab" in settings.inbox_settings) inboxSettings.current_tab = settings.inbox_settings.current_tab;
     }
 
+    /**
+    const convertedFavorites: Record<string, RevoltFavorite> = {};
+    let favorites: RevoltFavoriteSettings | null = null;
+    if (settings.favorites) {
+      await Promise.all(Object.entries(settings.favorites.favorite_channels)
+        .map(async ([id, favorite]) => {
+          convertedFavorites[id] = {
+            nickname: favorite?.nickname,
+            position: favorite?.position,
+          };
+        }));
+      favorites = {
+        favorite_channels: convertedFavorites,
+        muted: !!settings.favorites.muted,
+      };
+    }
+    */
+
     const rvSettings: RevoltSettings = {
       text_and_images: [Date.now(), JSON.stringify(textAndImages)],
       inbox_settings: [Date.now(), JSON.stringify(inboxSettings)],
@@ -221,10 +268,11 @@ UserSettingsAFQ
 
     if (locale) rvSettings.locale = [Date.now(), JSON.stringify(locale)];
     if (theme) rvSettings.theme = [Date.now(), JSON.stringify(theme)];
-    // if (ordering) rvSettings.ordering = [Date.now(), JSON.stringify(ordering)];
+    if (ordering) rvSettings.ordering = [Date.now(), JSON.stringify(ordering)];
     if (folders) rvSettings.folders = [Date.now(), JSON.stringify(folders)];
     if (userContent) rvSettings.user_content = [Date.now(), JSON.stringify(userContent)];
     if (discord) rvSettings.discord = [Date.now(), JSON.stringify(discord)];
+    // if (favorites) rvSettings.favorites = [Date.now(), JSON.stringify(favorites)];
 
     return rvSettings;
   },
@@ -239,6 +287,7 @@ UserSettingsAFQ
     const textAndImages: RevoltTextAndImagesSetting = JSON.parse(settings.text_and_images?.[1] ?? "{}");
     const inboxSettings: RevoltInboxSetting = JSON.parse(settings.inbox_settings?.[1] ?? "{}");
     const customDiscord: DiscordSettings = JSON.parse(settings.discord?.[1] ?? "{}");
+    // const favorites: RevoltFavoriteSettings = JSON.parse(settings.favorites?.[1] ?? "{}");
 
     const clientThemeSettings = customDiscord.client_theme;
 
@@ -260,7 +309,7 @@ UserSettingsAFQ
           guild_ids: await multipleToSnowflake(x.servers),
           color: x.color,
         }))) : [],
-      user_guild_settings: notificationSettings.server
+      user_guild_settings: [...(notificationSettings.server
         ? await Promise.all((Object.entries(notificationSettings.server)
           .map(async ([server, value]) => ({
             channel_overrides: [],
@@ -269,18 +318,45 @@ UserSettingsAFQ
             guild_id: await toSnowflake(server),
             hide_muted_channels: false,
             message_notifications: 0,
-            mobile_push: false,
+            mobile_push: true,
             mute_config: null,
             mute_scheduled_events: true,
             notify_highlights: 0,
             suppress_everyone: false,
             suppress_roles: false,
             version: 0,
-          })))) : [],
+          })))) : []), {
+        channel_overrides: notificationSettings.channel
+          ? await Promise.all(Object.entries(notificationSettings.channel)
+            .filter(([_, value]) => typeof value === "string") // some settings objects? WTF??
+            .map(async ([channel, value]) => ({
+              channel_id: await toSnowflake(channel),
+              collapsed: false,
+              message_notifications: 3,
+              mute_config: null,
+              muted: value === "muted",
+            }))) : [],
+        flags: 0,
+        guild_id: null,
+        hide_muted_channels: false,
+        message_notifications: 0,
+        mobile_push: true,
+        mute_config: null,
+        mute_scheduled_events: false,
+        muted: false,
+        notify_highlights: 0,
+        suppress_everyone: false,
+        suppress_roles: false,
+        version: 0,
+      }],
       user_content: userContentSettings ?? null,
       gif_auto_play: textAndImages.gif_auto_play ?? DefaultUserSettings.gif_auto_play!,
       render_embeds: textAndImages.render_embeds ?? DefaultUserSettings.render_embeds!,
       render_reactions: textAndImages.render_reactions ?? !!DefaultUserSettings.render_reactions,
+      inline_attachment_media: textAndImages.inline_attachment_media
+        ?? !!DefaultUserSettings.inline_attachment_media,
+      inline_embed_media: textAndImages.inline_embed_media
+        ?? !!DefaultUserSettings.inline_embed_media,
       message_display_compact: customDiscord.compact_mode
         ?? !!DefaultUserSettings.message_display_compact,
       inbox_settings: {
@@ -288,6 +364,9 @@ UserSettingsAFQ
         viewed_tutorial: inboxSettings.viewed_tutorial
               ?? DefaultUserSettings.inbox_settings?.viewed_tutorial!,
       },
+      emoji_picker_collapsed_sections: textAndImages.emoji_picker_collapsed_sections
+        ? await multipleTryToSnowflake(textAndImages.emoji_picker_collapsed_sections)
+        : [],
     };
 
     discordSettings.guild_positions?.forEach((x) => {
@@ -298,6 +377,26 @@ UserSettingsAFQ
         color: null,
       });
     });
+
+    /**
+    if (favorites) {
+      const convertedFavorites: Record<string, FavoriteChannel> = {};
+      if (favorites.favorite_channels) {
+        await Promise.all(Object.entries(favorites.favorite_channels)
+          .map(async ([id, favorite]) => {
+            convertedFavorites[id] = {
+              nickname: favorite.nickname,
+              position: favorite?.position,
+              type: FavoriteChannelType.ReferenceOriginal,
+            };
+          }));
+      }
+      discordSettings.favorites = {
+        favorite_channels: convertedFavorites,
+        muted: !!favorites.muted,
+      };
+    }
+    */
 
     if ("mobile_redesign_enabled" in customDiscord) {
       discordSettings.mobile_redesign_enabled = customDiscord.mobile_redesign_enabled;
@@ -337,7 +436,7 @@ export async function settingsToProtoBuf(settings: DiscordUserSettings, extra?: 
 
   const payload: any = {
     versions: {
-      user_settings: 1 | 0,
+      client_version: 1 | 0,
       server_version: 1 | 0,
       data_version: 1 | 0,
     },
@@ -402,6 +501,7 @@ export async function settingsToProtoBuf(settings: DiscordUserSettings, extra?: 
       viewNsfwCommands: {
         value: true,
       },
+      emojiPickerCollapsedSections: settings.emoji_picker_collapsed_sections ?? [],
     },
     notifications: {
       notifyFriendsOnGoLive: {
@@ -438,7 +538,7 @@ export async function settingsToProtoBuf(settings: DiscordUserSettings, extra?: 
           value: settings.client_theme_settings.background_gradient_angle,
         },
       } : undefined,
-      mobileRedesignDisabled: settings.mobile_redesign_enabled,
+      mobileRedesignDisabled: !!settings.mobile_redesign_enabled,
     },
     guildFolders: {
       folders: settings.guild_folders
@@ -451,6 +551,10 @@ export async function settingsToProtoBuf(settings: DiscordUserSettings, extra?: 
         })) ?? [],
       guildPositions: settings.guild_positions,
     },
+    favorites: settings.favorites ? {
+      favoriteChannels: settings.favorites.favorite_channels,
+      muted: !!settings.favorites?.muted,
+    } : undefined,
   };
 
   if (extra?.customStatusText) {
@@ -494,7 +598,6 @@ export async function settingsProtoToJSON(settings: Uint8Array, current?: Discor
       !!fallbackSettings.animate_emoji,
     ),
     afk_timeout: protoSettings.voiceAndVideo?.afkTimeout?.value ?? fallbackSettings.afk_timeout,
-    // developer_mode: protoSettings.appearance?.developerMode ?? fallbackSettings.developer_mode,
     locale: protoSettings.localization?.locale?.localeCode?.value ?? fallbackSettings.locale,
     timezone_offset: protoSettings.localization?.locale?.timezoneOffset?.value
       ?? fallbackSettings.timezone_offset,
@@ -535,6 +638,16 @@ export async function settingsProtoToJSON(settings: Uint8Array, current?: Discor
       protoSettings?.textAndImages?.messageDisplayCompact,
       !!fallbackSettings.message_display_compact,
     ),
+    inline_attachment_media: parseGoogleProtobufBool(
+      protoSettings.textAndImages?.inlineAttachmentMedia,
+      !!fallbackSettings.inline_attachment_media,
+    ),
+    inline_embed_media: parseGoogleProtobufBool(
+      protoSettings.textAndImages?.inlineEmbedMedia,
+      !!fallbackSettings.inline_embed_media,
+    ),
+    emoji_picker_collapsed_sections: protoSettings.textAndImages?.emojiPickerCollapsedSections
+      ?? [],
   };
 
   if (protoSettings.appearance) {
@@ -550,6 +663,15 @@ export async function settingsProtoToJSON(settings: Uint8Array, current?: Discor
         ?? fallbackSettings.inbox_settings?.viewed_tutorial,
     };
   }
+
+  /**
+  if (protoSettings.favorites) {
+    jsonSettings.favorites = {
+      favorite_channels: protoSettings.favorites.favoriteChannels,
+      muted: !!protoSettings.favorites.muted,
+    };
+  }
+  */
 
   if (protoSettings.appearance?.theme) {
     jsonSettings.theme = protoSettings.appearance.theme === "LIGHT" ? "light" : "dark";

@@ -38,18 +38,10 @@ message AllGuildSettings {
     map<fixed64, GuildSettings> guilds = 1;
 }
 
-message LastDismissedOutboundPromotionStartDate {
-    string value = 1;
-}
-
-message PremiumTier0ModalDismissedAt {
-    uint32 timestamp = 1;
-}
-
 message UserContentSettings {
     bytes dismissed_contents = 1;
-    LastDismissedOutboundPromotionStartDate last_dismissed_outbound_promotion_start_date = 2;
-    PremiumTier0ModalDismissedAt premium_tier_0_modal_dismissed_at = 3;
+    optional google.protobuf.StringValue last_dismissed_outbound_promotion_start_date = 2;
+    optional google.protobuf.Timestamp premium_tier_0_modal_dismissed_at = 3;
 }
 
 message VideoFilterBackgroundBlur {

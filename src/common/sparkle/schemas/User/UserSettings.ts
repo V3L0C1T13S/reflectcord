@@ -8,7 +8,7 @@ export interface UserGuildChannelOverride {
     // ISO 8086 timestamp at which the channel will unmute on its own
     end_time: string;
     selected_time_window: null;
-  };
+  } | null;
   muted: boolean;
 }
 
@@ -45,7 +45,26 @@ export interface InboxSettings {
   viewed_tutorial?: boolean,
 }
 
+export enum FavoriteChannelType {
+  Unset = 0,
+  ReferenceOriginal = 1,
+  Category = 2,
+}
+
+export interface FavoriteChannel {
+  nickname: string,
+  type: FavoriteChannelType,
+  position: number,
+  parent_id?: string,
+}
+
+export interface FavoriteSettings {
+  favorite_channels: Record<string, FavoriteChannel>,
+  muted?: boolean,
+}
+
 export interface UserSettings {
+  emoji_picker_collapsed_sections?: string[];
   afk_timeout?: number;
   allow_accessibility_detection?: boolean;
   animate_emoji?: boolean;
@@ -109,6 +128,7 @@ export interface UserSettings {
   client_theme_settings?: DiscordClientThemeSetting;
   mobile_redesign_enabled?: boolean,
   inbox_settings?: InboxSettings,
+  favorites?: FavoriteSettings,
 }
 
 export type APIUserSettingsPATCHResponse = UserSettings & {
