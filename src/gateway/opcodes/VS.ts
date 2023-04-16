@@ -97,7 +97,7 @@ export async function VSUpdate(this: WebSocket, data: Payload<VoiceStateUpdate>)
     await emitEvent({
       event: GatewayDispatchEvents.VoiceStateUpdate,
       data: { ...stateData.toObject(), channel_id: null },
-      guild_id: (await tryFromSnowflake(stateData.guild_id!)).toString(), // TODO: Types
+      guild_id: (await tryFromSnowflake(stateData.guild_id!))?.toString(), // TODO: Types
     });
     // Tell DM/group chats we're leaving
   } else if (stateData.channel_id && !channel_id && stateData.session_id === this.session_id) {
@@ -143,8 +143,8 @@ export async function VSUpdate(this: WebSocket, data: Payload<VoiceStateUpdate>)
     await emitEvent({
       event: GatewayDispatchEvents.VoiceStateUpdate,
       data: stateData.toObject(),
-      guild_id: (await tryFromSnowflake(stateData.guild_id!)).toString(), // TODO: Types
-      channel_id: (await tryFromSnowflake(stateData.channel_id!)).toString(), // TODO: Types
+      guild_id: (await tryFromSnowflake(stateData.guild_id!))?.toString(), // TODO: Types
+      channel_id: (await tryFromSnowflake(stateData.channel_id!))?.toString(), // TODO: Types
     });
   } else {
     await emitEvent({

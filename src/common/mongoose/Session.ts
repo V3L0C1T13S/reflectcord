@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { ResponseLogin } from "revolt-api";
 
 /**
  * A Revolt session stored in memory
@@ -11,4 +12,4 @@ export const RevoltSessionSchema = new mongoose.Schema({
   result: { type: String, required: false },
 });
 
-export const RevoltSession = mongoose.model("RevoltSession", RevoltSessionSchema);
+export const RevoltSession = mongoose.model<ResponseLogin & {result: "Success"}>("RevoltSession", RevoltSessionSchema);

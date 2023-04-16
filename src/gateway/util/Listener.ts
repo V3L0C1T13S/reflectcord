@@ -131,7 +131,17 @@ export async function startListener(
         case "Auth": {
           switch (data.event_type) {
             case "DeleteAllSessions": {
-              this.close(GatewayCloseCodes.SessionTimedOut);
+              if (this.rvSession?._id !== data.exclude_session_id) {
+                this.close(GatewayCloseCodes.SessionTimedOut);
+              }
+
+              break;
+            }
+            case "DeleteSession": {
+              if (this.rvSession?._id === data.session_id) {
+                this.close(GatewayCloseCodes.SessionTimedOut);
+              }
+
               break;
             }
             default:
