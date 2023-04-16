@@ -31,6 +31,7 @@ export const revoltDiscoveryURL = process.env["REVOLT_DISCOVERY_URL"] ?? "https:
 export const rabbitMqURL = process.env["RABBITMQ_URL"] ?? "amqp://localhost:5672";
 
 export const reflectcordCDNURL = process.env["REFLECTCORD_CDN_URL"] ?? "localhost:3001";
+export const reflectcordCDNHost = process.env["REFLECTCORD_CDN_HOST"] ?? "localhost";
 
 export const reflectcordWsURL = process.env["REFLECTCORD_WS_URL"] ?? "ws://localhost:3002";
 
@@ -46,7 +47,7 @@ export const gifBoxAPIUrl = process.env["GIFBOX_API_URL"] ?? "https://api.gifbox
 
 export const reflectcordAPIPort = process.env["API_PORT"] ? Number(process.env["API_PORT"]) : 3000;
 
-export const reflectcordCDNPort = process.env["CDN_PORT"] ?? 3001;
+export const reflectcordCDNPort = Number(process.env["CDN_PORT"] ?? "3001");
 
 export const reflectcordWSPort = process.env["WS_PORT"] ?? 3002;
 

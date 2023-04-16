@@ -2,7 +2,7 @@ import { join } from "path";
 import {
   existsSync, mkdirSync, readFileSync, writeFileSync,
 } from "fs";
-import { Request, Response } from "express";
+import { FastifyRequest as Request, FastifyReply as Response } from "fastify";
 import FormData from "form-data";
 import axios, { isAxiosError } from "axios";
 import fileType from "file-type";
@@ -127,25 +127,49 @@ export async function handleFile(path: ImageType, body?: string) {
   }
 }
 
+export type ImageQuery = Request<
+  {
+    Querystring: {
+      format?: string, upload_id?: string
+    },
+    Params: {
+      app_id?: string,
+      avatar_id?: string,
+      banner_id?: string,
+      icon_id?: string,
+      id?: string,
+      file_name?: string,
+      user_id?: string,
+      imageId?: string,
+      splashId?: string,
+      gifId?: string,
+      guildId?: string,
+      iconId?: string,
+      avatarId?: string,
+      background_id?: string,
+    },
+  }
+>;
+
 export async function handleImgRequest(
-  req: Request,
+  req: ImageQuery,
   res: Response,
   type: ImageType,
   id?: string,
   skipConversion?: boolean,
 ) {
-  if (!id) return res.sendStatus(404);
+  if (!id) return res.status(404).send();
 
   // Discord adds .png to the end, for some reason.
   const realId = skipConversion ? id.replace(/\.[^/.]+$/, "") : await hashFromSnowflake(id.replace(/\.[^/.]+$/, ""));
-  if (!realId) return res.sendStatus(500);
+  if (!realId) return res.status(500).send();
 
   const avatarData = await downloadImage(type, realId);
-  if (!avatarData) return res.sendStatus(404);
+  if (!avatarData) return res.status(404).send();
 
   const mimeType = await getMimeType(avatarData);
 
-  if (req.query.format === "jpeg") {
+  if (req.query?.format === "jpeg") {
     if (mimeType === "video/mp4") {
       const thumbnailDir = join(imageCacheDir, "thumbnails", type);
       const thumbnailFile = join(thumbnailDir, realId, "tn.png");
@@ -154,8 +178,8 @@ export async function handleImgRequest(
       if (existsSync(thumbnailFile)) {
         const tbData = readFileSync(thumbnailFile);
 
-        res.set("Content-Type", await getMimeType(tbData));
-        res.set("Cache-Control", "public, max-age=31536000");
+        res.header("Content-Type", await getMimeType(tbData));
+        res.header("Cache-Control", "public, max-age=31536000");
 
         return res.send(tbData);
       }
@@ -167,16 +191,16 @@ export async function handleImgRequest(
         }, join(thumbnailDir, realId)).on("end", async (data) => {
           const tbData = readFileSync(thumbnailFile);
 
-          res.set("Content-Type", await getMimeType(tbData));
-          res.set("Cache-Control", "public, max-age=31536000");
+          res.header("Content-Type", await getMimeType(tbData));
+          res.header("Cache-Control", "public, max-age=31536000");
 
           return res.send(tbData);
         });
     }
   }
 
-  res.set("Content-Type", mimeType);
-  res.set("Cache-Control", "public, max-age=31536000");
+  res.header("Content-Type", mimeType);
+  res.header("Cache-Control", "public, max-age=31536000");
 
   return res.send(avatarData);
 }

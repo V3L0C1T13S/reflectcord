@@ -73,7 +73,7 @@ export default () => <Resource> {
         let patchedCategory: API.Category | null = null;
         // FIXME: Should we throw an error here if not server or just passthrough?
         if (parent_id && ("server" in rvChannel && rvChannel.server)) {
-          rvCategory = await tryFromSnowflake(parent_id.toString());
+          rvCategory = (await tryFromSnowflake(parent_id)).toString();
 
           const rvServer = await res.rvAPI.get(`/servers/${rvId as ""}`);
           const categoryToPatch = rvServer.categories?.find((x) => x.id === rvCategory);

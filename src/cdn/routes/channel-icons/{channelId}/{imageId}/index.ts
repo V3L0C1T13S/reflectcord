@@ -1,8 +1,10 @@
-import { Resource } from "express-automatic-routes";
-import { handleImgRequest } from "../../../../util";
+import { Resource } from "fastify-autoroutes";
+import { ImageQuery, handleImgRequest } from "../../../../util";
 
 export default () => <Resource> {
-  get: async (req, res) => {
-    await handleImgRequest(req, res, "icons", req.params.imageId);
+  get: {
+    handler: async (req: ImageQuery, res) => {
+      await handleImgRequest(req, res, "icons", req.params.imageId);
+    },
   },
 };

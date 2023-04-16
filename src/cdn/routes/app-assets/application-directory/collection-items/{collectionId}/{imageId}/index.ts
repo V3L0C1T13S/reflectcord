@@ -1,6 +1,8 @@
-import { handleImgRequest } from "cdn/util";
-import { Resource } from "express-automatic-routes";
+import { ImageQuery, handleImgRequest } from "cdn/util";
+import { Resource } from "fastify-autoroutes";
 
 export default () => <Resource> {
-  get: (req, res) => handleImgRequest(req, res, "backgrounds", req.params.imageId),
+  get: {
+    handler: (req: ImageQuery, res) => handleImgRequest(req, res, "backgrounds", req.params.imageId),
+  },
 };

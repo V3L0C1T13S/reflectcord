@@ -1,9 +1,11 @@
-import { Request, Response } from "express";
-import { Resource } from "express-automatic-routes";
-import { handleImgRequest } from "../../../util";
+import { FastifyRequest, FastifyReply } from "fastify";
+import { Resource } from "fastify-autoroutes";
+import { ImageQuery, handleImgRequest } from "../../../util";
 
-export const handleAttachmentRequest = (req: Request, res: Response) => handleImgRequest(req, res, "attachments", req.params.id);
+export const handleAttachmentRequest = (req: ImageQuery, res: FastifyReply) => handleImgRequest(req, res, "attachments", req.params.id);
 
 export default () => <Resource> {
-  get: handleAttachmentRequest,
+  get: {
+    handler: handleAttachmentRequest,
+  },
 };

@@ -1,8 +1,7 @@
 /* eslint-disable camelcase */
-import { Application } from "express";
-import { Resource } from "express-automatic-routes";
-import { handleImgRequest } from "../../../../../../util";
+import { Resource } from "fastify-autoroutes";
+import { ImageQuery, handleImgRequest } from "../../../../../../util";
 
-export default (express: Application) => <Resource> {
-  get: (req, res) => handleImgRequest(req, res, "banners", req.params.background_id),
+export default () => <Resource> {
+  get: { handler: (req: ImageQuery, res) => handleImgRequest(req, res, "banners", req.params.background_id) },
 };

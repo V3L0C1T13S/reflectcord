@@ -16,3 +16,4 @@ export * from "./UnimplementedError";
 export * from "./types";
 export * from "./date";
 export * from "./revolt";
+export * from "./vserver-fastify";

@@ -22,7 +22,7 @@ export default () => <Resource> {
         return {
           id: Number(x.id),
           upload_filename: `${uploadId}/${x.filename}`,
-          upload_url: `${urlScheme}://${reflectcordCDNURL}/attachments?upload_id=${uploadId}`,
+          upload_url: `${urlScheme}://${reflectcordCDNURL}/upload?upload_id=${uploadId}`,
         };
       })),
     });

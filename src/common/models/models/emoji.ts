@@ -22,7 +22,7 @@ export const PartialEmoji: QuarkConversion<API.Emoji, APIPartialEmoji> = {
     return {
       name: name ?? "fixme",
       animated: !!animated,
-      _id: id ? await tryFromSnowflake(id) : "0",
+      _id: id ? (await tryFromSnowflake(id)).toString() : "0",
       creator_id: "0",
       parent: {
         type: "Detached",

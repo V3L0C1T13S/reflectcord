@@ -1,18 +1,22 @@
 import { Application } from "express";
-import { Resource } from "express-automatic-routes";
+import { Resource } from "fastify-autoroutes";
 import { fromSnowflake, tryFromSnowflake } from "@reflectcord/common/models";
 import { HTTPError } from "@reflectcord/common/utils";
-import { handleImgRequest } from "../../../util";
+import { ImageQuery, handleImgRequest } from "../../../util";
 
 export default (express: Application) => <Resource> {
-  post: (req, res) => {
-    res.sendStatus(500);
+  post: {
+    handler: (req, res) => {
+      res.status(500).send();
+    },
   },
-  get: async (req, res) => {
-    if (!req.params.id) throw new HTTPError("Invalid ID");
-    const replacedId = req.params.id.replace(/\.[^/.]+$/, "");
-    const emojiId = await fromSnowflake(replacedId);
+  get: {
+    handler: async (req: ImageQuery, res) => {
+      if (!req.params.id) throw new HTTPError("Invalid ID");
+      const replacedId = req.params.id.replace(/\.[^/.]+$/, "");
+      const emojiId = await fromSnowflake(replacedId);
 
-    await handleImgRequest(req, res, "emojis", emojiId, true);
+      await handleImgRequest(req, res, "emojis", emojiId, true);
+    },
   },
 };

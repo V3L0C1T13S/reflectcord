@@ -1,6 +1,6 @@
-import { Resource } from "express-automatic-routes";
+import { Resource } from "fastify-autoroutes";
 import { handleAttachmentRequest } from "../index";
 
 export default () => <Resource> {
-  get: handleAttachmentRequest,
+  get: { handler: handleAttachmentRequest },
 };

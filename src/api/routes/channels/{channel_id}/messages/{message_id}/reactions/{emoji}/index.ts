@@ -14,7 +14,7 @@ export default () => <Resource> {
     const messageId = await fromSnowflake(message_id);
     const emojiId = emojisMap[emoji] ? emoji : await tryFromSnowflake(emoji.replaceAll(REACTION_EXTRACT_ID, ""));
 
-    await res.rvAPI.delete(`/channels/${channelId}/messages/${messageId}/reactions/${encodeURI(emojiId)}`);
+    await res.rvAPI.delete(`/channels/${channelId}/messages/${messageId}/reactions/${encodeURIComponent(emojiId)}`);
 
     res.sendStatus(204);
   },

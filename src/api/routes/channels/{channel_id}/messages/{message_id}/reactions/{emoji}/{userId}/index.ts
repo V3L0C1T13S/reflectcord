@@ -17,7 +17,7 @@ export default () => <Resource> {
     const rvUserId = userId !== "@me" ? await fromSnowflake(userId) : null;
     const emojiId = emojisMap[emoji] ? emoji : await tryFromSnowflake(emoji.replaceAll(REACTION_EXTRACT_ID, ""));
 
-    await res.rvAPI.delete(`/channels/${channelId}/messages/${messageId}/reactions/${encodeURI(emojiId)}`, {
+    await res.rvAPI.delete(`/channels/${channelId as ""}/messages/${messageId as ""}/reactions/${encodeURIComponent(emojiId as "")}`, {
       user_id: rvUserId,
     });
 
@@ -37,7 +37,7 @@ export default () => <Resource> {
     const messageId = await fromSnowflake(message_id);
     const emojiId = emojisMap[emoji] ? emoji : await tryFromSnowflake(emoji.replaceAll(REACTION_EXTRACT_ID, ""));
 
-    await res.rvAPI.put(`/channels/${channelId}/messages/${messageId}/reactions/${encodeURI(emojiId)}`);
+    await res.rvAPI.put(`/channels/${channelId}/messages/${messageId}/reactions/${encodeURIComponent(emojiId)}`);
 
     res.sendStatus(204);
   },
