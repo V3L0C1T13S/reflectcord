@@ -115,6 +115,7 @@ export interface RevoltSettings {
   tutorial?: RevoltSetting,
   inbox_settings?: RevoltSetting,
   favorites?: RevoltSetting,
+  frecency_user_settings?: RevoltSetting,
 }
 
 export const SettingsKeys = [
@@ -129,6 +130,7 @@ export const SettingsKeys = [
   "discord",
   "tutorial",
   "inbox_settings",
+  "frecency_user_settings",
   // "favorites",
 ];
 

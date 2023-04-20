@@ -1332,7 +1332,7 @@ export async function startListener(
             partial: false,
             settings: {
               proto: Buffer.from(settingsProto).toString("base64"),
-              type: 1,
+              type: data.update["frecency_user_settings"] ? 2 : 1,
             },
           };
 

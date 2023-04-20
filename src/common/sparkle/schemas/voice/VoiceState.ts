@@ -23,6 +23,7 @@ export const VoiceStateSchema = {
   $self_mute: Boolean,
   $self_deaf: Boolean,
   $self_video: Boolean,
+  $flags: Number,
 };
 
 export interface VoiceStateUpdate {
@@ -33,4 +34,5 @@ export interface VoiceStateUpdate {
   self_mute?: boolean;
   self_deaf?: boolean;
   self_video?: boolean;
+  flags?: number,
 }

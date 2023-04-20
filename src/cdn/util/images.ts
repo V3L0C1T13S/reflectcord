@@ -10,6 +10,7 @@ import Ffmpeg from "fluent-ffmpeg";
 import { AutumnURL, getAutumnConfig } from "@reflectcord/common/constants";
 import { HTTPError, Logger } from "@reflectcord/common/utils";
 import { hashFromSnowflake } from "@reflectcord/common/models";
+import sharp from "sharp";
 
 const DisallowedTypes = ["text/html", "text/mhtml", "multipart/related", "application/xhtml+xml"];
 
@@ -33,7 +34,7 @@ export async function downloadImage(type: ImageType, id: string) {
   if (!existsSync(imgDir)) {
     try {
       Logger.log(`Downloading uncached ${type} ${id}`);
-      const res = (await axios.get(rvURL, { responseType: "arraybuffer" })).data;
+      const res: Buffer = (await axios.get(rvURL, { responseType: "arraybuffer" })).data;
       writeFileSync(imgDir, res);
       return res;
     } catch (e) {
@@ -129,10 +130,14 @@ export async function handleFile(path: ImageType, body?: string) {
 
 export type ImageQuery = Request<
   {
-    Querystring: {
-      format?: string, upload_id?: string
+    Querystring?: {
+      format?: string,
+      upload_id?: string,
+      size?: string,
+      width?: string,
+      height?: string,
     },
-    Params: {
+    Params?: {
       app_id?: string,
       avatar_id?: string,
       banner_id?: string,
@@ -201,6 +206,30 @@ export async function handleImgRequest(
 
   res.header("Content-Type", mimeType);
   res.header("Cache-Control", "public, max-age=31536000");
+
+  if (typeof req.query?.size === "string") {
+    const size = parseInt(req.query.size, 10);
+
+    const image = sharp(avatarData, {
+      animated: mimeType === "image/gif",
+    }).resize(size);
+
+    const resized = await image.toBuffer();
+
+    return res.send(resized);
+  }
+  if (typeof req.query?.width === "string" && typeof req.query.height === "string") {
+    const width = parseInt(req.query.width, 10);
+    const height = parseInt(req.query.height, 10);
+
+    const image = sharp(avatarData, {
+      animated: mimeType === "image/gif",
+    }).resize(width, height);
+
+    const resized = await image.toBuffer();
+
+    return res.send(resized);
+  }
 
   return res.send(avatarData);
 }

@@ -5,6 +5,10 @@ import {
   SettingsKeys, settingsProtoToJSON, settingsToProtoBuf, Status, UserSettings,
 } from "@reflectcord/common/models";
 import { HTTPError, Logger } from "@reflectcord/common/utils";
+import protobuf from "protobufjs";
+import { join } from "path";
+
+const settingsProtoFile = join(__dirname, "../../../../../../../resources/FrecencyUserSettings.proto");
 
 export default () => <Resource> {
   get: async (req, res) => {
@@ -19,6 +23,15 @@ export default () => <Resource> {
         const proto = await settingsToProtoBuf(settings);
 
         res.send(Buffer.from(proto).toString("base64"));
+
+        break;
+      }
+      case "2": {
+        const rvSettings = await res.rvAPI.post("/sync/settings/fetch", {
+          keys: ["frecency_user_settings"],
+        });
+
+        res.json(rvSettings["frecency_user_settings"]?.[1] ?? "");
 
         break;
       }
@@ -65,6 +78,23 @@ export default () => <Resource> {
         res.json({
           settings: Buffer.from(updatedProto).toString("base64"),
         });
+        break;
+      }
+      case "2": {
+        const root = await protobuf.load(settingsProtoFile);
+
+        const frecencySettings = root.lookupType("FrecencyUserSettings");
+
+        frecencySettings.verify(settingsData);
+
+        await res.rvAPI.post("/sync/settings/set", createSettingsSyncPOST({
+          frecency_user_settings: [Date.now(), settings],
+        }));
+
+        res.json({
+          settings,
+        });
+
         break;
       }
       default: {
