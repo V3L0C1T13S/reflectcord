@@ -45,6 +45,7 @@
     "discord-api-types": "^0.37.38",
     "discord.js": "^14.7.1",
     "dotenv": "^16.0.3",
+    "emojilib": "^3.0.10",
     "erlpack": "^0.1.4",
     "express": "^4.18.2",
     "express-async-errors": "^3.1.1",
@@ -69,7 +70,6 @@
     "mongoose": "^6.8.4",
     "morgan": "^1.10.0",
     "msc-node": "^0.0.10",
-    "node-fetch": "^2.6.7",
     "node-html-parser": "^6.1.1",
     "nodejs-snowflake": "^2.0.1",
     "protobufjs": "^7.1.2",
@@ -84,6 +84,7 @@
     "tslib": "^2.4.0",
     "twitter-api-v2": "^1.14.2",
     "ulid": "^2.3.0",
+    "unicode-emoji-json": "^0.4.0",
     "zlib": "^1.0.5"
   },
   "devDependencies": {
@@ -95,7 +96,6 @@
     "@types/lodash": "^4.14.191",
     "@types/morgan": "^1.9.4",
     "@types/node": "^18.11.18",
-    "@types/node-fetch": "^2.6.2",
     "@types/serve-favicon": "^2.5.3",
     "@typescript-eslint/eslint-plugin": "^5.51.0",
     "@typescript-eslint/parser": "^5.48.0",

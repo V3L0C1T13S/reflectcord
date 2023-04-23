@@ -65,6 +65,8 @@ export const urlScheme = useHTTPS ? "https" : "http";
 
 export const revoltWsFormat: "json" | "msgpack" = process.env["WS_FORMAT"] as "json" ?? "msgpack";
 
+export const strictChannelNames = !!process.env["STRICT_CHANNEL_NAMES"] ?? false;
+
 let revoltConfig: API.RevoltConfig;
 let autumnConfig: {
   tags: {

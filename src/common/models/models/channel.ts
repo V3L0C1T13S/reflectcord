@@ -25,6 +25,7 @@ import {
 import { User } from "./user";
 import { convertPermNumber } from "./permissions";
 import { APIChannelPatchBody, APIPrivateChannel, GatewayPrivateChannel } from "../../sparkle";
+import { strictChannelNames } from "../../constants";
 
 function alphabetPosition(text: string) {
   return [...text].map((a) => parseInt(a, 36) - 10).filter((a) => a >= 0);
@@ -367,6 +368,9 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
         }
         if (channel.channel_type === "DirectMessage") {
           return "fixme";
+        }
+        if (strictChannelNames && channel.channel_type === "TextChannel") {
+          return channel.name.replaceAll(" ", "-").toLowerCase();
         }
 
         return channel.name;

@@ -2,7 +2,7 @@ import {
   APIEmoji, APIPartialEmoji, APIReaction, APIUser,
 } from "discord.js";
 import { API } from "revolt.js";
-import { emojis, isBuiltinEmoji } from "../../emojilib";
+import { isBuiltinEmoji } from "../../emojilib";
 import { QuarkConversion } from "../QuarkConversion";
 import { tryFromSnowflake, tryToSnowflake, toSnowflake } from "../util";
 import { User } from "./user";
