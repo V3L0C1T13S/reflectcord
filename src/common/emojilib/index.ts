@@ -7,3 +7,4 @@ export const getEmojiNamesByUnicode = (name: string) => emojis[name];
 export const isBuiltinEmoji = (name: string) => !!getEmojiNamesByUnicode(name);
 
 export * from "./relevant";
+export * from "./algorithim";

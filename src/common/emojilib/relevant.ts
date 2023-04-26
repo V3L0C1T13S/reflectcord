@@ -1,6 +1,7 @@
 /* eslint-disable no-restricted-syntax */
 import emojilib from "emojilib";
 import emojiJson from "unicode-emoji-json";
+import { getEditDistance } from "./algorithim";
 
 // This value was picked experimentally.
 // Substring search returns a lot of noise for shorter search words.
@@ -223,6 +224,13 @@ export const getEmojilibEmojis = (input: string) => {
     // @ts-ignore
     for (const keyword of data.keywords) {
       matches = matches || regex.test(keyword);
+    }
+
+    if (!matches) {
+      // @ts-ignore
+      for (const keyword of data.keywords) {
+        matches = matches || getEditDistance(input.toLowerCase(), keyword) >= 300;
+      }
     }
 
     if (matches) {
