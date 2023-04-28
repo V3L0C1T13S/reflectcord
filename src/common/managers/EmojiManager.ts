@@ -28,7 +28,6 @@ export class EmojiManager extends BaseManager<string, EmojiContainer> {
     if (this.has(id)) return this.$get(id);
 
     const builtinEmoji = isBuiltinEmoji(id);
-    console.log(builtinEmoji);
 
     const res: API.Emoji = !builtinEmoji
       ? await this.rvAPI.get(`/custom/emoji/${encodeURI(id) as ""}`)
