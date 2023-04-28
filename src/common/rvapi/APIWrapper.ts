@@ -1,4 +1,5 @@
 import { API } from "revolt.js";
+import { rvAPIMode } from "../constants";
 import {
   ChannelsManager, MemberManager, MessageManager, ServerManager, UserManager, EmojiManager,
 } from "../managers";
@@ -19,10 +20,16 @@ export class APIWrapper {
 
   emojis: EmojiManager;
 
+  mode = rvAPIMode;
+
+  token: string;
+
   constructor(api: API.API, options?: { bot?: boolean }) {
     this.rvAPI = api;
 
     this.bot = options?.bot ?? false;
+
+    this.token = api.auth.headers?.["X-Session-Token"] as any ?? api.auth.headers?.["X-Bot-Token"] as any ?? "";
 
     this.channels = new ChannelsManager(this);
     this.messages = new MessageManager(this);

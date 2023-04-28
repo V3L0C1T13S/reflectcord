@@ -1,6 +1,7 @@
 import { APIChannel } from "discord.js";
 import { isEqual } from "lodash";
 import { API } from "revolt.js";
+import { DbManager } from "@reflectcord/common/db";
 import { Channel } from "../models";
 import { BaseManager } from "./BaseManager";
 import { QuarkContainer } from "./types";
@@ -15,19 +16,63 @@ export class ChannelsManager extends BaseManager<string, ChannelContainer> {
     return channel;
   }
 
-  async fetch(id: string, data?: ChannelContainer) {
-    if (this.has(id)) return this.$get(id);
-
-    if (data) return this.createObj(data);
-
-    // Logger.log(`getting new channel ${id}`);
-
-    const res = await this.rvAPI.get(`/channels/${id as ""}`);
+  private async fetchChannelMongo(id: string) {
+    const res = await DbManager.revoltChannels.findOne({ _id: id });
+    if (!res) throw new Error(`channel ${id} not found`);
 
     return this.createObj({
       revolt: res,
       discord: await Channel.from_quark(res),
     });
+  }
+
+  async fetch(id: string, data?: ChannelContainer) {
+    if (this.has(id)) return this.$get(id);
+
+    if (data) return this.createObj(data);
+
+    switch (this.apiWrapper.mode) {
+      default: {
+        const res = await this.rvAPI.get(`/channels/${id as ""}`);
+
+        return this.createObj({
+          revolt: res,
+          discord: await Channel.from_quark(res),
+        });
+      }
+    }
+  }
+
+  async mongoFetchDmChannels() {
+    const user = await this.apiWrapper.users.fetchSelf();
+    const rvDms = await DbManager.revoltChannels
+      .find({ recipients: { $all: [user.revolt._id] } }).toArray();
+
+    return Promise.all(rvDms.map(async (channel) => this.createObj({
+      revolt: channel,
+      discord: await Channel.from_quark(channel),
+    })));
+  }
+
+  async fetchDmChannels() {
+    switch (this.apiWrapper.mode) {
+      case "mongo": {
+        return this.mongoFetchDmChannels();
+      }
+      default: {
+        const rvDms = await this.rvAPI.get("/users/dms");
+
+        if (!Array.isArray(rvDms)) throw new Error("Bad response from Revolt.");
+
+        const dmObjects = await Promise.all(rvDms
+          .map(async (channel) => this.createObj({
+            revolt: channel,
+            discord: await Channel.from_quark(channel),
+          })));
+
+        return dmObjects;
+      }
+    }
   }
 
   createObj(channel: ChannelContainer) {

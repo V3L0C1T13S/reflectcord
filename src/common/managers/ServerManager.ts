@@ -2,8 +2,9 @@ import { APIGuild } from "discord.js";
 import { API } from "revolt.js";
 import { isEqual } from "lodash";
 import { Logger } from "@reflectcord/common/utils";
+import { DbManager } from "@reflectcord/common/db";
 import {
-  Guild, RevoltOrderingSetting, RevoltSettings, SettingsKeys,
+  Guild, RevoltOrderingSetting,
 } from "../models";
 import { BaseManager } from "./BaseManager";
 import { QuarkContainer } from "./types";
@@ -86,20 +87,40 @@ export class ServerManager extends BaseManager<string, ServerContainer> {
     return this.leave(id);
   }
 
+  private async mongoGetServers() {
+    const user = await this.apiWrapper.users.fetchSelf();
+
+    const members = await DbManager.revoltMembers
+      .find({ _id: { user: user.revolt._id } }).toArray();
+    const servers = (await Promise.all(members
+      .map((x) => DbManager.revoltServers.findOne({ _id: x._id.server }))))
+      .filter((x): x is API.Server => !!x);
+
+    return Promise.all(servers.map(async (x) => this.createObj({
+      revolt: x,
+      discord: await Guild.from_quark(x),
+    })));
+  }
+
   async getServers() {
-    // FIXME: Worst possible way to get it unless we have WS access (which we dont)
-    const rvSettings = await this.rvAPI.post("/sync/settings/fetch", {
-      keys: SettingsKeys,
-    }) as RevoltSettings;
+    switch (this.apiWrapper.mode) {
+      case "mongo": {
+        return this.mongoGetServers();
+      }
+      default: {
+        // FIXME: Worst possible way to get it unless we have WS access (which we dont)
+        const rvSettings = await this.apiWrapper.users.fetchSettings();
 
-    const ordering: RevoltOrderingSetting = JSON.parse(rvSettings.ordering?.[1] ?? "{}");
+        const ordering: RevoltOrderingSetting = JSON.parse(rvSettings.ordering?.[1] ?? "{}");
 
-    const servers = ordering.servers
-      ? (await Promise.all(ordering.servers
-        .map((x) => this.apiWrapper.servers.fetch(x).catch(Logger.error))))
-        .filter((x): x is ServerContainer => !!x) : [];
+        const servers = ordering.servers
+          ? (await Promise.all(ordering.servers
+            .map((x) => this.apiWrapper.servers.fetch(x).catch(Logger.error))))
+            .filter((x): x is ServerContainer => !!x) : [];
 
-    return servers;
+        return servers;
+      }
+    }
   }
 
   async inviteBot(server: string, bot: string) {

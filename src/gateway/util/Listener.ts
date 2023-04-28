@@ -429,9 +429,10 @@ export async function startListener(
           trace.stopTrace("get_presences");
 
           trace.startTrace("user_settings");
-          const rvSettings = !currentUser.bot ? await this.rvAPI.post("/sync/settings/fetch", {
-            keys: SettingsKeys,
-          }).catch(() => null) as unknown as RevoltSettings : null;
+          const rvSettings = !currentUser.bot
+            ? await this.rvAPIWrapper.users.fetchSettings()
+              .catch(() => null) as unknown as RevoltSettings
+            : null;
 
           const user_settings = rvSettings ? await UserSettings.from_quark(rvSettings, {
             status: sessionStatus.status?.toString() || null,

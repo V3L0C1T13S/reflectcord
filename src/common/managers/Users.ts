@@ -2,7 +2,8 @@ import { APIUser } from "discord.js";
 import { API } from "revolt.js";
 import { isEqual } from "lodash";
 import { Logger } from "@reflectcord/common/utils";
-import { User } from "../models";
+import { DbManager } from "@reflectcord/common/db";
+import { RevoltSettings, SettingsKeys, User } from "../models";
 import { BaseManager } from "./BaseManager";
 import { QuarkContainer } from "./types";
 import { APIWrapper } from "../rvapi";
@@ -36,21 +37,34 @@ export class UserManager extends BaseManager<string, UserContainer> {
     return user;
   }
 
+  async mongoFetchUser(id: string) {
+    const user = await DbManager.revoltUsers.findOne({ _id: id });
+    if (!user) throw new Error(`user ${id} does not exist`);
+
+    return this.createObj({
+      revolt: user,
+      discord: await User.from_quark(user),
+    });
+  }
+
   async fetch(id: string, data?: UserContainer) {
     if (this.has(id)) return this.$get(id, data);
 
-    // Logger.log(`fetching new user ${id}`);
+    switch (this.apiWrapper.mode) {
+      case "mongo": {
+        return this.mongoFetchUser(id);
+      }
+      default: {
+        if (data) return this.createObj(data);
 
-    if (data) return this.createObj(data);
+        const res = await this.rvAPI.get(`/users/${id as ""}`);
 
-    const res = await this.rvAPI.get(`/users/${id as ""}`);
-    // const profile = await this.rvAPI.get(`/users/${id as ""}/profile`);
-    // res.profile = profile;
-
-    return this.createObj({
-      revolt: res,
-      discord: await User.from_quark(res),
-    });
+        return this.createObj({
+          revolt: res,
+          discord: await User.from_quark(res),
+        });
+      }
+    }
   }
 
   createObj(user: UserContainer) {
@@ -61,13 +75,52 @@ export class UserManager extends BaseManager<string, UserContainer> {
     return user;
   }
 
-  async fetchSelf() {
-    const user = await this.rvAPI.get(`/users/${await this.getSelfId() as ""}`);
+  private async mongoFetchSelf() {
+    const session: any = await DbManager.revoltSessions
+      .findOne({ token: this.apiWrapper.token });
+    const user = await DbManager.revoltUsers.findOne({ _id: session?.user_id });
+    if (!user) throw new Error(`user ${session?.user_id} doesn't exist!`);
 
     return this.createObj({
       revolt: user,
       discord: await User.from_quark(user),
     });
+  }
+
+  async fetchSelf() {
+    switch (this.apiWrapper.mode) {
+      case "mongo": {
+        return this.mongoFetchSelf();
+      }
+      default: {
+        const user = await this.rvAPI.get(`/users/${await this.getSelfId() as ""}`);
+
+        return this.createObj({
+          revolt: user,
+          discord: await User.from_quark(user),
+        });
+      }
+    }
+  }
+
+  private async mongoFetchSettings() {
+    const user = await this.fetchSelf();
+    const settings = await DbManager.revoltSettings.findOne({ _id: user.revolt._id });
+
+    if (!settings) throw new Error(`no settings for ${user.revolt._id}`);
+
+    return settings;
+  }
+
+  async fetchSettings() {
+    switch (this.apiWrapper.mode) {
+      case "mongo": {
+        return this.mongoFetchSettings();
+      }
+      default: {
+        return this.rvAPI.post("/sync/settings/fetch", { keys: SettingsKeys }) as RevoltSettings;
+      }
+    }
   }
 
   /**

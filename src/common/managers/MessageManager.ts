@@ -8,6 +8,7 @@ import {
 import { BaseManager } from "./BaseManager";
 import { QuarkContainer } from "./types";
 import { systemUserID } from "../rvapi/users";
+import { DbManager } from "../db";
 
 export type MessageContainer = QuarkContainer<API.Message, APIMessage>;
 export type MessageI = QuarkContainer<Partial<API.Message>, Partial<APIMessage>>;
@@ -132,8 +133,20 @@ export class MessageManager extends BaseManager<string, MessageContainer> {
     });
   }
 
-  fetchUnreads() {
-    return this.rvAPI.get("/sync/unreads");
+  async fetchUnreads() {
+    switch (this.apiWrapper.mode) {
+      case "mongo": {
+        const user = await this.apiWrapper.users.fetchSelf();
+        const unreads = await DbManager.revoltChannelUnreads
+          .find({ _id: { user: user.revolt._id } }).toArray();
+        if (!unreads) throw new Error(`no unreads for ${user.revolt._id}`);
+
+        return unreads;
+      }
+      default: {
+        return this.rvAPI.get("/sync/unreads");
+      }
+    }
   }
 
   async getMessage(channel: string, id: string) {

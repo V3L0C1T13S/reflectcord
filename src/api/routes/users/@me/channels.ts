@@ -2,7 +2,6 @@
 import { APIChannel } from "discord.js";
 import { Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
-import { API } from "revolt.js";
 import { fromSnowflake, Channel } from "@reflectcord/common/models";
 import { HTTPError } from "@reflectcord/common/utils";
 
@@ -14,12 +13,9 @@ export type dmChannelReq = {
 
 export default () => <Resource> {
   get: async (req, res: Response<APIChannel[]>) => {
-    const rvDms = await res.rvAPI.get("/users/dms") as API.Channel[];
+    const dms = await res.rvAPIWrapper.channels.fetchDmChannels();
 
-    const discordDMS = await Promise.all(rvDms
-      .map((channel) => Channel.from_quark(channel)));
-
-    return res.json(discordDMS);
+    res.json(dms.map((x) => x.discord));
   },
   post: async (req: Request<any, any, dmChannelReq>, res) => {
     const { recipients, recipient_id } = req.body;
