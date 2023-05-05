@@ -25,6 +25,7 @@ import { priviligedUsers } from "../../constants/admin";
 import { genAnalyticsToken } from "../../utils/discord";
 import { Omit } from "../../utils";
 import { PartialFile } from "./attachment";
+import { RelationshipType } from "./relationship";
 
 export type APIUserProfile = {
   bio: string | null,
@@ -356,51 +357,6 @@ export const Status: QuarkConversion<RevoltUser["status"], internalStatus, Statu
     }
 
     return discordStatus;
-  },
-};
-
-export const Relationship: QuarkConversion<RelationshipStatus, UserRelationshipType> = {
-  async to_quark(type) {
-    switch (type) {
-      case UserRelationshipType.Blocked: {
-        return "Blocked";
-      }
-      case UserRelationshipType.Friends: {
-        return "Friend";
-      }
-      case UserRelationshipType.Incoming: {
-        return "Incoming";
-      }
-      case UserRelationshipType.Outgoing: {
-        return "Outgoing";
-      }
-      default: {
-        return "None";
-      }
-    }
-  },
-
-  async from_quark(type) {
-    switch (type) {
-      case "Blocked": {
-        return UserRelationshipType.Blocked;
-      }
-      case "BlockedOther": {
-        return UserRelationshipType.Blocked;
-      }
-      case "Friend": {
-        return UserRelationshipType.Friends;
-      }
-      case "Incoming": {
-        return UserRelationshipType.Incoming;
-      }
-      case "Outgoing": {
-        return UserRelationshipType.Outgoing;
-      }
-      default: {
-        return UserRelationshipType.Friends;
-      }
-    }
   },
 };
 

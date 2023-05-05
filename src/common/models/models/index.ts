@@ -14,3 +14,4 @@ export * from "./invite";
 export * from "./settings";
 export * from "./permissions";
 export * from "./session";
+export * from "./relationship";

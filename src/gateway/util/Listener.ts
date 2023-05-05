@@ -32,8 +32,6 @@ import {
   Guild,
   HandleChannelsAndCategories,
   Member,
-  PartialEmoji,
-  Relationship,
   selfUser,
   Status,
   User,
@@ -55,11 +53,11 @@ import {
   identifyClient,
   createUserGatewayGuild,
   MergedMemberDTO,
-  fromSnowflake,
   GatewayPrivateChannelDTO,
   GatewayReactionPartialEmojiDTO,
+  RelationshipType,
 } from "@reflectcord/common/models";
-import { Logger, RabbitMQ, genAnalyticsToken } from "@reflectcord/common/utils";
+import { Logger, genAnalyticsToken } from "@reflectcord/common/utils";
 import {
   GatewayUserChannelUpdateOptional,
   IdentifySchema,
@@ -78,11 +76,9 @@ import {
 import { reflectcordWsURL } from "@reflectcord/common/constants";
 import { VoiceState } from "@reflectcord/common/mongoose";
 import { MemberContainer, emojiMap as reactionMap } from "@reflectcord/common/managers";
-import { emojis as emojiMap, isBuiltinEmoji } from "@reflectcord/common/emojilib";
 import { WebSocket } from "../Socket";
 import { Dispatch } from "./send";
 import experiments from "./experiments.json";
-import { isDeprecatedClient } from "../versioning";
 import { updateMessage } from "./messages";
 import { createInternalListener } from "./InternalListener";
 
@@ -185,8 +181,6 @@ export async function startListener(
 
           this.user_id = await toSnowflake(currentUser._id);
           this.rv_user_id = currentUser._id;
-
-          this.is_deprecated = isDeprecatedClient.call(this);
 
           trace.stopTrace("reflectcord_init");
 
@@ -394,7 +388,7 @@ export async function startListener(
             .filter((u) => u.revolt.relationship !== "None" && u.revolt.relationship !== "User")
             .map(async (u) => ({
               discord: {
-                type: await Relationship.from_quark(u.revolt.relationship ?? "Friend"),
+                type: await RelationshipType.from_quark(u.revolt.relationship ?? "Friend"),
                 user: u.discord,
               },
               revolt: u.revolt,
@@ -1293,7 +1287,7 @@ export async function startListener(
         case "UserRelationship": {
           const user = await User.from_quark(data.user);
           const { id } = user;
-          const type = await Relationship.from_quark(data.status);
+          const type = await RelationshipType.from_quark(data.status);
           const nickname = data.user.username;
 
           const body = {

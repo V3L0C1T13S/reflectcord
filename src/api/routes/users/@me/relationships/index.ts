@@ -1,13 +1,12 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable camelcase */
-import { Application } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
 import { UserRelationshipType, DiscordErrorMessages, DiscordErrors } from "@reflectcord/common/sparkle";
-import { Relationship, User } from "@reflectcord/common/models";
+import { RelationshipType, User } from "@reflectcord/common/models";
 import { FieldError, HTTPError } from "@reflectcord/common/utils";
-import { AxiosError, isAxiosError } from "axios";
+import { isAxiosError } from "axios";
 
 export default () => <Resource> {
   get: async (req, res) => {
@@ -26,7 +25,7 @@ export default () => <Resource> {
       .map(async (x) => ({
         user: await User.from_quark(x),
         relationship: x.relationship
-          ? await Relationship.from_quark(x.relationship)
+          ? await RelationshipType.from_quark(x.relationship)
           : UserRelationshipType.Friends,
       })));
 
