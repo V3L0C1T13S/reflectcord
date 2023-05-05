@@ -10,12 +10,31 @@ import { GatewayFullUserPresence } from "../../../models";
 import { MergedMember } from "./Members";
 import { GatewayPrivateChannel } from "./Channel";
 
-interface GatewayRelationshipData {
+export interface CommonGatewayRelationshipData {
   id: string;
   type: UserRelationshipType;
   nickname: string;
+}
+
+export interface GatewayRelationshipDataV1 extends CommonGatewayRelationshipData {
   user: APIUser;
 }
+
+/**
+ * Sent in READY.relationships when the client has the DeduplicateUserObjects
+ * capability.
+*/
+export interface GatewayRelationshipDataDeduplicated extends CommonGatewayRelationshipData {
+  user_id: string;
+}
+
+export type GatewayRelationshipData =
+  Omit<GatewayRelationshipDataDeduplicated, "user_id">
+  & Omit<GatewayRelationshipDataV1, "user">
+  & {
+    user_id?: GatewayRelationshipDataDeduplicated["user_id"],
+    user?: GatewayRelationshipDataV1["user"],
+  }
 
 export interface MergedPresences {
   /**

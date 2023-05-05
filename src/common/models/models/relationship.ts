@@ -1,6 +1,7 @@
 import { API } from "revolt.js";
 import { invert } from "lodash";
-import { UserRelationshipType } from "../../sparkle";
+import { APIUser } from "discord.js";
+import { GatewayRelationshipData, UserRelationshipType } from "../../sparkle";
 import { QuarkConversion } from "../QuarkConversion";
 
 type ConvertableRelationships = Exclude<API.RelationshipStatus, "None" | "User">;
@@ -30,3 +31,20 @@ export const RelationshipType: QuarkConversion<API.RelationshipStatus, UserRelat
     return RelationshipMap[type as ConvertableRelationships] ?? UserRelationshipType.Friends;
   },
 };
+
+export class GatewayRelationshipDTO implements GatewayRelationshipData {
+  id: string;
+  type: UserRelationshipType;
+  nickname: string;
+  user_id?: string;
+  user?: APIUser;
+
+  constructor(data: { user: APIUser, type: UserRelationshipType }, deduplicate?: boolean) {
+    this.id = data.user.id;
+    this.type = data.type;
+    this.nickname = data.user.username;
+
+    if (deduplicate) this.user_id = data.user.id;
+    else this.user = data.user;
+  }
+}

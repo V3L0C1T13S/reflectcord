@@ -56,6 +56,7 @@ import {
   GatewayPrivateChannelDTO,
   GatewayReactionPartialEmojiDTO,
   RelationshipType,
+  GatewayRelationshipDTO,
 } from "@reflectcord/common/models";
 import { Logger, genAnalyticsToken } from "@reflectcord/common/utils";
 import {
@@ -457,12 +458,10 @@ export async function startListener(
             guilds,
             guild_experiments: [],
             geo_ordered_rtc_regions: ["newark", "us-east"],
-            relationships: relationships.map((x) => ({
-              id: x.discord.user.id,
-              type: x.discord.type,
-              nickname: x.discord.user.username,
-              user: x.discord.user,
-            })),
+            relationships: relationships.map((x) => new GatewayRelationshipDTO(
+              x.discord,
+              this.capabilities.DeduplicateUserObjects,
+            )),
             read_state: this.capabilities.VersionedReadStates ? {
               entries: readStateEntries,
               partial: false,
