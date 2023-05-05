@@ -33,7 +33,7 @@ export async function getProfile(api: API.API, id: string) {
   return rvProfile;
 }
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   get: async (req, res) => {
     const { guild_id, with_mutuals, with_mutual_guilds } = req.query;
     const { id } = req.params;

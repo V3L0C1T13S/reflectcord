@@ -3,7 +3,7 @@ import { Application, Response } from "express";
 import { Resource } from "express-automatic-routes";
 
 // FIXME
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   get: async (req, res: Response) => {
     res.json([{
       id: "0",

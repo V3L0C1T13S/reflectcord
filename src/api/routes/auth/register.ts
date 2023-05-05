@@ -7,7 +7,7 @@ import { FieldErrors } from "@reflectcord/common/utils";
 import { getServerConfig } from "@reflectcord/common/constants";
 import { loginToRevolt } from "./login";
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   post: async (req: Request<{}, {}, RegisterSchema>, res) => {
     const api = res.rvAPI;
 

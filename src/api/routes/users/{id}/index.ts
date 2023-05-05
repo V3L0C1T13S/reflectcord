@@ -32,7 +32,7 @@ export async function handleGetUser(req: Request, res: Response, id: string) {
   res.json(rvUser);
 }
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   get: async (req, res) => {
     const { id } = req.params;
 

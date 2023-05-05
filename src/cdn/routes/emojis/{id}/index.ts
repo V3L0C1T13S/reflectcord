@@ -4,7 +4,7 @@ import { fromSnowflake, tryFromSnowflake } from "@reflectcord/common/models";
 import { HTTPError } from "@reflectcord/common/utils";
 import { ImageQuery, handleImgRequest } from "../../../util";
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   post: {
     handler: (req, res) => {
       res.status(500).send();
@@ -12,7 +12,7 @@ export default (express: Application) => <Resource> {
   },
   get: {
     handler: async (req: ImageQuery, res) => {
-      if (!req.params.id) throw new HTTPError("Invalid ID");
+      if (!req.params?.id) throw new HTTPError("Invalid ID");
       const replacedId = req.params.id.replace(/\.[^/.]+$/, "");
       const emojiId = await fromSnowflake(replacedId);
 

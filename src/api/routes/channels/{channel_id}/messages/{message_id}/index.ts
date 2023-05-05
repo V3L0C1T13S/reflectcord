@@ -9,7 +9,7 @@ import { HTTPError } from "@reflectcord/common/utils";
 import { messageFullMentions } from "@reflectcord/common/constants";
 import { sendReq } from "..";
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   get: async (req, res: Response<APIMessage>) => {
     const { channel_id, message_id } = req.params;
 

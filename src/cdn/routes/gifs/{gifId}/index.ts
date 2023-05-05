@@ -26,6 +26,7 @@ if (!existsSync(mp4Dir)) mkdirSync(mp4Dir);
 export default () => <Resource> {
   get: {
     handler: async (req: ImageQuery, res) => {
+      if (!req.params) throw new Error("params are required");
       const { gifId } = req.params;
 
       if (!gifId) return res.status(404).send();

@@ -7,7 +7,7 @@ import {
   Guild, Role, fromSnowflake, RoleEdit, Permissions,
 } from "@reflectcord/common/models";
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   get: async (req, res: Response<APIRole[]>) => {
     const { guild_id } = req.params;
 

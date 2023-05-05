@@ -1,9 +1,8 @@
 /* eslint-disable camelcase */
 import { GetDetectableApps } from "@reflectcord/common/utils";
-import { Application } from "express";
 import { Resource } from "express-automatic-routes";
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   get: async (req, res) => {
     const apps = await GetDetectableApps();
 

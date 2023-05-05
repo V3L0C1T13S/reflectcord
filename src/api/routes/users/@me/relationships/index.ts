@@ -9,7 +9,7 @@ import { Relationship, User } from "@reflectcord/common/models";
 import { FieldError, HTTPError } from "@reflectcord/common/utils";
 import { AxiosError, isAxiosError } from "axios";
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   get: async (req, res) => {
     const selfInfo = await res.rvAPIWrapper.users.getSelf(true);
 

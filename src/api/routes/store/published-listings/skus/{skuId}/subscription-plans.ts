@@ -298,7 +298,7 @@ const skus = new Map([
   ],
 ]);
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   get: (req, res) => {
     const { skuId } = req.params as { skuId: string };
 

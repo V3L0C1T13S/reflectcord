@@ -20,7 +20,7 @@ export type rvMsgWithUsers = {
   members: API.Member[];
 }
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   get: async (req: Request<any, any, any, {
     limit: string, before: string, after: string, around: string
   }>, res) => {

@@ -6,7 +6,7 @@ import { API } from "revolt.js";
 import { HTTPError } from "@reflectcord/common/utils";
 import { Application as botApplication, OwnedApplication, fromSnowflake } from "@reflectcord/common/models";
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   get: async (req, res: Response<APIApplication>) => {
     const { application_id } = req.params;
     if (!application_id) throw new HTTPError("Invalid appid");

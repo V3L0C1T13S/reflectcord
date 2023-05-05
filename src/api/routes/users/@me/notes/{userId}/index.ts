@@ -12,7 +12,7 @@ export type noteRequest = {
 
 export type noteResponse = INote;
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   get: async (req, res: Response<noteResponse>) => {
     const { userId } = req.params;
     if (!userId) throw new HTTPError("Invalid user");

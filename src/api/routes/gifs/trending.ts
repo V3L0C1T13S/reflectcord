@@ -3,7 +3,7 @@ import { Resource } from "express-automatic-routes";
 import { gifBoxAPIUrl, reflectcordCDNURL, urlScheme } from "@reflectcord/common/constants";
 import { GifboxClient } from "@reflectcord/common/rvapi";
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   get: async (req, res) => {
     const gbClient = new GifboxClient();
 

@@ -4,7 +4,7 @@ import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
 import { Application as botApplication, OwnedApplication } from "@reflectcord/common/models";
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   get: async (req, res) => {
     const currentUser = await res.rvAPIWrapper.users.getSelf(true);
 

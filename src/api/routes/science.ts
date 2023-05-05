@@ -8,7 +8,7 @@ export type TrackingRequest = {
   }
 }
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   post: (req, res) => {
     if (!enableTracking) return res.sendStatus(204);
 

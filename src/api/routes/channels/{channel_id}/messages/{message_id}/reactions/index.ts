@@ -4,7 +4,7 @@ import { Resource } from "express-automatic-routes";
 import { HTTPError } from "@reflectcord/common/utils";
 import { fromSnowflake } from "@reflectcord/common/models";
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   delete: async (req, res) => {
     const { channel_id, message_id } = req.params;
 

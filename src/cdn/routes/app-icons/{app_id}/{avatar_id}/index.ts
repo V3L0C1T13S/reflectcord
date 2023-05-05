@@ -7,6 +7,8 @@ import { ImageQuery, handleImgRequest } from "../../../../util";
 export default () => <Resource> {
   get: {
     handler: async (req: ImageQuery, res) => {
+      if (!req.params) throw new Error("Params are required.");
+
       const { avatar_id, app_id } = req.params;
 
       const app = await appData.findOne({ id: app_id, icon: avatar_id });

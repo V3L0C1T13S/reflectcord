@@ -5,7 +5,7 @@ import { fromSnowflake, Guild, GuildEditBody } from "@reflectcord/common/models"
 import { APIGuild, RESTPatchAPIGuildJSONBody } from "discord.js";
 import { HTTPError } from "@reflectcord/common/utils";
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   get: async (req, res: Response<APIGuild>) => {
     const { guild_id } = req.params;
 

@@ -1,7 +1,7 @@
 import { Application } from "express";
 import { Resource } from "express-automatic-routes";
 
-export default (express: Application) => <Resource> {
+export default () => <Resource> {
   post: async (req, res) => {
     await res.rvAPI.post("/auth/session/logout");
 
