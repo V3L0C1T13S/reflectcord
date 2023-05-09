@@ -714,9 +714,10 @@ export async function startListener(
                 };
 
                 if (server) {
+                  const member = await server.extra!.members
+                    .fetch(server.revolt._id, user.revolt._id);
                   interactionData.member = {
-                    ...(await server.extra!.members
-                      .fetch(server.revolt._id, user.revolt._id)).discord,
+                    ...member.discord,
                     permissions: "0", // TODO (interactions) Member permissions
                     user: user.discord,
                   };
@@ -1185,6 +1186,61 @@ export async function startListener(
 
           await Dispatch(this, GatewayDispatchEvents.UserUpdate, user.discord);
 
+          break;
+        }
+        case "UserPlatformWipe": {
+          const user = this.rvAPIWrapper.users.get(data.user_id);
+          if (!user) return;
+
+          const updated: API.User = {
+            ...user.revolt,
+            username: "Removed User",
+            online: false,
+            relationship: "None",
+            flags: data.flags,
+          };
+
+          const updatedDiscord = await User.from_quark(updated);
+
+          if (user) {
+            this.rvAPIWrapper.users.update(data.user_id, {
+              revolt: updated,
+              discord: updatedDiscord,
+            }, [
+              "Avatar",
+              "ProfileBackground",
+              "ProfileContent",
+              "StatusText",
+              "StatusPresence",
+            ]);
+          }
+
+          const dmChannel = [...this.rvAPIWrapper.channels.values()]
+            .find((x) => x.revolt.channel_type === "DirectMessage"
+              && x.revolt.recipients.includes(user.revolt._id));
+
+          if (dmChannel) {
+            await Dispatch(this, GatewayDispatchEvents.ChannelDelete, dmChannel.discord);
+
+            this.rvAPIWrapper.channels.delete(dmChannel.revolt._id);
+          }
+
+          if (user.revolt.relationship) {
+            const relationshipBody = {
+              id: user.discord.id,
+              type: await RelationshipType.from_quark(user.revolt.relationship),
+              nickname: user.discord.username,
+              user,
+            };
+
+            await Dispatch(this, GatewayDispatchCodes.RelationshipRemove, relationshipBody);
+          }
+
+          await Dispatch(this, GatewayDispatchEvents.UserUpdate, user.discord);
+
+          break;
+        }
+        case "UserPresence": {
           break;
         }
         case "ChannelAck": {
