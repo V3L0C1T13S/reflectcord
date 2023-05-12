@@ -85,4 +85,5 @@ export enum GatewayDispatchCodes {
   UserSettingsUpdate = "USER_SETTINGS_UPDATE",
   UserSettingsProtoUpdate = "USER_SETTINGS_PROTO_UPDATE",
   UserNonChannelAck = "USER_NON_CHANNEL_ACK",
+  GuildApplicationCommandIndexUpdate = "GUILD_APPLICATION_COMMAND_INDEX_UPDATE"
 }
