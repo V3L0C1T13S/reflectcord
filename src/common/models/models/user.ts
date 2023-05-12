@@ -131,7 +131,7 @@ export const User: QuarkConversion<RevoltUser, APIUser, UserATQ, UserAFQ> = {
         : null,
       banner_color: null,
       discriminator: "0001",
-      display_name: null,
+      // display_name: null,
       flags,
       username: extra?.masquerade?.name ?? username,
       public_flags: flags,
@@ -239,7 +239,6 @@ export interface internalActivity extends Omit<ActivitiesOptions, "type"> {
   created_at?: number,
   state?: string,
   details?: string,
-  // FIXME: i want whatever typescript is taking for it to need me to do this garbage
   type?: ActivityType,
   timestamps?: activityTimestamp,
   assets?: activityAssets,
