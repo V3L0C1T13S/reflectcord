@@ -46,6 +46,7 @@ export const IdentifySchema = {
     $readStateVersion: Number,
     $userGuildSettingsVersion: Number,
     $useruserGuildSettingsVersion: Number,
+    $initial_guild_id: String,
   },
   $clientState: {
     $guildHashes: Object,
@@ -53,6 +54,7 @@ export const IdentifySchema = {
     $readStateVersion: Number,
     $useruserGuildSettingsVersion: undefined,
     $userGuildSettingsVersion: undefined,
+    $initialGuildId: String,
   },
   $v: Number,
   $version: Number,
@@ -105,6 +107,7 @@ export interface IdentifySchema {
     readStateVersion?: number;
     userGuildSettingsVersion?: number;
     useruserGuildSettingsVersion?: number;
+    initial_guild_id?: string;
   },
   clientState?: {
     guildHashes?: any;
@@ -112,6 +115,7 @@ export interface IdentifySchema {
     readStateVersion?: number;
     userGuildSettingsVersion?: number;
     useruserGuildSettingsVersion?: number;
+    initialGuildId?: string;
   },
   v?: number,
   version?: number,
