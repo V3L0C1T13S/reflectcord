@@ -5,6 +5,9 @@ import { QuarkConversion } from "../QuarkConversion";
 import { fromSnowflake, toSnowflake } from "../util";
 import { Permissions } from "./permissions";
 
+// FIXME: This should be unhardcoded since some Revolt instances use different max roles
+const maxRoleCount = 200;
+
 export const Role: QuarkConversion<API.Role, APIRole> = {
   async to_quark(role) {
     const { name, id, permissions } = role;
@@ -26,7 +29,8 @@ export const Role: QuarkConversion<API.Role, APIRole> = {
       // FIXME: gradient conversion needed
       color: role.colour ? hexToRgbCode(role.colour) || 0 : 0,
       hoist: !!role.hoist,
-      position: role.rank ?? 0,
+      // On Discord, the highest role wins, where on Revolt, it's the exact opposite.
+      position: maxRoleCount - (role.rank ?? 0),
       managed: false,
       mentionable: false,
     };

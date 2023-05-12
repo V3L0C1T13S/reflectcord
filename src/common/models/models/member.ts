@@ -128,12 +128,8 @@ export class MergedMemberDTO implements MergedMember {
       .filter((role) => role.hoist && this.roles
         .find((member_role) => member_role === role.id));
 
-    /**
-     * FIXME: When we eventually sort role positions correctly,
-     * this code will need to be adjusted
-    */
     const hoisted_role = hoistedRoles
-      .sort((r1, r2) => r1.position - r2.position)[0];
+      .sort((x, y) => y.position - x.position)[0];
 
     return hoisted_role;
   }
