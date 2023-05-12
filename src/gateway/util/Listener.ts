@@ -1402,6 +1402,7 @@ export async function startListener(
         }
       }
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error("Error during ws handle:", e);
     }
   });
