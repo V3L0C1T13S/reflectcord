@@ -11,7 +11,7 @@ export default () => <Resource> {
 
     const rvId = await fromSnowflake(guild_id);
 
-    const emojis = await res.rvAPIWrapper.servers.getChannelNameEmojis(rvId, "name");
+    const emojis = await res.rvAPIWrapper.servers.getChannelNameEmojis(rvId, "id");
 
     res.json(emojis);
   },

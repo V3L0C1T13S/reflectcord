@@ -1,14 +1,16 @@
 import { APIGuild } from "discord.js";
 import { API } from "revolt.js";
 import { isEqual } from "lodash";
-import { Logger } from "@reflectcord/common/utils";
-import { DbManager } from "@reflectcord/common/db";
+import { Logger } from "../utils";
+import { DbManager } from "../db";
 import {
   Guild, RevoltOrderingSetting,
 } from "../models";
 import { BaseManager } from "./BaseManager";
 import { QuarkContainer } from "./types";
 import { MemberManager } from "./MemberManager";
+import { ChannelContainer } from "./Channels";
+import { getEmojilibEmojis } from "../emojilib";
 
 export type ServerContainer = QuarkContainer<API.Server, APIGuild, {
   members: MemberManager,
@@ -181,6 +183,23 @@ export class ServerManager extends BaseManager<string, ServerContainer> {
 
   getInvites(server: string) {
     return this.rvAPI.get(`/servers/${server as ""}/invites`);
+  }
+
+  async getChannelNameEmojis(id: string, mode: "name" | "id" = "id") {
+    const server = await this.fetch(id);
+    const channels = (await Promise.all(server.revolt.channels
+      .map((x) => this.apiWrapper.channels.fetch(x).catch(() => {}))))
+      .filter((x): x is ChannelContainer => !!x);
+
+    const channelEmojis: Record<string, string> = {};
+
+    channels.forEach((x) => {
+      const keywords = x.discord.name!.split("-");
+      const emojis = keywords.map((word) => getEmojilibEmojis(word)).flat();
+      channelEmojis[mode === "id" ? x.discord.id : x.discord.name!] = emojis[0] ?? "❓";
+    });
+
+    return channelEmojis;
   }
 
   update(id: string, data: serverI) {
