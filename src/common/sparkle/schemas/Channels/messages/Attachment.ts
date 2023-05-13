@@ -14,10 +14,16 @@ export const AttachmentSchema = {
   $height: new Tuple(Number, null),
   $width: new Tuple(Number, null),
   $ephemeral: Boolean,
+  $waveform: String,
+  $duration_secs: Number,
 };
 
 export type AttachmentSchema = APIAttachment & {
   uploaded_filename?: string,
+  duration_secs?: number,
+  waveform?: string,
 };
 
 export const FileIsNewAttachment = (file: any): file is AttachmentSchema => "uploaded_filename" in file;
+
+export const FileIsWaveform = (file: any): file is AttachmentSchema => FileIsNewAttachment(file) && "duration_secs" in file && "waveform" in file;
