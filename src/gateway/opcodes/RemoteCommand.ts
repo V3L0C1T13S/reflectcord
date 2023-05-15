@@ -9,7 +9,7 @@ export async function RemoteCommand(this: WebSocket, data: Payload<RemoteCommand
   const { target_session_id, payload } = data.d!;
 
   const session = SessionManager.getSession(target_session_id);
-  if (!session) return;
+  if (!session || session.rv_user_id !== this.rv_user_id) return;
 
   await invokeOPCode.call(session, payload);
 }
