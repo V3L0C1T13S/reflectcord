@@ -76,8 +76,27 @@ export enum GatewayOpcodes {
   EmbeddedActivityUpdate=27,
   // REQUEST_FORUM_UNREADS
   RequestForumUnreads=28,
-  // REMOTE_COMMAND
+  /**
+   * REMOTE_COMMAND
+   *
+   * @summary Execute an OPCode for another session on your account. This is likely used by
+   * Xbox and Playstation voice chat integration.
+   *
+   * @example
+   * {
+   *  target_session_id: string,
+   *  payload: PayloadBody
+   * }
+  */
   RemoteCommand=29,
   // GET_DELETED_ENTITY_IDS_NOT_MATCHING_HASH
   GetDeletedEntityIdsNotMatchingHash=30,
+  // REQUEST_SOUNDBOARD_SOUNDS
+  RequestSoundboardSounds=31,
+  // SPEED_TEST_CREATE
+  SpeedTestCreate=32,
+  // SPEED_TEST_DELETE
+  SpeedTestDelete=33,
+  // REQUEST_LAST_MESSAGES
+  RequestLastMessages=34,
 }

@@ -10,3 +10,5 @@ export * from "./Ready";
 export * from "./Guild";
 export * from "./Channel";
 export * from "./Emoji";
+export * from "./GetDeletedEntityIds";
+export * from "./RemoteCommand";
