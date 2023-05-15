@@ -31,6 +31,7 @@ import { sendOp, setHeartbeat } from "../util";
 import { SocketState, WebSocket } from "../Socket";
 import { Message } from "./Message";
 import { Close } from "./Close";
+import { SessionManager } from "../managers";
 
 export async function Connection(this: ws.Server, socket: WebSocket, request: IncomingMessage) {
   socket.session_id = genSessionId();
@@ -82,6 +83,8 @@ export async function Connection(this: ws.Server, socket: WebSocket, request: In
     socket.rvAPIWrapper = new APIWrapper(socket.rvAPI);
     socket.state = new SocketState();
     socket.trace = new Tracer(`gateway-prd-${new URL(reflectcordWsURL).host}`);
+
+    SessionManager.addSession(socket);
 
     setHeartbeat(socket);
 

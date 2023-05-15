@@ -28,6 +28,30 @@ import { OPCodeHandlers } from "../opcodes";
 
 const bigIntJson = BigIntJson({ storeAsString: true });
 
+export async function invokeOPCode(this: WebSocket, data: Payload) {
+  if (data.op !== GatewayOpcodes.Heartbeat) {
+    // FIXME: Implement validation here
+  } else if (data.s || data.t || (typeof data.d !== "number" && data.d)) {
+    Logger.log("Invalid heartbeat");
+    this.close(GatewayCloseCodes.DecodeError);
+  }
+
+  const OPCodeHandler = OPCodeHandlers[data.op];
+  if (!OPCodeHandler) {
+    // FIXME: Close connection if all opcodes are implemented
+    console.error(`Unknown opcode ${data.op}`);
+    return;
+  }
+
+  try {
+    const res = await OPCodeHandler.call(this, data);
+    return res;
+  } catch (e) {
+    console.error(e);
+    if (!this.CLOSED && this.CLOSING) return this.close(GatewayCloseCodes.UnknownError);
+  }
+}
+
 export async function Message(this: WebSocket, buffer: Buffer) {
   let data: Payload;
 
@@ -57,25 +81,5 @@ export async function Message(this: WebSocket, buffer: Buffer) {
   }
 
   Logger.log(`Message: ${JSON.stringify(data)}`);
-  if (data.op !== GatewayOpcodes.Heartbeat) {
-    // FIXME: Implement validation here
-  } else if (data.s || data.t || (typeof data.d !== "number" && data.d)) {
-    Logger.log("Invalid heartbeat");
-    this.close(GatewayCloseCodes.DecodeError);
-  }
-
-  const OPCodeHandler = OPCodeHandlers[data.op];
-  if (!OPCodeHandler) {
-    // FIXME: Close connection if all opcodes are implemented
-    console.error(`Unknown opcode ${data.op}`);
-    return;
-  }
-
-  try {
-    const res = await OPCodeHandler.call(this, data);
-    return res;
-  } catch (e) {
-    console.error(e);
-    if (!this.CLOSED && this.CLOSING) return this.close(GatewayCloseCodes.UnknownError);
-  }
+  invokeOPCode.call(this, data);
 }

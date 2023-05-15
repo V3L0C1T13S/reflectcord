@@ -17,6 +17,7 @@ import { StreamSetPaused } from "./StreamSetPaused";
 import { StreamDelete } from "./StreamDelete";
 import { StreamWatch } from "./StreamWatch";
 import { ActivityClose } from "./ActivityClose";
+import { RemoteCommand } from "./RemoteCommand";
 
 export type OPCodeHandler = (this: WebSocket, data: Payload) => any;
 
@@ -37,4 +38,5 @@ export const OPCodeHandlers: { [key: number ]: OPCodeHandler } = {
   [GatewayOpcodes.StreamSetPaused]: StreamSetPaused,
   [GatewayOpcodes.QueryApplicationCommands]: QueryApplicationCommands,
   [GatewayOpcodes.EmbeddedActivityClose]: ActivityClose,
+  [GatewayOpcodes.RemoteCommand]: RemoteCommand,
 };
