@@ -17,6 +17,6 @@
   },
   "homepage": "https://github.com/V3L0C1T13S/reflectcord#readme",
   "dependencies": {
-    "medooze-media-server": "^0.129.3"
+    "medooze-media-server": "^0.136.1"
   }
 }
