@@ -10,11 +10,11 @@
  * such as the Discord.js test suite.
 */
 
-import { BitField, GatewayDispatchEvents, GatewayOpcodes } from "discord.js";
+import { BitField, GatewayDispatchEvents, IntentsBitField } from "discord.js";
 import { WebSocket } from "ws";
 import { TestingToken } from "@reflectcord/common/rvapi";
 import {
-  ClientCapabilities, GatewayDispatchCodes, ReadyData, ReadySupplementalData,
+  ClientCapabilities, GatewayDispatchCodes, ReadyData, ReadySupplementalData, GatewayOpcodes,
 } from "@reflectcord/common/sparkle";
 import { isAGuild, isAGuildV2 } from "@reflectcord/common/utils/testUtils/validation";
 
@@ -31,6 +31,8 @@ randomCapabilities.add(ClientCapabilities.DeduplicateUserObjects);
 randomCapabilities.add(ClientCapabilities.PrioritizedReadyPayload);
 randomCapabilities.add(ClientCapabilities.ClientStateV2);
 
+const intents = new IntentsBitField();
+
 const identifyPayload = {
   token: TestingToken,
   capabilities: randomCapabilities.toJSON(),
@@ -45,9 +47,135 @@ const identifyPayload = {
     os_version: "13",
     system_locale: "en-US",
   },
+  // intents: intents.toJSON(),
 };
 
 const wasteful = (msg: string) => console.warn(`wasteful payload inaccuracy! ${msg}`);
+
+const send = (data: any) => socket.send(Buffer.from(JSON.stringify(data)));
+
+const abort = (msg: string) => `aborted: ${msg}`;
+
+const ok = (msg: string) => `ok: ${msg}`;
+
+let readyPayload: ReadyData | undefined;
+
+type test = {
+  after: string,
+  test: () => void,
+};
+
+const tests: Record<string, test> = {
+  guild_subscriptions: {
+    after: "ready",
+    test: () => {
+      if (!readyPayload) throw new Error(abort("not ready"));
+      if (readyPayload.user.bot) return;
+
+      const selectedGuild = readyPayload.guilds[0];
+      if (!selectedGuild) throw new Error(abort("no available guilds"));
+
+      const selectedChannel = selectedGuild.channels[0];
+      if (!selectedChannel) throw new Error(abort("no channels in guild"));
+
+      send({
+        op: GatewayOpcodes.LazyRequest,
+        d: {
+          guild_id: selectedGuild.id,
+          channels: {
+            [selectedChannel.id]: [[0, 99]],
+          },
+          activities: true,
+          typing: true,
+          threads: true,
+        },
+      });
+    },
+  },
+  guild_member_request: {
+    after: "ready",
+    test: () => {
+      if (!readyPayload) throw new Error(abort("not ready"));
+      if (readyPayload.user.bot) return;
+
+      const selectedGuild = readyPayload.guilds[0];
+      if (!selectedGuild) throw new Error(abort("no available guilds"));
+
+      send({
+        op: GatewayOpcodes.RequestGuildMembers,
+        d: {
+          guild_id: [selectedGuild.id],
+          limit: 1000,
+          user_ids: [readyPayload.user.id],
+        },
+      });
+    },
+  },
+  remote_command: {
+    after: "ready",
+    test: () => {
+      /*
+      if (!readyPayload) throw new Error(abort("not ready"));
+      if (readyPayload.user.bot) return;
+
+      const selected = readyPayload.session_id;
+
+      send({
+        op: GatewayOpcodes.RemoteCommand,
+        d: {
+          target_session_id: selected,
+          payload: {
+            type: "VOICE_STATE_UPDATE",
+            self_mute: true,
+            self_deaf: true,
+          },
+        },
+      });
+      */
+    },
+  },
+  call_sync: {
+    after: "ready",
+    test: () => {
+      /*
+      if (!readyPayload) throw new Error(abort("not ready"));
+      if (readyPayload.user.bot) return;
+
+      const selected = readyPayload.private_channels[0];
+      if (!selected) throw new Error(abort("no channels available"));
+
+      send({
+        op: GatewayOpcodes.CallSync,
+        d: {
+          channel_id: selected.id,
+        },
+      });
+      */
+    },
+  },
+  request_last_messages: {
+    after: "ready",
+    test: () => {
+      /*
+      if (!readyPayload) throw new Error(abort("not ready"));
+      if (readyPayload.user.bot) return;
+
+      const selectedGuild = readyPayload.guilds[0];
+      if (!selectedGuild) throw new Error(abort("no available guilds"));
+
+      const selectedChannel = selectedGuild.channels[0];
+      if (!selectedChannel) throw new Error(abort("no channels in guild"));
+
+      send({
+        op: GatewayOpcodes.RequestLastMessages,
+        d: {
+
+        },
+      });
+      */
+    },
+  },
+};
 
 socket.onopen = () => {
   console.log("connected");
@@ -61,16 +189,16 @@ socket.onmessage = (data) => {
   switch (d.op) {
     case GatewayOpcodes.Hello: {
       console.log("gw is awaiting auth");
-      socket.send(Buffer.from(JSON.stringify({
+      send({
         op: GatewayOpcodes.Identify,
         d: identifyPayload,
-      })));
+      });
       break;
     }
     case GatewayOpcodes.Heartbeat: {
-      socket.send(Buffer.from(JSON.stringify({
+      send({
         op: GatewayOpcodes.Heartbeat,
-      })));
+      });
       break;
     }
     case GatewayOpcodes.Dispatch: {
@@ -80,6 +208,7 @@ socket.onmessage = (data) => {
 
           const {
             users, user_settings, presences, merged_presences, merged_members, user_settings_proto,
+            user,
           } = d.d! as ReadyData;
 
           if (identifyPayload.capabilities & ClientCapabilities.DeduplicateUserObjects) {
@@ -104,27 +233,41 @@ socket.onmessage = (data) => {
             if (merged_presences) wasteful(`merged_presences isnt supposed to be here but its defined as ${merged_presences}`);
           }
 
-          if (identifyPayload.capabilities & ClientCapabilities.UserSettingsProto) {
-            if (user_settings) throw new Error(`fatal payload inaccuracy! we got ${user_settings} but we only want protobufs!`);
-          } else if (!user_settings) throw new Error(`fatal payload inaccuracy! we didn't get user_settings even though we don't support protobufs! got ${user_settings} instead.`);
-          if (!user_settings_proto) throw new Error(`fatal payload inaccuracy! some clients may expect a settings proto even without capabilities for it! got ${user_settings_proto}`);
+          if (!user.bot) {
+            if (identifyPayload.capabilities & ClientCapabilities.UserSettingsProto) {
+              if (user_settings) throw new Error(`fatal payload inaccuracy! we got ${user_settings} but we only want protobufs!`);
+            } else if (!user_settings) throw new Error(`fatal payload inaccuracy! we didn't get user_settings even though we don't support protobufs! got ${user_settings} instead.`);
+            if (!user_settings_proto) throw new Error(`fatal payload inaccuracy! some clients may expect a settings proto even without capabilities for it! got ${user_settings_proto}`);
 
-          const testguild = d.d!.guilds[0];
-          if (testguild) {
-            if (!testguild.properties) {
-              console.log("we got a legacy guild");
-              if (identifyPayload.capabilities & ClientCapabilities.ClientStateV2) {
-                throw new Error(`expected a state v2 guild but we got a legacy guild! ${testguild}`);
+            const testguild = d.d!.guilds[0];
+            if (testguild) {
+              if (!testguild.properties) {
+                console.log("we got a legacy guild");
+                if (identifyPayload.capabilities & ClientCapabilities.ClientStateV2) {
+                  throw new Error(`expected a state v2 guild but we got a legacy guild! ${testguild}`);
+                }
+                if (!isAGuild(testguild)) throw new Error(`bad guild!! ${testguild}`);
+              } else {
+                console.log("we got a state V2 guild");
+                if (!(identifyPayload.capabilities & ClientCapabilities.ClientStateV2)) {
+                  throw new Error(`expected a legacy guild but we got a state v2 guild! ${testguild}`);
+                }
+                if (!isAGuildV2(testguild)) throw new Error(`bad guild v2!! ${testguild}`);
               }
-              if (!isAGuild(testguild)) throw new Error(`bad guild!! ${testguild}`);
-            } else {
-              console.log("we got a state V2 guild");
-              if (!(identifyPayload.capabilities & ClientCapabilities.ClientStateV2)) {
-                throw new Error(`expected a legacy guild but we got a state v2 guild! ${testguild}`);
-              }
-              if (!isAGuildV2(testguild)) throw new Error(`bad guild v2!! ${testguild}`);
             }
           }
+
+          readyPayload = d.d!;
+
+          const readyTests = Object.entries(tests).filter(([name, test]) => test.after === "ready");
+
+          readyTests.forEach(([name, test]) => {
+            console.log(`RUNS: ${name}`);
+
+            test.test();
+
+            console.log(ok(name));
+          });
           break;
         }
         case GatewayDispatchCodes.ReadySupplemental: {
@@ -142,6 +285,26 @@ socket.onmessage = (data) => {
           }
           break;
         }
+        case GatewayDispatchCodes.GuildMemberListUpdate: {
+          const {
+            ops, items, member_count, online_count, guild_id,
+          } = d.d!;
+
+          if (!ops.every((x: any) => Array.isArray(x.range) && x.range.length === 2)) {
+            throw new Error("bad payload! ranges are not a tuple!", ops);
+          }
+
+          break;
+        }
+        case GatewayDispatchEvents.GuildMembersChunk: {
+          const { chunk_index, chunk_count } = d.d!;
+
+          if (chunk_index >= chunk_count) {
+            throw new Error(`bad chunk index! index ${chunk_index} is greater than or equal to ${chunk_count}`);
+          }
+
+          break;
+        }
         default: {
           console.log(d.t);
           break;
@@ -157,6 +320,6 @@ socket.onmessage = (data) => {
 };
 
 socket.onclose = (data) => {
-  console.log("Session closed. Testing complete.");
+  console.log("Session closed. Testing complete.", data.code, data.reason);
   process.exit(1);
 };
