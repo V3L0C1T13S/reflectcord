@@ -85,5 +85,13 @@ export enum GatewayDispatchCodes {
   UserSettingsUpdate = "USER_SETTINGS_UPDATE",
   UserSettingsProtoUpdate = "USER_SETTINGS_PROTO_UPDATE",
   UserNonChannelAck = "USER_NON_CHANNEL_ACK",
-  GuildApplicationCommandIndexUpdate = "GUILD_APPLICATION_COMMAND_INDEX_UPDATE"
+  GuildApplicationCommandIndexUpdate = "GUILD_APPLICATION_COMMAND_INDEX_UPDATE",
+  LastMessages = "LAST_MESSAGES",
+  UserNoteUpdate = "USER_NOTE_UPDATE",
+  InitialGuild = "INITIAL_GUILD",
+  ConsoleCommandUpdate = "CONSOLE_COMMAND_UPDATE",
+  UserConnectionsUpdate = "USER_CONNECTIONS_UPDATE",
+  ChannelRecipientAdd = "CHANNEL_RECIPIENT_ADD",
+  ChannelRecipientRemove = "CHANNEL_RECIPIENT_REMOVE",
+  DeletedEntityIds = "DELETED_ENTITY_IDS",
 }
