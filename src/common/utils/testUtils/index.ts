@@ -25,7 +25,7 @@ export async function getFromAPI(url: string) {
   return res;
 }
 
-export async function postToAPI(url: string, data: any) {
+export async function postToAPI(url: string, data?: any) {
   const res = await TestAxiosClient({
     method: "post",
     url: `${apiURL}/${url}`,
