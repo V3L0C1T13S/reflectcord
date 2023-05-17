@@ -10,6 +10,8 @@ import { GatewayFullUserPresence } from "../../../models";
 import { MergedMember } from "./Members";
 import { GatewayPrivateChannel } from "./Channel";
 
+export type tutorialTypes = "voice-conversations";
+
 export interface CommonGatewayRelationshipData {
   id: string;
   type: UserRelationshipType;
@@ -110,7 +112,7 @@ export interface ReadyData extends Omit<GatewayReadyDispatchData, "application">
   presences?: GatewayFullUserPresence[],
   tutorial: {
     indicators_suppressed: boolean,
-    indicators_confirmed: string[],
+    indicators_confirmed: tutorialTypes[],
   } | null,
   session_type: "normal",
 }
