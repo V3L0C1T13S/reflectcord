@@ -15,3 +15,4 @@ export * from "./oauth2";
 export * from "./Errors";
 export * from "./Activities";
 export * from "./Client";
+export * from "./Clyde";
