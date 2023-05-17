@@ -1,8 +1,7 @@
 /* eslint-disable camelcase */
 import { Resource } from "express-automatic-routes";
-import { HTTPError, RabbitMQ } from "@reflectcord/common/utils";
+import { HTTPError } from "@reflectcord/common/utils";
 import { fromSnowflake } from "@reflectcord/common/models";
-import { userStartTyping } from "@reflectcord/common/events";
 import { emitEvent } from "@reflectcord/common/Events";
 
 export default () => <Resource> {
