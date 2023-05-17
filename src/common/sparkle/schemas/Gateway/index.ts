@@ -12,3 +12,4 @@ export * from "./Channel";
 export * from "./Emoji";
 export * from "./GetDeletedEntityIds";
 export * from "./RemoteCommand";
+export * from "./LastMessages";
