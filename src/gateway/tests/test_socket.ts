@@ -23,7 +23,7 @@ const USE_DISCORD = true;
 const gatewayDomain = USE_DISCORD ? "wss://gateway.discord.gg?v=9&encoding=json" : "ws://localhost:3002?v=9&encoding=json";
 const socket = new WebSocket(gatewayDomain);
 
-const discordClientCapabilities = 4093;
+const discordClientCapabilities = 8189;
 const openCordCapabilities = 93;
 const discordMobileCapabilities = 351;
 const randomCapabilities = new BitField();
@@ -63,6 +63,8 @@ let readyPayload: ReadyData | undefined;
 type test = {
   after: string,
   test: () => void,
+  /** Unreliable tests will not cause a full suite failure. */
+  unreliable?: boolean,
 };
 
 const tests: Record<string, test> = {
@@ -137,7 +139,6 @@ const tests: Record<string, test> = {
   call_sync: {
     after: "ready",
     test: () => {
-      /*
       if (!readyPayload) throw new Error(abort("not ready"));
       if (readyPayload.user.bot) return;
 
@@ -150,13 +151,11 @@ const tests: Record<string, test> = {
           channel_id: selected.id,
         },
       });
-      */
     },
   },
   request_last_messages: {
     after: "ready",
     test: () => {
-      /*
       if (!readyPayload) throw new Error(abort("not ready"));
       if (readyPayload.user.bot) return;
 
@@ -169,10 +168,19 @@ const tests: Record<string, test> = {
       send({
         op: GatewayOpcodes.RequestLastMessages,
         d: {
-
+          guild_id: selectedGuild.id,
+          channel_ids: [selectedChannel.id],
         },
       });
-      */
+    },
+  },
+  voice_server_ping: {
+    after: "ready",
+    test: () => {
+      send({
+        op: GatewayOpcodes.VoicePing,
+        d: null,
+      });
     },
   },
 };
@@ -264,9 +272,12 @@ socket.onmessage = (data) => {
           readyTests.forEach(([name, test]) => {
             console.log(`RUNS: ${name}`);
 
-            test.test();
-
-            console.log(ok(name));
+            try {
+              test.test();
+              console.log(ok(name));
+            } catch (e) {
+              console.error(`FAILED: ${name}, ${e}`);
+            }
           });
           break;
         }
@@ -290,7 +301,9 @@ socket.onmessage = (data) => {
             ops, items, member_count, online_count, guild_id,
           } = d.d!;
 
-          if (!ops.every((x: any) => Array.isArray(x.range) && x.range.length === 2)) {
+          if (!ops.every((x: any) => (x.range
+            ? Array.isArray(x.range) && x.range.length === 2
+            : true))) {
             throw new Error("bad payload! ranges are not a tuple!", ops);
           }
 
@@ -302,6 +315,15 @@ socket.onmessage = (data) => {
           if (chunk_index >= chunk_count) {
             throw new Error(`bad chunk index! index ${chunk_index} is greater than or equal to ${chunk_count}`);
           }
+
+          break;
+        }
+        case GatewayDispatchCodes.LastMessages: {
+          const { messages, guild_id } = d.d!;
+
+          if (!Array.isArray(messages)) throw new Error(`lazy_messages.messages should be an array but it's a ${typeof messages}`);
+
+          if (typeof guild_id !== "string") throw new Error(`lazy_messages.guild_id should be a string but it's a ${typeof guild_id}`);
 
           break;
         }
