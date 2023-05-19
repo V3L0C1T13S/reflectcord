@@ -73,6 +73,8 @@ import {
   ReadySupplementalData,
   MergedPresences,
   APIPrivateChannel,
+  GatewayLazyRequestDispatchData,
+  LazyItem,
 } from "@reflectcord/common/sparkle";
 import { reflectcordWsURL } from "@reflectcord/common/constants";
 import { VoiceState } from "@reflectcord/common/mongoose";
@@ -1050,13 +1052,40 @@ export async function startListener(
           if (!server?.extra?.members) return;
 
           const member = await server.extra.members.fetch(data.id, data.user);
+          const user = await this.rvAPIWrapper.users.fetch(data.user);
 
+          const guildId = await toSnowflake(data.id);
           const body: GatewayGuildMemberAddDispatchData = {
             ...member.discord,
-            guild_id: await toSnowflake(data.id),
+            guild_id: guildId,
           };
 
           await Dispatch(this, GatewayDispatchEvents.GuildMemberAdd, body);
+
+          const memberList = this.subscribed_servers[data.id]?.memberList;
+          if (memberList) {
+            const ops = memberList.addItemToGroup("online", {
+              member: {
+                ...member.discord,
+                presence: await createUserPresence({
+                  user: user.revolt,
+                  discordUser: user.discord,
+                }),
+              },
+            });
+            if (!ops) return;
+
+            const memberListBody: GatewayLazyRequestDispatchData = {
+              ops,
+              guild_id: guildId,
+              groups: memberList.groups,
+              id: memberList.id,
+              member_count: memberList.memberCount,
+              online_count: memberList.onlineCount,
+            };
+
+            await Dispatch(this, GatewayDispatchCodes.GuildMemberListUpdate, memberListBody);
+          }
 
           break;
         }
@@ -1065,6 +1094,7 @@ export async function startListener(
           if (!server?.extra?.members) return;
 
           const member = await server.extra.members.fetch(data.id.server, data.id.user);
+          const user = await this.rvAPIWrapper.users.fetch(data.id.user);
           server.extra.members.update(data.id.user, {
             revolt: data.data,
             discord: {},
@@ -1080,19 +1110,51 @@ export async function startListener(
             }),
           }, data.clear);
 
+          const guildId = await toSnowflake(data.id.server);
+
           const body: GatewayGuildMemberUpdateDispatchData = {
             ...member.discord,
-            user: member.discord.user ?? (await this.rvAPIWrapper.users
-              .fetch(data.id.user)).discord,
-            guild_id: await toSnowflake(data.id.server),
+            user: member.discord.user ?? user.discord,
+            guild_id: guildId,
           };
 
-          // TODO: Update the member list if subscribed
           await Dispatch(
             this,
             GatewayDispatchEvents.GuildMemberUpdate,
             body,
           );
+
+          const memberList = this.subscribed_servers[data.id.server]?.memberList;
+
+          if (memberList) {
+            const memberIndex = memberList.findMemberItemIndex(member.discord.user!.id);
+            if (!memberIndex) return;
+
+            const updatedItem: LazyItem = {
+              member: {
+                ...member.discord,
+                presence: createUserPresence({
+                  user: user.revolt,
+                  discordUser: user.discord,
+                }),
+                user: user.discord,
+              },
+            };
+
+            const ops = memberList.updateAndRecalculate(memberIndex, updatedItem);
+            if (!ops) return;
+
+            const memberListBody: GatewayLazyRequestDispatchData = {
+              ops,
+              guild_id: memberList.guildId,
+              id: memberList.id,
+              groups: memberList.groups,
+              member_count: memberList.memberCount,
+              online_count: memberList.onlineCount,
+            };
+
+            await Dispatch(this, GatewayDispatchCodes.GuildMemberListUpdate, memberListBody);
+          }
 
           break;
         }
@@ -1123,6 +1185,31 @@ export async function startListener(
           };
 
           await Dispatch(this, GatewayDispatchEvents.GuildMemberRemove, body);
+
+          const subscribedServer = this.subscribed_servers[data.id];
+          if (subscribedServer) {
+            const { memberList } = subscribedServer;
+            if (!memberList) return;
+
+            const index = memberList.findMemberItemIndex(user.discord.id);
+            if (index) {
+              const ops = memberList.deleteAndRecalculate(index);
+              const memberListUpdateBody: GatewayLazyRequestDispatchData = {
+                ops,
+                guild_id: memberList.guildId,
+                groups: memberList.groups,
+                id: memberList.id,
+                member_count: memberList.memberCount,
+                online_count: memberList.onlineCount,
+              };
+
+              await Dispatch(
+                this,
+                GatewayDispatchCodes.GuildMemberListUpdate,
+                memberListUpdateBody,
+              );
+            }
+          }
 
           server?.extra?.members.delete(data.user);
 
@@ -1157,6 +1244,29 @@ export async function startListener(
 
             if (data.id !== this.rv_user_id) {
               await Dispatch(this, GatewayDispatchEvents.PresenceUpdate, updated);
+
+              await Promise.all(Object.entries(this.subscribed_servers)
+                .filter(([_, server]) => server.members?.includes(data.id))
+                .map(async ([_, server]) => {
+                  const { memberList } = server;
+                  if (!memberList) return;
+
+                  const index = memberList.findMemberItemIndex(user.discord.id);
+
+                  const ops = memberList.updatePresence(index, updated);
+                  if (!ops) return;
+
+                  const updatedList: GatewayLazyRequestDispatchData = {
+                    ops,
+                    groups: memberList.groups,
+                    guild_id: memberList.guildId,
+                    id: memberList.id,
+                    member_count: memberList.memberCount,
+                    online_count: memberList.onlineCount,
+                  };
+
+                  await Dispatch(this, GatewayDispatchCodes.GuildMemberListUpdate, updatedList);
+                }));
             } else {
               // TODO: what is this mysterious "all" session for?
               await Dispatch(this, GatewayDispatchCodes.SessionsReplace, [{

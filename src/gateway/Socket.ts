@@ -50,7 +50,7 @@ interface subscribedServer {
    * Members we're subscribed to
    */
   members?: string[];
-  memberList?: MemberList
+  memberList?: MemberList,
 }
 
 /**

@@ -29,6 +29,7 @@ import {
 } from "@reflectcord/common/sparkle";
 import { MemberContainer } from "@reflectcord/common/managers";
 import { Logger } from "@reflectcord/common/utils";
+import { MemberList } from "@reflectcord/common/utils/discord/MemberList";
 import { Payload, Dispatch } from "../util";
 import { WebSocket } from "../Socket";
 import { check } from "./instanceOf";
@@ -56,14 +57,14 @@ async function getMembers(
 
   // Keeps track of the real info for us
   const counts = {
-    online: 0, offline: 0, realOffline: 0,
+    online: 0, offline: 0, realOffline: 0, onlineGroup: 0,
   };
 
   const groups: LazyGroup[] = [];
-  const items: { group?: LazyGroup, member?: LazyOpMember }[] = [];
+  const items: LazyItem[] = [];
   const discordGuildId = await toSnowflake(guild_id);
   const offlineMembers: { member: API.Member, user: API.User }[] = [];
-  const offlineItems: { group?: LazyGroup, member?: LazyOpMember }[] = [];
+  const offlineItems: LazyItem[] = [];
 
   let members: API.AllMemberResponse;
 
@@ -95,7 +96,10 @@ async function getMembers(
         counts.offline += 1;
       }
       counts.realOffline += 1;
-    } else counts.online += 1;
+    } else {
+      counts.online += 1;
+      if ((m.roles?.length ?? 0) <= 0) counts.onlineGroup += 1;
+    }
 
     return user.online;
   });
@@ -171,7 +175,7 @@ async function getMembers(
         .find((r) => r === role),
     );
     const group: SyncItem = {
-      count: role === discordGuildId ? counts.online : role_members.length,
+      count: role === discordGuildId ? counts.onlineGroup : role_members.length,
       id: role === discordGuildId ? "online" : role,
     };
 
@@ -283,6 +287,10 @@ export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
   const rvServerId = await fromSnowflake(guild_id);
   // eslint-disable-next-line no-multi-assign
   const subscribedServer = this.subscribed_servers[rvServerId] ??= {};
+  subscribedServer.members ??= [];
+  // eslint-disable-next-line no-multi-assign
+  const memberList = subscribedServer.memberList ??= new MemberList(guild_id, "everyone");
+
   const server = this.rvAPIWrapper.servers.get(rvServerId);
   if (!server) throw new Error(`Server ${server} is not in RVAPI cache`);
 
@@ -360,10 +368,6 @@ export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
     return op;
   }));
 
-  /*
-  results.extendedMembers.forEach((member) => subscribeToMember.call(this, member.revolt._id.user));
-  */
-
   const groups = newOps.map((x) => x.results.groups)
     .flat()
     .unique();
@@ -377,13 +381,23 @@ export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
     });
   }
 
+  const onlineCount = newOps[0]?.results.counts.online ?? 0;
+  newOps.forEach((x) => {
+    x.extendedMembers.forEach((member) => subscribeToMember
+      .call(this, member.revolt._id.server, member.revolt._id.user));
+    memberList.sync(x.results.range, x.results.items);
+  });
+  memberList.setGroups(groups);
+  memberList.onlineCount = onlineCount;
+  memberList.memberCount = member_count;
+
   await Dispatch(this, GatewayDispatchCodes.GuildMemberListUpdate, {
     ops: newOps.map((x) => ({
-      items: x.results.items,
       op: "SYNC",
+      items: x.results.items,
       range: x.results.range,
     })),
-    online_count: newOps[0]?.results.counts.online ?? 0,
+    online_count: onlineCount,
     member_count,
     id: "everyone",
     guild_id,
