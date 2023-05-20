@@ -1070,6 +1070,7 @@ export async function startListener(
                 presence: await createUserPresence({
                   user: user.revolt,
                   discordUser: user.discord,
+                  minifyUser: true,
                 }),
               },
             });
@@ -1133,11 +1134,11 @@ export async function startListener(
             const updatedItem: LazyItem = {
               member: {
                 ...member.discord,
-                presence: createUserPresence({
+                presence: await createUserPresence({
                   user: user.revolt,
                   discordUser: user.discord,
+                  minifyUser: true,
                 }),
-                user: user.discord,
               },
             };
 
@@ -1253,7 +1254,10 @@ export async function startListener(
 
                   const index = memberList.findMemberItemIndex(user.discord.id);
 
-                  const ops = memberList.updatePresence(index, updated);
+                  const ops = memberList.updatePresence(index, {
+                    ...updated,
+                    user: { id: user.discord.id },
+                  });
                   if (!ops) return;
 
                   const updatedList: GatewayLazyRequestDispatchData = {

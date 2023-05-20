@@ -376,6 +376,7 @@ export interface RevoltPresenceData {
   server?: string,
   guild_id?: string,
   deduplicate?: boolean,
+  minifyUser?: boolean,
 }
 
 export async function createUserPresence(
@@ -398,7 +399,7 @@ export async function createUserPresence(
   };
 
   if (data.deduplicate) presence.user_id = user.id;
-  else presence.user = user;
+  else presence.user = data.minifyUser ? { id: user.id } : user;
 
   if (status.status === "idle" && status.since && status.afk) {
     presence.since = status.since;

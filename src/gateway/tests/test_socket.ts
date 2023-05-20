@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable camelcase */
 /* eslint-disable no-bitwise */
 /**
@@ -14,7 +15,14 @@ import { BitField, GatewayDispatchEvents, IntentsBitField } from "discord.js";
 import { WebSocket } from "ws";
 import { TestingToken } from "@reflectcord/common/rvapi";
 import {
-  ClientCapabilities, GatewayDispatchCodes, ReadyData, ReadySupplementalData, GatewayOpcodes,
+  ClientCapabilities,
+  GatewayDispatchCodes,
+  ReadyData,
+  ReadySupplementalData,
+  GatewayOpcodes,
+  GatewayLazyRequestDispatchData,
+  LazyOperatorInsert,
+  LazyOperatorSync,
 } from "@reflectcord/common/sparkle";
 import { isAGuild, isAGuildV2 } from "@reflectcord/common/utils/testUtils/validation";
 
@@ -298,14 +306,13 @@ socket.onmessage = (data) => {
         }
         case GatewayDispatchCodes.GuildMemberListUpdate: {
           const {
-            ops, items, member_count, online_count, guild_id,
-          } = d.d!;
+            ops, member_count, online_count, guild_id,
+          } = d.d! as GatewayLazyRequestDispatchData;
 
-          if (!ops.every((x: any) => (x.range
-            ? Array.isArray(x.range) && x.range.length === 2
-            : true))) {
-            throw new Error("bad payload! ranges are not a tuple!", ops);
-          }
+          const syncOps = ops.filter((x): x is LazyOperatorSync => x.op === "SYNC");
+
+          if (!syncOps.every((x) => Array.isArray(x.range)
+            && x.range[0] <= x.range[1] && x.items.length - 1 <= x.range[1])) throw new Error(`bad member list ${d.d}`);
 
           break;
         }

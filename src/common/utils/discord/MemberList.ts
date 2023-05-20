@@ -46,6 +46,11 @@ export class MemberList {
     };
   }
 
+  /**
+   * @summary Recalculate a members position, sorted by highest role
+   *
+   * @returns OPCodes for the movement
+  */
   recalculateMemberPosition(index: number) {
     const ops: LazyOperators[] = [];
 
@@ -53,12 +58,15 @@ export class MemberList {
     if (!member || !("member" in member) || !member.member.user) return;
 
     const currentGroup = this.getMemberGroup(member.member.user.id);
-    const highestGroup = this.groups.find((x) => member.member.roles.includes(x.id));
-    if (!highestGroup || !currentGroup) return;
+    let highestGroupId = this.groups.find((x) => member.member.roles.includes(x.id))?.id
+      ?? "online";
+    if (member.member.presence.status === "offline") highestGroupId = "offline";
+    if (!highestGroupId || !currentGroup) return;
+    if (highestGroupId === currentGroup.group.id) return;
 
     ops.push(
       ...this.deleteAndRecalculate(index),
-      ...(this.addItemToGroup(highestGroup.id, member) ?? []),
+      ...this.addItemToGroup(highestGroupId, member) ?? [],
     );
 
     return ops;
@@ -69,7 +77,7 @@ export class MemberList {
 
     ops.push(this.update(index, item));
     const recalculated = this.recalculateMemberPosition(index);
-    if (!recalculated) return;
+    if (!recalculated) return ops;
 
     ops.push(...recalculated);
 
@@ -84,18 +92,9 @@ export class MemberList {
 
     if (!("member" in existing) || !existing.member.user) return;
 
-    ops.push(this.update(index, {
-      ...existing,
-      member: {
-        ...existing.member,
-        presence,
-      },
-    }));
+    existing.member.presence = presence;
 
-    if (presence.status === "offline") {
-      ops.push(...this.deleteAndRecalculate(index));
-      ops.push(...(this.addItemToGroup("offline", existing) ?? []));
-    }
+    ops.push(...this.updateAndRecalculate(index, existing) ?? []);
 
     return ops;
   }
