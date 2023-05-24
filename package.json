@@ -55,7 +55,7 @@
     "fastify": "^4.15.0",
     "fastify-autoroutes": "^3.0.2",
     "ffmpeg-static": "^5.1.0",
-    "file-type": "^16.5.4",
+    "file-type": "^18.4.0",
     "find-my-way": "github:V3L0C1T13S/find-my-way#dev/reflectcord",
     "fluent-ffmpeg": "^2.1.2",
     "form-data": "^4.0.0",
