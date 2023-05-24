@@ -1,6 +1,12 @@
+/* eslint-disable no-multi-assign */
+/* eslint-disable no-fallthrough */
+/* eslint-disable default-case */
+/* eslint-disable max-len */
+/* eslint-disable no-bitwise */
 import {
   APIGuildMember,
 } from "discord.js";
+import murmur from "murmurhash-js/murmurhash3_gc";
 import {
   LazyOperatorDelete,
   LazyOperatorInsert,
@@ -12,6 +18,10 @@ import {
   LazyRange,
   LazyOperators,
 } from "../../sparkle";
+
+export function calculateListId(str: string, seed?: number) {
+  return murmur(str, seed);
+}
 
 /**
  * Generic member list using only lazy items.
@@ -110,6 +120,18 @@ export class MemberList {
     };
   }
 
+  insertAndRecalculate(item: LazyItem, index?: number) {
+    const ops: LazyOperators[] = [];
+
+    ops.push(this.insert(index ?? this.items.length, item));
+    if ("member" in item && !item.member.user) throw new Error("member has no user");
+
+    const newIndex = "member" in item ? this.findMemberItemIndex(item.member.user!.id) : this.findGroupItemIndex(item.group.id);
+    ops.push(...this.recalculateMemberPosition(newIndex) ?? []);
+
+    return ops;
+  }
+
   addItemToGroup(id: string, item: LazyItem, create = true): LazyOperators[] | undefined {
     const ops: LazyOperators[] = [];
 
@@ -169,6 +191,8 @@ export class MemberList {
     const item = this.items[index];
     if (!item) return ops;
 
+    let newIndex = index;
+
     if ("member" in item && item.member.user) {
       const group = this.getMemberGroup(item.member.user.id);
       if (group) {
@@ -178,11 +202,12 @@ export class MemberList {
           const groupCountIndex = this.groups.findIndex((x) => x.id === group.group.id);
           this.groups.splice(groupCountIndex, 1);
           ops.push(this.delete(groupIndex));
+          newIndex = this.findMemberItemIndex(item.member.user.id);
         }
       }
     }
 
-    ops.push(this.delete(index));
+    ops.push(this.delete(newIndex));
 
     return ops;
   }

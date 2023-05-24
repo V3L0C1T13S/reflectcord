@@ -1,3 +1,4 @@
+/* eslint-disable no-bitwise */
 /*
   Fosscord: A FOSS re-implementation and extension of the Discord.com backend.
   Copyright (C) 2023 Fosscord and Fosscord Contributors
@@ -19,17 +20,23 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable no-plusplus */
 /* eslint-disable camelcase */
-import { GatewayDispatchEvents } from "discord.js";
+import {
+  APIOverwrite,
+  APIRole,
+  GatewayDispatchEvents,
+  PermissionFlagsBits,
+  PermissionsBitField,
+} from "discord.js";
 import { API } from "revolt.js";
 import {
-  internalStatus, Member, Status, fromSnowflake, toSnowflake, createUserPresence,
+  internalStatus, Member, Status, fromSnowflake, toSnowflake, createUserPresence, Permissions,
 } from "@reflectcord/common/models";
 import {
   LazyRequest, GatewayDispatchCodes, LazyRange, SyncItem, LazyGroup, LazyOpMember, LazyItem,
 } from "@reflectcord/common/sparkle";
 import { MemberContainer } from "@reflectcord/common/managers";
 import { Logger } from "@reflectcord/common/utils";
-import { MemberList } from "@reflectcord/common/utils/discord/MemberList";
+import { MemberList, calculateListId } from "@reflectcord/common/utils/discord/MemberList";
 import { Payload, Dispatch } from "../util";
 import { WebSocket } from "../Socket";
 import { check } from "./instanceOf";
@@ -42,6 +49,21 @@ function partition<T>(array: T[], isValid: Function) {
     ([pass, fail], elem) => (isValid(elem) ? [[...pass, elem], fail] : [pass, [...fail, elem]]),
     [[], []],
   );
+}
+
+function calculateMemberPermissions(
+  roles: APIRole[],
+  overwrites: APIOverwrite[],
+) {
+  const permissions = new PermissionsBitField(roles.map((x) => x.permissions.toBigInt()));
+
+  if (permissions.has(PermissionFlagsBits.Administrator)) {
+    return new PermissionsBitField(PermissionsBitField.All);
+  }
+
+  return permissions
+    .remove(overwrites.map((role) => role.deny.toBigInt()))
+    .add(overwrites.map((role) => role.allow.toBigInt()));
 }
 
 async function getMembers(
@@ -255,7 +277,7 @@ async function getMembers(
 
   return {
     results: {
-      items,
+      items: items.slice(range[0], range[1]),
       groups,
       range,
       members: items
@@ -333,6 +355,9 @@ export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
 
   const rvChannelId = await fromSnowflake(channel_id);
 
+  const channel = this.rvAPIWrapper.channels.get(rvChannelId);
+  if (!channel) throw new Error(`channel ${rvChannelId} is not cached`);
+
   // eslint-disable-next-line no-multi-assign
   const lazyChannel = this.lazy_channels[rvChannelId] ??= {};
   lazyChannel.messages = true;
@@ -391,6 +416,18 @@ export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
   memberList.onlineCount = onlineCount;
   memberList.memberCount = member_count;
 
+  const listId = "permission_overwrites" in channel.discord ? (() => {
+    const perms: string[] = [];
+    channel.discord.permission_overwrites.forEach((x) => {
+      const { id, allow, deny } = x;
+
+      if (allow.toBigInt() & PermissionFlagsBits.ViewChannel) perms.push(`allow:${id}`);
+      else if (deny.toBigInt() & PermissionFlagsBits.ViewChannel) perms.push(`deny:${id}`);
+    });
+
+    return perms.length > 0 ? calculateListId(perms.sort().join(",")) : "everyone";
+  })() : "everyone";
+
   await Dispatch(this, GatewayDispatchCodes.GuildMemberListUpdate, {
     ops: newOps.map((x) => ({
       op: "SYNC",
@@ -399,7 +436,7 @@ export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
     })),
     online_count: onlineCount,
     member_count,
-    id: "everyone",
+    id: listId,
     guild_id,
     groups,
   });
