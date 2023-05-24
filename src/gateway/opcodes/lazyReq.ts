@@ -29,10 +29,10 @@ import {
 } from "discord.js";
 import { API } from "revolt.js";
 import {
-  internalStatus, Member, Status, fromSnowflake, toSnowflake, createUserPresence, Permissions,
+  internalStatus, Member, Status, fromSnowflake, toSnowflake, createUserPresence,
 } from "@reflectcord/common/models";
 import {
-  LazyRequest, GatewayDispatchCodes, LazyRange, SyncItem, LazyGroup, LazyOpMember, LazyItem,
+  LazyRequest, GatewayDispatchCodes, LazyRange, SyncItem, LazyGroup, LazyItem,
 } from "@reflectcord/common/sparkle";
 import { MemberContainer } from "@reflectcord/common/managers";
 import { Logger } from "@reflectcord/common/utils";
@@ -425,7 +425,7 @@ export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
       else if (deny.toBigInt() & PermissionFlagsBits.ViewChannel) perms.push(`deny:${id}`);
     });
 
-    return perms.length > 0 ? calculateListId(perms.sort().join(",")) : "everyone";
+    return perms.length > 0 ? calculateListId(perms.sort().join(",")).toString() : "everyone";
   })() : "everyone";
 
   await Dispatch(this, GatewayDispatchCodes.GuildMemberListUpdate, {
