@@ -18,6 +18,7 @@
 
 import { RabbitMQ, Logger } from "@reflectcord/common/utils";
 import { WebSocket } from "../Socket";
+import { SessionManager } from "../managers";
 
 export async function Close(this: WebSocket, code: number, reason: string) {
   Logger.log(`WS Closed ${code} ${reason}`);
@@ -32,5 +33,7 @@ export async function Close(this: WebSocket, code: number, reason: string) {
   // Getting out of revolt
   this.rvClient.removeAllListeners();
   await this.rvClient.logout(true);
+
+  SessionManager.removeSession(this.session_id);
   Logger.log("Logged out of revolt");
 }
