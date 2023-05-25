@@ -16,11 +16,11 @@
     "start:gateway:dev": "nodemon ./src/gateway/start.ts --config nodemon.gateway.json",
     "start:voice:dev": "nodemon ./src/voice/start.ts --config nodemon.voice.json",
     "start:monolith:dev": "nodemon ./src/start.ts",
-    "start:api": "node ./dist/api/start.js",
-    "start:cdn": "node ./dist/cdn/start.js",
-    "start:gateway": "node ./dist/gateway/start.js",
-    "start:voice": "node ./dist/voice/start.js",
-    "start:monolith": "node ./dist/start.js",
+    "start:api": "DIST=1 node ./dist/api/start.js",
+    "start:cdn": "DIST=1 node ./dist/cdn/start.js",
+    "start:gateway": "DIST=1 node ./dist/gateway/start.js",
+    "start:voice": "DIST=1 node ./dist/voice/start.js",
+    "start:monolith": "DIST=1 node ./dist/start.js",
     "clean": "rimraf dist",
     "lint": "eslint src/**/*.ts",
     "test": "jest",
@@ -66,6 +66,7 @@
     "lodash": "^4.17.21",
     "long": "^5.2.0",
     "missing-native-js-functions": "^1.3.1",
+    "module-alias": "^2.2.2",
     "mongodb": "^5.1.0",
     "mongoose": "^7.1.0",
     "morgan": "^1.10.0",
@@ -118,5 +119,12 @@
     "src/gateway",
     "src/voice",
     "src/evil"
-  ]
+  ],
+  "_moduleAliases": {
+    "@reflectcord/common": "./dist/common",
+    "@reflectcord/api": "./dist/api",
+    "@reflectcord/cdn": "./dist/cdn",
+    "@reflectcord/gateway": "./dist/gateway",
+    "@reflectcord/voice": "./dist/voice"
+  }
 }

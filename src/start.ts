@@ -1,3 +1,6 @@
+/* eslint-disable import/first */
+if (process.env["DIST"]) require("module-alias/register");
+
 import { ReflectcordCDN } from "./cdn";
 import { ReflectcordAPI } from "./api";
 import { ReflectcordGateway } from "./gateway";

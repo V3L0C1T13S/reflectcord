@@ -71,6 +71,19 @@ Dev mode is recommended if you'll be making frequent changes to the codebase, ho
 
 On the other hand, production mode takes longer to build and make changes to, but it's much more efficient and uses less memory, so it's recommended if you won't be making changes to the code.
 
+3. Monolith mode
+`npm run start:monolith`
+
+OR
+
+`npm run start:monolith:dev`
+
+Monolith mode is a special mode useful for memory-constrained environments, where all microservices run under the same process.
+
+This mode is **heavily** unrecommended for production, especially in cases where you may end up processing tons of API requests, or where you will have to dispatch tons of Gateway events.
+
+If the API, Gateway, or CDN start to lag behind, all of them lag behind, and could potentially cause a server lockup.
+
 ## Configuring
 
 See [configuring.md](configuring.md)

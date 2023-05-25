@@ -1,5 +1,5 @@
-import { ImageQuery, handleImgRequest } from "cdn/util";
 import { Resource } from "fastify-autoroutes";
+import { ImageQuery, handleImgRequest } from "../../../../../../util";
 
 export default () => <Resource> {
   get: {
