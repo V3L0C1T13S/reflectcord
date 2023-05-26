@@ -48,6 +48,18 @@ Alternatively, you can use Docker to run RabbitMQ.
 
 `docker run -d --hostname reflectcord --name reflectcord-rabbit -p 5672:5672 rabbitmq:3.11-management`
 
+#### MongoDB
+
+MongoDB is used by Reflectcord to store converted snowflakes, user data such as voice states, sessions, notes, slash commands, and other misc. data that has no Revolt equivalent.
+
+You can either self host (recommended), or use a free MongoDB atlas instance. Using an instance not hosted on your device/local network is **highly unrecommended** due to the high amounts of database usage that can occur with Snowflake conversion.
+
+To self host, follow the official [installation guide](https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/#install-mongodb-community-edition) for MongoDB.
+
+Once done, no extra configuration is needed. Reflectcord is automatically configured to use the MongoDB instance on your device.
+
+TODO: Document using MongoDB atlas
+
 #### Installing Reflectcord native dependencies
 
 Reflectcord native is the C++ code that some parts of Reflectcord call into. To install them, run this command in your terminal:
