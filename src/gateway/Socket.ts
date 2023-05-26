@@ -24,7 +24,7 @@ import { Client } from "revolt.js";
 import WS from "ws";
 import { Deflate, Inflate } from "fast-zlib";
 import { MemberList } from "@reflectcord/common/utils/discord/MemberList";
-import { CapabilitiesObject } from "@reflectcord/common/sparkle";
+import { CapabilitiesObject, IdentifySchema } from "@reflectcord/common/sparkle";
 import { Tracer } from "@reflectcord/common/debug";
 import { APIWrapper } from "@reflectcord/common/rvapi";
 import { Payload } from "./util";
@@ -63,6 +63,7 @@ interface lazyChannel {
 }
 
 export interface WebSocket extends WS {
+  pendingMessages?: any[];
   bot: boolean;
   subscribed_servers: Record<string, subscribedServer>;
   lazy_channels: Record<string, lazyChannel>;
@@ -103,4 +104,5 @@ export interface WebSocket extends WS {
   capabilities: CapabilitiesObject;
   trace: Tracer;
   rvSession?: ResponseLogin & { result: "Success" };
+  identifyPayload: IdentifySchema;
 }

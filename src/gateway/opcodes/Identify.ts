@@ -44,6 +44,8 @@ export async function onIdentify(this: WebSocket, data: Payload<IdentifySchema>)
 
   this.token = token;
 
+  this.identifyPayload = identify;
+
   if (shard) {
     [this.shard_id, this.shard_count] = shard;
 
@@ -58,7 +60,7 @@ export async function onIdentify(this: WebSocket, data: Payload<IdentifySchema>)
     }
   }
 
-  await startListener.call(this, token, identify);
+  await startListener.call(this, token);
 
   this.trace.startTrace("get_session");
   const existingSession = await RevoltSession.findOne({ token });

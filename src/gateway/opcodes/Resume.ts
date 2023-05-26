@@ -1,26 +1,13 @@
 /* eslint-disable no-plusplus */
-import { GatewayOpcodes, GatewayDispatchEvents } from "discord.js";
+import { GatewayDispatchEvents } from "discord.js";
 import { ResumeSchema } from "@reflectcord/common/sparkle";
+import { Logger } from "@reflectcord/common/utils";
 import {
-  Payload, StateManager, invalidateSession, Send,
+  Payload, invalidateSession, Send, Dispatch,
 } from "../util";
 import { WebSocket } from "../Socket";
 import { check } from "./instanceOf";
-
-async function resume(this: WebSocket, startAt: number) {
-  await Promise.all(this.state.store.map(async (x, i) => {
-    if (i > startAt) return;
-
-    await Send(this, x);
-  }));
-
-  await Send(this, {
-    op: GatewayOpcodes.Dispatch,
-    t: GatewayDispatchEvents.Resumed,
-    s: this.sequence++,
-    d: {},
-  });
-}
+import { SessionManager } from "../managers";
 
 export async function onResume(this: WebSocket, data: Payload<ResumeSchema>) {
   check.call(this, ResumeSchema, data.d);
@@ -30,17 +17,24 @@ export async function onResume(this: WebSocket, data: Payload<ResumeSchema>) {
   // HACK: Discord.js attempts to resume with null sequence
   if (!reqData.seq) return invalidateSession(this, false);
 
-  const state = StateManager.fetchByToken(reqData.token, reqData.session_id);
-  if (!state) return invalidateSession(this, false);
+  this.token = reqData.token;
 
-  if (reqData.seq > state.sequence) return invalidateSession(this, false);
+  const result = await SessionManager.reconnect(reqData.session_id, this);
 
-  if (!state.CLOSED) return invalidateSession(this, false);
+  if (!result) return invalidateSession(this, false);
 
-  StateManager.unscheduleDelete(state.session_id);
-  this.sequence = state.sequence;
-  // Getting rid of old state
-  StateManager.insert(this);
+  await Dispatch(this, GatewayDispatchEvents.Resumed, null);
 
-  await resume.call(this, this.sequence - reqData.seq);
+  if (this.pendingMessages) {
+    this.trace.startTrace("dispatch_pending");
+    // TODO: respect sequences, and maybe don't emit events that screw with state
+    await Promise.all(this.pendingMessages.map(async (x, i) => {
+      await Send(this, x);
+    }));
+    this.trace.stopTrace("dispatch_pending");
+
+    delete this.pendingMessages;
+  }
+
+  Logger.log(`OK: Sent all messages to ${this.session_id}`);
 }

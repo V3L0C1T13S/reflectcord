@@ -110,10 +110,11 @@ function cacheServerCreateChannels(
 export async function startListener(
   this: WebSocket,
   token: string,
-  identifyPayload: IdentifySchema,
 ) {
   this.rvClient.on("packet", async (data) => {
     try {
+      const { identifyPayload } = this;
+
       switch (data.type) {
         case "Error": {
           if (["InvalidSession", "AlreadyAuthenticated", "InvalidSession"].includes(data.error)) {

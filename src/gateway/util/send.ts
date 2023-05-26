@@ -37,12 +37,15 @@ export async function Send(socket: WebSocket, data: Payload) {
 
   return new Promise((res, rej) => {
     if (socket.readyState !== 1) {
-      // eslint-disable-next-line no-promise-executor-return, prefer-promise-reject-errors
-      return rej("socket not open");
+      // eslint-disable-next-line no-param-reassign
+      socket.pendingMessages ??= [];
+      socket.pendingMessages.push(data);
+
+      // eslint-disable-next-line no-promise-executor-return
+      return res(null);
     }
     socket.send(buffer, (err: any) => {
       if (err) return rej(err);
-      // if (data.s) socket.state.store.push(data);
       return res(null);
     });
   });

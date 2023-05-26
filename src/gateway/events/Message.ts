@@ -48,7 +48,9 @@ export async function invokeOPCode(this: WebSocket, data: Payload) {
     return res;
   } catch (e) {
     console.error(e);
-    if (!this.CLOSED && this.CLOSING) return this.close(GatewayCloseCodes.UnknownError);
+    if (!this.CLOSED && this.CLOSING) {
+      return this.close(GatewayCloseCodes.UnknownError);
+    }
   }
 }
 
@@ -81,5 +83,5 @@ export async function Message(this: WebSocket, buffer: Buffer) {
   }
 
   Logger.log(`Message: ${JSON.stringify(data)}`);
-  invokeOPCode.call(this, data);
+  await invokeOPCode.call(this, data);
 }
