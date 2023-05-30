@@ -343,3 +343,21 @@ export async function createUserGatewayGuild(
 
   return userGuild;
 }
+
+export async function createInitialReadyGuild(
+  guild: APIGuild,
+  data: UserGatewayGuildData,
+) {
+  const initialGuild = {
+    ...await createUserGatewayGuild(guild, data),
+    members: [
+      ...data.members,
+      data.member,
+    ],
+    last_messages: [],
+    has_threads_subscription: true,
+    presences: [],
+  };
+
+  return initialGuild;
+}

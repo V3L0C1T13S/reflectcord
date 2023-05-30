@@ -57,6 +57,7 @@ import {
   GatewayReactionPartialEmojiDTO,
   RelationshipType,
   GatewayRelationshipDTO,
+  createInitialReadyGuild,
 } from "@reflectcord/common/models";
 import { Logger, genAnalyticsToken } from "@reflectcord/common/utils";
 import {
@@ -555,6 +556,29 @@ export async function startListener(
           }
 
           trace.stopTrace("clean_ready");
+
+          if (identifyPayload.client_state?.initial_guild_id) {
+            trace.startTrace("prepare_initial_guild");
+
+            const guild = guilds
+              .find((x) => x.id === identifyPayload.client_state?.initial_guild_id);
+
+            if (guild && !("unavailable" in guild)) {
+              readyData.guilds = readyData.guilds
+                .filter((x: any) => x.id !== guild.id);
+
+              await Dispatch(
+                this,
+                GatewayDispatchCodes.InitialGuild,
+                await createInitialReadyGuild("properties" in guild ? guild.properties : guild, {
+                  members: "members" in guild ? guild.members : [],
+                  channels: guild.channels,
+                }),
+              );
+            }
+
+            trace.stopTrace("prepare_initial_guild");
+          }
 
           readyData._trace.push(JSON.stringify(trace.toGatewayObject()));
           await Dispatch(this, GatewayDispatchEvents.Ready, readyData);

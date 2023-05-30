@@ -49,7 +49,7 @@ export interface MergedPresences {
   friends: GatewayFullUserPresence[],
 }
 
-export interface ReadyData extends Omit<GatewayReadyDispatchData, "application"> {
+export interface ReadyData extends Omit<GatewayReadyDispatchData, "application" | "guilds"> {
   application?: GatewayReadyDispatchData["application"],
   auth_session_id_hash?: string, // TODO: Document
   guilds: APIUnavailableGuild[] | any,
