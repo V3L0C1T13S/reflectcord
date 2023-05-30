@@ -23,8 +23,6 @@ export async function onResume(this: WebSocket, data: Payload<ResumeSchema>) {
 
   if (!result) return invalidateSession(this, false);
 
-  await Dispatch(this, GatewayDispatchEvents.Resumed, null);
-
   if (this.pendingMessages) {
     this.trace.startTrace("dispatch_pending");
     // TODO: respect sequences, and maybe don't emit events that screw with state
@@ -35,6 +33,8 @@ export async function onResume(this: WebSocket, data: Payload<ResumeSchema>) {
 
     delete this.pendingMessages;
   }
+
+  await Dispatch(this, GatewayDispatchEvents.Resumed, null);
 
   Logger.log(`OK: Sent all messages to ${this.session_id}`);
 }
