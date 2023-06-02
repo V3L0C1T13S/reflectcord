@@ -28,6 +28,7 @@ import { CapabilitiesObject, IdentifySchema } from "@reflectcord/common/sparkle"
 import { Tracer } from "@reflectcord/common/debug";
 import { APIWrapper } from "@reflectcord/common/rvapi";
 import { Payload } from "./util";
+import { Intents } from "./util/Intents";
 
 export class SocketState {
   store: Payload[] = [];
@@ -105,4 +106,5 @@ export interface WebSocket extends WS {
   trace: Tracer;
   rvSession?: ResponseLogin & { result: "Success" };
   identifyPayload: IdentifySchema;
+  intentsManager: Intents;
 }

@@ -26,6 +26,7 @@ import { startListener } from "../util/Listener";
 import { Payload } from "../util";
 import { WebSocket } from "../Socket";
 import { check } from "./instanceOf";
+import { Intents } from "../util/Intents";
 
 export async function onIdentify(this: WebSocket, data: Payload<IdentifySchema>) {
   clearTimeout(this.readyTimeout);
@@ -36,7 +37,7 @@ export async function onIdentify(this: WebSocket, data: Payload<IdentifySchema>)
   const identify = data.d!;
 
   let { token } = identify;
-  const { shard } = identify;
+  const { shard, intents } = identify;
 
   if (token.startsWith("Bot ")) {
     token = token.slice("Bot ".length, token.length);
@@ -59,6 +60,8 @@ export async function onIdentify(this: WebSocket, data: Payload<IdentifySchema>)
       return this.close(GatewayCloseCodes.InvalidShard);
     }
   }
+
+  this.intents = intents;
 
   await startListener.call(this, token);
 

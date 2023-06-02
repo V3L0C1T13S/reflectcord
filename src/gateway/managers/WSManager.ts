@@ -81,6 +81,7 @@ export namespace SessionManager {
     newSession.capabilities = old.capabilities;
     newSession.enable_lazy_channels = old.enable_lazy_channels;
     newSession.intents = old.intents;
+    newSession.intentsManager = old.intentsManager;
     newSession.trace = old.trace;
     newSession.user_id = old.user_id;
     newSession.rv_user_id = old.rv_user_id;

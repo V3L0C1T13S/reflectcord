@@ -14,6 +14,7 @@ import {
   GatewayGuildMemberUpdateDispatchData,
   GatewayGuildRoleDeleteDispatchData,
   GatewayGuildRoleUpdateDispatchData,
+  GatewayIntentBits,
   GatewayInteractionCreateDispatchData,
   GatewayMessageCreateDispatchData,
   GatewayMessageDeleteBulkDispatchData,
@@ -58,6 +59,7 @@ import {
   RelationshipType,
   GatewayRelationshipDTO,
   createInitialReadyGuild,
+  filterMessageObject,
 } from "@reflectcord/common/models";
 import { Logger, genAnalyticsToken } from "@reflectcord/common/utils";
 import {
@@ -85,6 +87,7 @@ import { Dispatch } from "./send";
 import experiments from "./experiments.json";
 import { updateMessage } from "./messages";
 import { createInternalListener } from "./InternalListener";
+import { Intents } from "./Intents";
 
 // TODO: rework lol
 function cacheServerCreateChannels(
@@ -186,6 +189,8 @@ export async function startListener(
 
           this.user_id = await toSnowflake(currentUser._id);
           this.rv_user_id = currentUser._id;
+
+          this.intentsManager = new Intents(this.intents ?? 0, this.version, this.bot);
 
           trace.stopTrace("reflectcord_init");
 
@@ -663,7 +668,17 @@ export async function startListener(
             }
           }
 
-          await Dispatch(this, GatewayDispatchEvents.MessageCreate, body);
+          await Dispatch(this, GatewayDispatchEvents.MessageCreate, filterMessageObject(
+            body,
+            {
+              messageContent: this.intentsManager.hasIntent(GatewayIntentBits.MessageContent)
+                || this.intentsManager.hasIntent(GatewayIntentBits.GuildMessages),
+            },
+            {
+              user: this.user_id,
+              channelType: channel.discord.type,
+            },
+          ));
 
           break;
         }
@@ -1268,8 +1283,16 @@ export async function startListener(
               discordUser: user.discord,
             });
 
-            if (data.id !== this.rv_user_id) {
-              await Dispatch(this, GatewayDispatchEvents.PresenceUpdate, updated);
+            if (
+              data.id !== this.rv_user_id
+              || this.bot
+            ) {
+              if (
+                this.intentsManager.hasIntent(GatewayIntentBits.GuildPresences)
+                || (this.bot && data.id === this.rv_user_id)
+              ) {
+                await Dispatch(this, GatewayDispatchEvents.PresenceUpdate, updated);
+              }
 
               await Promise.all(Object.entries(this.subscribed_servers)
                 .filter(([_, server]) => server.members?.includes(data.id))

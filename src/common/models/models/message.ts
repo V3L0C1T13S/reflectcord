@@ -9,6 +9,7 @@ import {
   ButtonStyle,
   APIButtonComponent,
   APIButtonComponentWithCustomId,
+  ChannelType,
 } from "discord.js";
 import fileUpload from "express-fileupload";
 import { Message as RevoltMessage } from "revolt-api";
@@ -531,3 +532,36 @@ export const MessageSendData: QuarkConversion<
     };
   },
 };
+
+/**
+ * @summary Filter a message using the specified intents
+ *
+ * @param message The message to filter
+ *
+ * @param intents Intents to apply. Refer to Discords documentation for more info.
+ * https://discord.com/developers/docs/topics/gateway#message-content-intent
+ *
+ * @param data Data for accurate filtering
+*/
+export function filterMessageObject(
+  message: APIMessage,
+  intents: { messageContent?: boolean },
+  data: { user: string, channelType: ChannelType },
+) {
+  const filtered = { ...message };
+
+  if (
+    message.author.id !== data.user
+    && !message.mentions.find((x) => x.id === data.user)
+    && data.channelType !== ChannelType.DM
+  ) {
+    if (!intents.messageContent) {
+      filtered.content = "";
+      filtered.embeds = [];
+      filtered.attachments = [];
+      filtered.components = [];
+    }
+  }
+
+  return filtered;
+}
