@@ -1,6 +1,6 @@
 /* eslint-disable no-param-reassign */
 import { Logger, RabbitMQ } from "@reflectcord/common/utils";
-import { startListener } from "gateway/util/Listener";
+import { startListener } from "../util/Listener";
 import { WebSocket } from "../Socket";
 import { createInternalListener } from "../util/InternalListener";
 
