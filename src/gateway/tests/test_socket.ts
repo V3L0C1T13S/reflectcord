@@ -21,15 +21,21 @@ import {
   ReadySupplementalData,
   GatewayOpcodes,
   GatewayLazyRequestDispatchData,
-  LazyOperatorInsert,
   LazyOperatorSync,
 } from "@reflectcord/common/sparkle";
 import { isAGuild, isAGuildV2 } from "@reflectcord/common/utils/testUtils/validation";
+import { createWriteStream } from "fs";
 
 const USE_DISCORD = true;
+const { DUMP_EVENTS } = process.env;
 
 const gatewayDomain = USE_DISCORD ? "wss://gateway.discord.gg?v=9&encoding=json" : "ws://localhost:3002?v=9&encoding=json";
 const socket = new WebSocket(gatewayDomain);
+
+const stream = createWriteStream("./gw_dumps/gw_dump.json");
+const writeToDump = (chunk: any) => (DUMP_EVENTS ? stream.write(chunk) : false);
+
+writeToDump("[");
 
 const discordClientCapabilities = 8189;
 const openCordCapabilities = 93;
@@ -40,6 +46,8 @@ randomCapabilities.add(ClientCapabilities.PrioritizedReadyPayload);
 randomCapabilities.add(ClientCapabilities.ClientStateV2);
 
 const intents = new IntentsBitField();
+
+const initialGuildId = process.env["INITIAL_GUILD_ID"];
 
 const identifyPayload = {
   token: TestingToken,
@@ -54,6 +62,9 @@ const identifyPayload = {
     os_sdk_version: "33",
     os_version: "13",
     system_locale: "en-US",
+  },
+  client_state: {
+    initial_guild_id: initialGuildId,
   },
   // intents: intents.toJSON(),
 };
@@ -202,6 +213,8 @@ socket.onmessage = (data) => {
 
   const d = JSON.parse(data.data as string) as unknown as { op: number, t?: string, d?: any };
 
+  writeToDump(`${data.data},`);
+
   switch (d.op) {
     case GatewayOpcodes.Hello: {
       console.log("gw is awaiting auth");
@@ -334,6 +347,13 @@ socket.onmessage = (data) => {
 
           break;
         }
+        case GatewayDispatchCodes.InitialGuild: {
+          const { id } = d.d!;
+
+          if (id !== initialGuildId) throw new Error(`expected initial guild ${initialGuildId} but got ${id}`);
+
+          break;
+        }
         default: {
           console.log(d.t);
           break;
@@ -350,5 +370,7 @@ socket.onmessage = (data) => {
 
 socket.onclose = (data) => {
   console.log("Session closed. Testing complete.", data.code, data.reason);
+  writeToDump("]");
+  stream.end();
   process.exit(1);
 };
