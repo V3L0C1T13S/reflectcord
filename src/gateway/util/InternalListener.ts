@@ -20,7 +20,7 @@ import { eventOpts, listenEvent } from "@reflectcord/common/Events";
 import { Logger, RabbitMQ } from "@reflectcord/common/utils";
 import { GatewayDispatchCodes } from "@reflectcord/common/sparkle";
 import { fromSnowflake, toSnowflake } from "@reflectcord/common/models";
-import { GatewayDispatchEvents } from "discord.js";
+import { GatewayDispatchEvents, GatewayIntentBits } from "discord.js";
 import { WebSocket } from "../Socket";
 import { Dispatch } from "./send";
 
@@ -48,6 +48,8 @@ async function internalConsumer(this: WebSocket, opts: eventOpts) {
         break;
       }
       case GatewayDispatchEvents.InviteCreate: {
+        if (!this.intentsManager.hasIntent(GatewayIntentBits.GuildInvites)) return;
+
         const user = await this.rvAPIWrapper.users.fetch(await fromSnowflake(data.inviter.id));
 
         data.inviter = user.discord;

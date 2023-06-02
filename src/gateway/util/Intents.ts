@@ -1,4 +1,6 @@
-import { GatewayIntentBits, IntentsBitField } from "discord.js";
+import {
+  APIChannel, GatewayIntentBits, IntentsBitField,
+} from "discord.js";
 
 export class Intents {
   intents: IntentsBitField;
@@ -16,5 +18,13 @@ export class Intents {
     if (!this.bot || this.version < 8) return true;
 
     return this.intents.has(intent);
+  }
+
+  hasTypingIntent(channel: APIChannel) {
+    return this.intents.has("guild_id" in channel ? GatewayIntentBits.GuildMessageTyping : GatewayIntentBits.DirectMessageTyping);
+  }
+
+  hasMessagesIntent(channel: APIChannel) {
+    return this.intents.has("guild_id" in channel ? GatewayIntentBits.GuildMessages : GatewayIntentBits.DirectMessages);
   }
 }

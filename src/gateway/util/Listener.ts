@@ -668,17 +668,19 @@ export async function startListener(
             }
           }
 
-          await Dispatch(this, GatewayDispatchEvents.MessageCreate, filterMessageObject(
-            body,
-            {
-              messageContent: this.intentsManager.hasIntent(GatewayIntentBits.MessageContent)
+          if (this.intentsManager.hasMessagesIntent(channel.discord)) {
+            await Dispatch(this, GatewayDispatchEvents.MessageCreate, filterMessageObject(
+              body,
+              {
+                messageContent: this.intentsManager.hasIntent(GatewayIntentBits.MessageContent)
                 || this.intentsManager.hasIntent(GatewayIntentBits.GuildMessages),
-            },
-            {
-              user: this.user_id,
-              channelType: channel.discord.type,
-            },
-          ));
+              },
+              {
+                user: this.user_id,
+                channelType: channel.discord.type,
+              },
+            ));
+          }
 
           break;
         }
@@ -873,6 +875,8 @@ export async function startListener(
         }
         case "ChannelStartTyping": {
           const channel = await this.rvAPIWrapper.channels.fetch(data.id);
+
+          if (!this.intentsManager.hasTypingIntent(channel.discord)) return;
 
           const body: GatewayTypingStartDispatchData = {
             channel_id: channel.discord.id,
@@ -1100,7 +1104,9 @@ export async function startListener(
             guild_id: guildId,
           };
 
-          await Dispatch(this, GatewayDispatchEvents.GuildMemberAdd, body);
+          if (this.intentsManager.hasIntent(GatewayIntentBits.GuildMembers)) {
+            await Dispatch(this, GatewayDispatchEvents.GuildMemberAdd, body);
+          }
 
           const memberList = this.subscribed_servers[data.id]?.memberList;
           if (memberList) {
@@ -1423,10 +1429,12 @@ export async function startListener(
 
           const emojis = this.rvAPIWrapper.emojis.getServerEmojis(data.parent.id);
 
-          await Dispatch(this, GatewayDispatchEvents.GuildEmojisUpdate, {
-            guild_id: await toSnowflake(data.parent.id),
-            emojis: emojis.map((x) => x.discord),
-          });
+          if (this.intentsManager.hasIntent(GatewayIntentBits.GuildEmojisAndStickers)) {
+            await Dispatch(this, GatewayDispatchEvents.GuildEmojisUpdate, {
+              guild_id: await toSnowflake(data.parent.id),
+              emojis: emojis.map((x) => x.discord),
+            });
+          }
 
           break;
         }
@@ -1441,10 +1449,12 @@ export async function startListener(
           const emojis = this.rvAPIWrapper.emojis
             .getServerEmojis(emoji.revolt.parent.id);
 
-          await Dispatch(this, GatewayDispatchEvents.GuildEmojisUpdate, {
-            guild_id: guildId,
-            emojis: emojis.map((x) => x.discord),
-          });
+          if (this.intentsManager.hasIntent(GatewayIntentBits.GuildEmojisAndStickers)) {
+            await Dispatch(this, GatewayDispatchEvents.GuildEmojisUpdate, {
+              guild_id: guildId,
+              emojis: emojis.map((x) => x.discord),
+            });
+          }
 
           break;
         }
