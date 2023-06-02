@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 import { Request } from "express";
 import { Resource } from "express-automatic-routes";
-import { Message, User, fromSnowflake } from "@reflectcord/common/models";
+import { Message, fromSnowflake } from "@reflectcord/common/models";
 import { HTTPError } from "@reflectcord/common/utils";
 
 function convertSortOrder(by: string, order?: string) {
@@ -66,12 +66,13 @@ export default () => <Resource> {
     }
 
     const messages = await Promise.all(rvSearchResults.messages.map(async (x) => {
-      const message = await Message.from_quark(x);
       const author = rvSearchResults.users.find((u) => u._id === x.author)!;
+      const message = await Message.from_quark(x, {
+        user: author,
+      });
 
       return [{
         ...message,
-        author: await User.from_quark(author),
         hit: true,
       }];
     }));

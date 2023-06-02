@@ -1,4 +1,4 @@
-import { Application, Response } from "express";
+import { Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { reflectcordWsURL } from "@reflectcord/common/constants";
 import { APIGatewayResponse } from "@reflectcord/common/sparkle";
