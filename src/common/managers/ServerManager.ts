@@ -202,6 +202,25 @@ export class ServerManager extends BaseManager<string, ServerContainer> {
     return channelEmojis;
   }
 
+  async moveChannelCategory(serverId: string, channelId: string, categoryId: string) {
+    const server = await this.fetch(serverId);
+    if (!server.revolt.categories) throw new Error(`${serverId} has no categories`);
+
+    const category = server.revolt.categories.find((x) => x.id === categoryId);
+    const previousCategory = server.revolt.categories.find((x) => x.channels.includes(channelId));
+
+    if (!category) throw new Error(`${serverId} does not contain category ${categoryId}`);
+
+    category.channels.push(channelId);
+    if (previousCategory) previousCategory.channels.remove(channelId);
+
+    const res = await this.rvAPI.patch(`/servers/${serverId as ""}`, {
+      categories: server.revolt.categories,
+    });
+
+    return res;
+  }
+
   update(id: string, data: serverI) {
     const server = this.get(id)!;
     const apply = (ctx: string, key: string, target?: string) => {

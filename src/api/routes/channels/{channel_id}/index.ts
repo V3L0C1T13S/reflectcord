@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { Application, Response } from "express";
+import { Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
 import {
@@ -51,6 +51,14 @@ export default () => <Resource> {
           deny: rvDeny.a,
         },
       });
+    }
+
+    if (req.body.parent_id) {
+      if (!("server" in rvChannel)) throw new HTTPError("Not a guild channel", 400);
+      const rvCategoryId = await fromSnowflake(req.body.parent_id);
+
+      await res.rvAPIWrapper.servers
+        .moveChannelCategory(rvChannel.server, rvChannel._id, rvCategoryId);
     }
 
     res.json(await Channel.from_quark(rvChannel));
