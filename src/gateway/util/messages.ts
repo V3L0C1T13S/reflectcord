@@ -29,7 +29,9 @@ export async function updateMessage(this: WebSocket, data: ClientboundNotificati
 
   if ("guild_id" in channel.discord && channel.discord.guild_id) body.guild_id = channel.discord.guild_id;
 
-  await Dispatch(this, GatewayDispatchEvents.MessageUpdate, body);
+  if (this.intentsManager.hasMessagesIntent(channel.discord)) {
+    await Dispatch(this, GatewayDispatchEvents.MessageUpdate, body);
+  }
 
   return msgObj;
 }

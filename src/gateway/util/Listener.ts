@@ -706,7 +706,9 @@ export async function startListener(
 
           if ("guild_id" in channel.discord && channel.discord.guild_id) body.guild_id = channel.discord.guild_id;
 
-          await Dispatch(this, GatewayDispatchEvents.MessageDelete, body);
+          if (this.intentsManager.hasMessagesIntent(channel.discord)) {
+            await Dispatch(this, GatewayDispatchEvents.MessageDelete, body);
+          }
 
           this.rvAPIWrapper.messages.delete(data.id);
 
@@ -867,7 +869,9 @@ export async function startListener(
             body.guild_id = channel.discord.guild_id;
           }
 
-          await Dispatch(this, GatewayDispatchEvents.MessageDeleteBulk, body);
+          if (this.intentsManager.hasMessagesIntent(channel.discord)) {
+            await Dispatch(this, GatewayDispatchEvents.MessageDeleteBulk, body);
+          }
 
           data.ids.forEach((msg) => this.rvAPIWrapper.messages.delete(msg));
 
