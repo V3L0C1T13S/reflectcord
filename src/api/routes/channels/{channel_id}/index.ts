@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 import { Response } from "express";
 import { Resource } from "express-automatic-routes";
-import { API } from "revolt.js";
+import API from "revolt-api";
 import {
   fromSnowflake, Channel, ChannelPatchBody, Permissions,
 } from "@reflectcord/common/models";

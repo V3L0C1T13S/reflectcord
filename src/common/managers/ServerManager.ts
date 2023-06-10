@@ -54,6 +54,7 @@ export class ServerManager extends BaseManager<string, ServerContainer> {
    * Fetch server without caching or conversion
   */
   fetchRaw(id: string) {
+    // @ts-ignore
     return this.rvAPI.get(`/servers/${id as ""}`);
   }
 

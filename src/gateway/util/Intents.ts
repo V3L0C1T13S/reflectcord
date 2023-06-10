@@ -21,10 +21,22 @@ export class Intents {
   }
 
   hasTypingIntent(channel: APIChannel) {
-    return this.intents.has("guild_id" in channel ? GatewayIntentBits.GuildMessageTyping : GatewayIntentBits.DirectMessageTyping);
+    return this.hasIntent("guild_id" in channel ? GatewayIntentBits.GuildMessageTyping : GatewayIntentBits.DirectMessageTyping);
   }
 
   hasMessagesIntent(channel: APIChannel) {
-    return this.intents.has("guild_id" in channel ? GatewayIntentBits.GuildMessages : GatewayIntentBits.DirectMessages);
+    return this.hasIntent("guild_id" in channel ? GatewayIntentBits.GuildMessages : GatewayIntentBits.DirectMessages);
+  }
+
+  hasMessageReactionsIntent(channel: APIChannel) {
+    return this.hasIntent("guild_id" in channel ? GatewayIntentBits.GuildMessageReactions : GatewayIntentBits.DirectMessageReactions);
+  }
+
+  hasGuildMembersIntent(data: { memberId: string, selfId: string }) {
+    return data.memberId === data.selfId || this.hasIntent(GatewayIntentBits.GuildMembers);
+  }
+
+  hasGuildsIntent() {
+    return this.hasIntent(GatewayIntentBits.Guilds);
   }
 }

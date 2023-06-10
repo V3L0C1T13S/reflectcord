@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
-import { Application, Request } from "express";
+import { Request } from "express";
 import { Resource } from "express-automatic-routes";
-import { API } from "revolt.js";
+import API from "revolt-api";
 import { decodeTime } from "ulid";
 import { HTTPError } from "@reflectcord/common/utils";
 import {

@@ -13,11 +13,9 @@ export default () => <Resource> {
 
     const rvId = await fromSnowflake(guild_id);
 
-    const api = res.rvAPI;
+    const server = await res.rvAPIWrapper.servers.fetch(rvId);
 
-    const server = await api.get(`/servers/${rvId as ""}`);
-
-    res.json(await Guild.from_quark(server));
+    res.json(server.discord);
   },
   patch: async (req: Request<any, any, RESTPatchAPIGuildJSONBody>, res: Response<APIGuild>) => {
     const { guild_id } = req.params;

@@ -1,8 +1,8 @@
-import { API } from "revolt.js";
+import { API } from "revolt-api";
 import { APIWrapper } from "../rvapi";
 
 export default class Collection<K, V> extends Map<K, V> {
-  rvAPI: API.API;
+  rvAPI: API;
 
   apiWrapper: APIWrapper;
 

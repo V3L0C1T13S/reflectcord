@@ -1,6 +1,6 @@
 import { Application, Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
-import { API } from "revolt.js";
+import API from "revolt-api";
 import { HTTPError } from "@reflectcord/common/utils";
 import { User, fromSnowflake, selfUser } from "@reflectcord/common/models";
 

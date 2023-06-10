@@ -305,8 +305,6 @@ export function createBotGatewayGuild(
   return {
     ...guild,
     ...createCommonGatewayGuild(guild, data),
-    presences: [],
-    voice_states: [],
     unavailable: false,
   };
 }
@@ -356,7 +354,6 @@ export async function createInitialReadyGuild(
     ],
     last_messages: [],
     has_threads_subscription: true,
-    presences: [],
   };
 
   return initialGuild;

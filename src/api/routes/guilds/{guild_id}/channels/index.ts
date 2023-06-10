@@ -27,6 +27,7 @@ export default () => <Resource> {
 
     const api = res.rvAPI;
 
+    // @ts-ignore
     const rvGuild = await api.get(`/servers/${rvId as ""}`);
     const channels = await Promise.all(rvGuild.channels
       .map((channel) => api.get(`/channels/${channel as ""}`)));
@@ -52,6 +53,7 @@ export default () => <Resource> {
 
       if (type === discordChannelType.GuildCategory) {
         const categoryId = ulid();
+        // @ts-ignore
         const currentServer = await res.rvAPI.get(`/servers/${rvId as ""}`);
         const newServer = await res.rvAPI.patch(`/servers/${rvId as ""}`, {
           categories: [...currentServer.categories ?? [], {
@@ -75,6 +77,7 @@ export default () => <Resource> {
         if (parent_id && ("server" in rvChannel && rvChannel.server)) {
           rvCategory = (await tryFromSnowflake(parent_id)).toString();
 
+          // @ts-ignore
           const rvServer = await res.rvAPI.get(`/servers/${rvId as ""}`);
           const categoryToPatch = rvServer.categories?.find((x) => x.id === rvCategory);
           if (!categoryToPatch) throw new HTTPError("Category doesn't exist");

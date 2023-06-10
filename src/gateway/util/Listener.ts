@@ -585,15 +585,19 @@ export async function startListener(
             trace.stopTrace("prepare_initial_guild");
           }
 
-          readyData._trace.push(JSON.stringify(trace.toGatewayObject()));
+          if (readyData._trace) readyData._trace.push(JSON.stringify(trace.toGatewayObject()));
+
           await Dispatch(this, GatewayDispatchEvents.Ready, readyData);
 
           trace.startTrace("start_internal_listener");
           await createInternalListener.call(this);
           trace.stopTrace("start_internal_listener");
 
-          await Promise.all(lazyGuilds
-            .map((x) => Dispatch(this, GatewayDispatchEvents.GuildCreate, x).catch(Logger.error)));
+          if (this.intentsManager.hasGuildsIntent()) {
+            await Promise.all(lazyGuilds
+              .map((x) => Dispatch(this, GatewayDispatchEvents.GuildCreate, x)
+                .catch(Logger.error)));
+          }
 
           if (!currentUserDiscord.bot && this.capabilities.PrioritizedReadyPayload) {
             const supplementalData: ReadySupplementalData = {
@@ -672,8 +676,7 @@ export async function startListener(
             await Dispatch(this, GatewayDispatchEvents.MessageCreate, filterMessageObject(
               body,
               {
-                messageContent: this.intentsManager.hasIntent(GatewayIntentBits.MessageContent)
-                || this.intentsManager.hasIntent(GatewayIntentBits.GuildMessages),
+                messageContent: this.intentsManager.hasIntent(GatewayIntentBits.MessageContent),
               },
               {
                 user: this.user_id,
@@ -791,7 +794,9 @@ export async function startListener(
             }
           }
 
-          await Dispatch(this, GatewayDispatchEvents.MessageReactionAdd, body);
+          if (this.intentsManager.hasMessageReactionsIntent(channel.discord)) {
+            await Dispatch(this, GatewayDispatchEvents.MessageReactionAdd, body);
+          }
 
           break;
         }
@@ -817,7 +822,9 @@ export async function startListener(
             body.guild_id = channel.discord.guild_id;
           }
 
-          await Dispatch(this, GatewayDispatchEvents.MessageReactionRemove, body);
+          if (this.intentsManager.hasMessageReactionsIntent(channel.discord)) {
+            await Dispatch(this, GatewayDispatchEvents.MessageReactionRemove, body);
+          }
 
           break;
         }
@@ -841,7 +848,9 @@ export async function startListener(
             body.guild_id = channel.discord.guild_id;
           }
 
-          await Dispatch(this, GatewayDispatchEvents.MessageReactionRemoveEmoji, body);
+          if (this.intentsManager.hasMessageReactionsIntent(channel.discord)) {
+            await Dispatch(this, GatewayDispatchEvents.MessageReactionRemoveEmoji, body);
+          }
 
           break;
         }
@@ -916,7 +925,9 @@ export async function startListener(
             }
           }
 
-          await Dispatch(this, GatewayDispatchEvents.ChannelCreate, channel.discord);
+          if (this.intentsManager.hasGuildsIntent()) {
+            await Dispatch(this, GatewayDispatchEvents.ChannelCreate, channel.discord);
+          }
 
           break;
         }
@@ -956,7 +967,9 @@ export async function startListener(
               body.version = 1671679879788;
             }
 
-            await Dispatch(this, GatewayDispatchEvents.ChannelUpdate, body);
+            if (this.intentsManager.hasGuildsIntent()) {
+              await Dispatch(this, GatewayDispatchEvents.ChannelUpdate, body);
+            }
           }
 
           break;
@@ -964,7 +977,9 @@ export async function startListener(
         case "ChannelDelete": {
           const channel = this.rvAPIWrapper.channels.get(data.id);
 
-          await Dispatch(this, GatewayDispatchEvents.ChannelDelete, channel?.discord);
+          if (this.intentsManager.hasGuildsIntent()) {
+            await Dispatch(this, GatewayDispatchEvents.ChannelDelete, channel?.discord);
+          }
 
           if (channel) {
             await this.rvAPIWrapper.channels.deleteChannel(channel.revolt._id, false, true);
@@ -1015,20 +1030,24 @@ export async function startListener(
             unavailable: false,
           };
 
-          await Dispatch(
-            this,
-            GatewayDispatchEvents.GuildCreate,
-            this.capabilities.ClientStateV2 ? userGuild : botGuild,
-          );
+          if (this.intentsManager.hasGuildsIntent()) {
+            await Dispatch(
+              this,
+              GatewayDispatchEvents.GuildCreate,
+              this.capabilities.ClientStateV2 ? userGuild : botGuild,
+            );
+          }
 
           break;
         }
         case "ServerDelete": {
           const server = this.rvAPIWrapper.servers.get(data.id);
 
-          await Dispatch(this, GatewayDispatchEvents.GuildDelete, {
-            id: server?.discord.id ?? await toSnowflake(data.id),
-          });
+          if (this.intentsManager.hasGuildsIntent()) {
+            await Dispatch(this, GatewayDispatchEvents.GuildDelete, {
+              id: server?.discord.id ?? await toSnowflake(data.id),
+            });
+          }
 
           if (server) {
             await this.rvAPIWrapper.servers.removeServer(server.revolt._id, false, true);
@@ -1076,21 +1095,25 @@ export async function startListener(
                   if (discordCategory.id === channel.discord.parent_id) return;
 
                   channel.discord.parent_id = discordCategory.id;
-                  await Dispatch(this, GatewayDispatchEvents.ChannelUpdate, channel.discord);
+                  if (this.intentsManager.hasGuildsIntent()) {
+                    await Dispatch(this, GatewayDispatchEvents.ChannelUpdate, channel.discord);
+                  }
                 }));
               }));
             }
 
-            if (deletedCategories) {
-              await Promise.all(deletedCategories
-                .map(async (category) => Dispatch(
-                  this,
-                  GatewayDispatchEvents.ChannelDelete,
-                  await GuildCategory.from_quark(category),
-                )));
-            }
+            if (this.intentsManager.hasGuildsIntent()) {
+              if (deletedCategories) {
+                await Promise.all(deletedCategories
+                  .map(async (category) => Dispatch(
+                    this,
+                    GatewayDispatchEvents.ChannelDelete,
+                    await GuildCategory.from_quark(category),
+                  )));
+              }
 
-            await Dispatch(this, GatewayDispatchEvents.GuildUpdate, server.discord);
+              await Dispatch(this, GatewayDispatchEvents.GuildUpdate, server.discord);
+            }
           }
 
           break;
@@ -1108,7 +1131,10 @@ export async function startListener(
             guild_id: guildId,
           };
 
-          if (this.intentsManager.hasIntent(GatewayIntentBits.GuildMembers)) {
+          if (this.intentsManager.hasGuildMembersIntent({
+            memberId: user.discord.id,
+            selfId: this.user_id,
+          })) {
             await Dispatch(this, GatewayDispatchEvents.GuildMemberAdd, body);
           }
 
@@ -1169,11 +1195,16 @@ export async function startListener(
             guild_id: guildId,
           };
 
-          await Dispatch(
-            this,
-            GatewayDispatchEvents.GuildMemberUpdate,
-            body,
-          );
+          if (this.intentsManager.hasGuildMembersIntent({
+            memberId: user.discord.id,
+            selfId: this.user_id,
+          })) {
+            await Dispatch(
+              this,
+              GatewayDispatchEvents.GuildMemberUpdate,
+              body,
+            );
+          }
 
           const memberList = this.subscribed_servers[data.id.server]?.memberList;
 
@@ -1223,7 +1254,9 @@ export async function startListener(
 
             await this.rvAPIWrapper.servers.removeServer(data.id, false, true);
 
-            await Dispatch(this, GatewayDispatchEvents.GuildDelete, body);
+            if (this.intentsManager.hasGuildsIntent()) {
+              await Dispatch(this, GatewayDispatchEvents.GuildDelete, body);
+            }
 
             return;
           }
@@ -1235,7 +1268,12 @@ export async function startListener(
             user: user.discord,
           };
 
-          await Dispatch(this, GatewayDispatchEvents.GuildMemberRemove, body);
+          if (this.intentsManager.hasGuildMembersIntent({
+            memberId: user.discord.id,
+            selfId: this.user_id,
+          })) {
+            await Dispatch(this, GatewayDispatchEvents.GuildMemberRemove, body);
+          }
 
           const subscribedServer = this.subscribed_servers[data.id];
           if (subscribedServer) {
@@ -1408,8 +1446,6 @@ export async function startListener(
             await Dispatch(this, GatewayDispatchCodes.RelationshipRemove, relationshipBody);
           }
 
-          await Dispatch(this, GatewayDispatchEvents.UserUpdate, user.discord);
-
           break;
         }
         case "UserPresence": {
@@ -1493,7 +1529,9 @@ export async function startListener(
               ? GatewayDispatchEvents.GuildRoleUpdate
               : GatewayDispatchEvents.GuildRoleCreate;
 
-            await Dispatch(this, dispatchType, body);
+            if (this.intentsManager.hasGuildsIntent()) {
+              await Dispatch(this, dispatchType, body);
+            }
           }
 
           break;
@@ -1511,7 +1549,9 @@ export async function startListener(
               role_id: discordRoleId,
             };
 
-            await Dispatch(this, GatewayDispatchEvents.GuildRoleDelete, body);
+            if (this.intentsManager.hasGuildsIntent()) {
+              await Dispatch(this, GatewayDispatchEvents.GuildRoleDelete, body);
+            }
           }
           break;
         }

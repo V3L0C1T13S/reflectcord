@@ -11,6 +11,7 @@ export default () => <Resource> {
 
     const serverId = await fromSnowflake(guild_id);
 
+    // @ts-ignore
     const members = await res.rvAPI.get(`/servers/${serverId as ""}/members`);
 
     res.json(await Promise.all(members.members

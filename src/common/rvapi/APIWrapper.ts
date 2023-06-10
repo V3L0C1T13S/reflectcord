@@ -1,4 +1,4 @@
-import { API } from "revolt.js";
+import { API } from "revolt-api";
 import { rvAPIMode } from "../constants";
 import {
   ChannelsManager, MemberManager, MessageManager, ServerManager, UserManager, EmojiManager,
@@ -6,7 +6,7 @@ import {
 
 export class APIWrapper {
   bot: boolean;
-  rvAPI: API.API;
+  rvAPI: API;
 
   channels: ChannelsManager;
 
@@ -24,7 +24,7 @@ export class APIWrapper {
 
   token: string;
 
-  constructor(api: API.API, options?: { bot?: boolean }) {
+  constructor(api: API, options?: { bot?: boolean }) {
     this.rvAPI = api;
 
     this.bot = options?.bot ?? false;

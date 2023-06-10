@@ -75,6 +75,10 @@ export class ChannelsManager extends BaseManager<string, ChannelContainer> {
     }
   }
 
+  fetchWebhooks(rvChannelId: string) {
+    return this.rvAPI.get(`/channels/${rvChannelId as ""}/webhooks`);
+  }
+
   createObj(channel: ChannelContainer) {
     if (this.has(channel.revolt._id)) return this.$get(channel.revolt._id, channel);
 

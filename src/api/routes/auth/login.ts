@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 import { Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
-import { API } from "revolt.js";
+import API from "revolt-api";
 import { LoginSchema } from "@reflectcord/common/sparkle";
 import { APILoginResponse, DataLogin, ResponseLogin } from "@reflectcord/common/models";
 import { FieldErrors, HTTPError } from "@reflectcord/common/utils";

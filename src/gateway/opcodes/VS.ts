@@ -124,7 +124,7 @@ export async function VSUpdate(this: WebSocket, data: Payload<VoiceStateUpdate>)
 
   stateData.session_id = this.session_id;
   stateData.channel_id = channel_id;
-  if (guild_id) stateData.guild_id = guild_id;
+  if (guild_id) stateData.guild_id = guild_id; // @ts-ignore
   else delete stateData.guild_id;
 
   if (guild_id) {

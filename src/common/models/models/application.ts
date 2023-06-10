@@ -1,7 +1,7 @@
 import {
   APIApplication, APIUser, ApplicationFlags, ApplicationFlagsBitField,
 } from "discord.js";
-import { Bot, BotResponse } from "revolt-api";
+import { Bot, FetchBotResponse } from "revolt-api";
 import { API } from "revolt.js";
 import { QuarkConversion } from "../QuarkConversion";
 import { fromSnowflake, toSnowflake } from "../util";
@@ -78,7 +78,7 @@ export type OwnedApplicationATQ = ApplicationATQ;
 export type OwnedApplicationAFQ = ApplicationAFQ;
 
 export const OwnedApplication: QuarkConversion<
-  BotResponse,
+  FetchBotResponse,
   OwnedAPIApplication,
   OwnedApplicationATQ,
   OwnedApplicationAFQ

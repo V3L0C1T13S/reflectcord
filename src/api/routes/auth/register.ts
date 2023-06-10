@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { Application, Request, Response } from "express";
+import { Request } from "express";
 import { Resource } from "express-automatic-routes";
 import { ResponseLogin } from "@reflectcord/common/models";
 import { RegisterSchema } from "@reflectcord/common/sparkle";

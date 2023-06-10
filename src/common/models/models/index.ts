@@ -15,3 +15,4 @@ export * from "./settings";
 export * from "./permissions";
 export * from "./session";
 export * from "./relationship";
+export * from "./webhook";

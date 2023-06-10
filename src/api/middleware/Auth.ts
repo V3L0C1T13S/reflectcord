@@ -17,7 +17,7 @@
 */
 
 import { NextFunction, Request, Response } from "express";
-import { API } from "revolt.js";
+import { API } from "revolt-api";
 import { HTTPError } from "@reflectcord/common/utils";
 import { APIWrapper, createAPI } from "@reflectcord/common/rvapi";
 
@@ -57,7 +57,7 @@ declare global {
         }
         // eslint-disable-next-line no-shadow
         interface Response {
-          rvAPI: API.API;
+          rvAPI: API;
           rvAPIWrapper: APIWrapper,
         }
     }

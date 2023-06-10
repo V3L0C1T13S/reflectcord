@@ -75,4 +75,5 @@ export const DiscordErrorMap: Record<RevoltError["type"], DiscordErrors> = {
   NotFound: DiscordErrors.AlreadyFriendsError,
   NoEffect: DiscordErrors.AlreadyFriendsError,
   FailedValidation: DiscordErrors.AlreadyFriendsError,
+  TooManyEmbeds: DiscordErrors.AlreadyFriendsError,
 };
