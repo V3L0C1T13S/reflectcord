@@ -902,9 +902,12 @@ export async function startListener(
               && !this.subscribed_servers[channel.revolt.server]?.typing) {
               return;
             }
-            body.guild_id = channel.discord.guild_id;
-            body.member = (await this.rvAPIWrapper.members
-              .fetch(channel.revolt.server, data.user)).discord;
+            const server = this.rvAPIWrapper.servers.get(channel.revolt.server);
+            if (server?.extra) {
+              body.guild_id = channel.discord.guild_id;
+              body.member = (await server.extra.members
+                .fetch(channel.revolt.server, data.user)).discord;
+            }
           }
 
           await Dispatch(this, GatewayDispatchEvents.TypingStart, body);
