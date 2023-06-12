@@ -25,7 +25,7 @@ import {
   GatewayTypingStartDispatchData,
   InteractionType,
 } from "discord.js";
-import { API } from "revolt.js";
+import API from "revolt-api";
 import { APIWrapper, createAPI, systemUserID } from "@reflectcord/common/rvapi";
 import {
   Channel,
@@ -64,7 +64,6 @@ import {
 import { Logger, genAnalyticsToken } from "@reflectcord/common/utils";
 import {
   GatewayUserChannelUpdateOptional,
-  IdentifySchema,
   GatewayUserSettingsProtoUpdateDispatchData,
   GatewayDispatchCodes,
   MergedMember,

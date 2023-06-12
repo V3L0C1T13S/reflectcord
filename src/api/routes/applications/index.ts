@@ -1,7 +1,7 @@
 import { APIApplication } from "discord.js";
 import { Application, Response } from "express";
 import { Resource } from "express-automatic-routes";
-import { API } from "revolt.js";
+import API from "revolt-api";
 import { Application as botApplication, OwnedApplication } from "@reflectcord/common/models";
 
 export default () => <Resource> {
@@ -10,7 +10,7 @@ export default () => <Resource> {
 
     const revoltBots = await res.rvAPI.get("/bots/@me") as API.OwnedBotsResponse;
 
-    const ownedRevoltBots: API.BotResponse[] = revoltBots.bots.map((bot) => {
+    const ownedRevoltBots: API.FetchBotResponse[] = revoltBots.bots.map((bot) => {
       const user = revoltBots.users.find((u) => u._id === bot._id)!;
 
       return {

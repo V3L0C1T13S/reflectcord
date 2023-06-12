@@ -175,7 +175,7 @@ export async function handleImgRequest(
   const mimeType = await getMimeType(avatarData);
 
   if (req.query?.format === "jpeg") {
-    if (mimeType === "video/mp4") {
+    if (mimeType.startsWith("video")) {
       const thumbnailDir = join(imageCacheDir, "thumbnails", type);
       const thumbnailFile = join(thumbnailDir, realId, "tn.png");
       if (!existsSync(thumbnailDir)) mkdirSync(thumbnailDir, { recursive: true });
@@ -190,45 +190,49 @@ export async function handleImgRequest(
       }
 
       return Ffmpeg(join(imageCacheDir, type, realId))
-        .takeScreenshots({
-          count: 1,
-          timemarks: ["0"],
-        }, join(thumbnailDir, realId)).on("end", async (data) => {
+        .on("end", async () => {
           const tbData = readFileSync(thumbnailFile);
 
           res.header("Content-Type", await getMimeType(tbData));
           res.header("Cache-Control", "public, max-age=31536000");
 
           return res.send(tbData);
-        });
+        })
+        .takeScreenshots({
+          count: 1,
+          filename: "tn.png",
+          timemarks: ["0"],
+        }, join(thumbnailDir, realId));
     }
   }
 
   res.header("Content-Type", mimeType);
   res.header("Cache-Control", "public, max-age=31536000");
 
-  if (typeof req.query?.size === "string") {
-    const size = parseInt(req.query.size, 10);
+  if (mimeType.startsWith("image")) {
+    if (typeof req.query?.size === "string") {
+      const size = parseInt(req.query.size, 10);
 
-    const image = sharp(avatarData, {
-      animated: mimeType === "image/gif",
-    }).resize(size);
+      const image = sharp(avatarData, {
+        animated: mimeType === "image/gif",
+      }).resize(size);
 
-    const resized = await image.toBuffer();
+      const resized = await image.toBuffer();
 
-    return res.send(resized);
-  }
-  if (typeof req.query?.width === "string" && typeof req.query.height === "string") {
-    const width = parseInt(req.query.width, 10);
-    const height = parseInt(req.query.height, 10);
+      return res.send(resized);
+    }
+    if (typeof req.query?.width === "string" && typeof req.query.height === "string") {
+      const width = parseInt(req.query.width, 10);
+      const height = parseInt(req.query.height, 10);
 
-    const image = sharp(avatarData, {
-      animated: mimeType === "image/gif",
-    }).resize(width, height);
+      const image = sharp(avatarData, {
+        animated: mimeType === "image/gif",
+      }).resize(width, height);
 
-    const resized = await image.toBuffer();
+      const resized = await image.toBuffer();
 
-    return res.send(resized);
+      return res.send(resized);
+    }
   }
 
   return res.send(avatarData);

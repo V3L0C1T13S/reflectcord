@@ -23,6 +23,7 @@ export default () => <Resource> {
       owner: await User.from_quark({
         _id: user.revolt.bot.owner,
         username: "fixme",
+        discriminator: "0001",
       }),
       flags: 0,
       team: null,

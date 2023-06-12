@@ -47,6 +47,7 @@ export default () => <Resource> {
     const users = await Promise.all(emojis[1].map((x) => User.from_quark({
       _id: x,
       username: "fixme",
+      discriminator: "0001",
     })));
 
     res.json(users);

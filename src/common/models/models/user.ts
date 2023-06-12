@@ -89,13 +89,16 @@ export type UserAFQ = {
 
 export const User: QuarkConversion<RevoltUser, APIUser, UserATQ, UserAFQ> = {
   async to_quark(user) {
-    const { bot, id, username } = user;
+    const {
+      bot, id, username, discriminator,
+    } = user;
 
     const _id = await fromSnowflake(id);
 
     return {
       _id,
       username,
+      discriminator,
       relations: null,
       badges: null,
       status: null,
@@ -113,7 +116,9 @@ export const User: QuarkConversion<RevoltUser, APIUser, UserATQ, UserAFQ> = {
   },
 
   async from_quark(user, extra) {
-    const { _id, username } = user;
+    const {
+      _id, username, discriminator,
+    } = user;
     const flags = await PublicFlags.from_quark(user.badges ?? 0, {
       id: _id,
     });
@@ -130,7 +135,7 @@ export const User: QuarkConversion<RevoltUser, APIUser, UserATQ, UserAFQ> = {
         ? await PartialFile.from_quark(user.profile.background)
         : null,
       banner_color: null,
-      discriminator: "0001",
+      discriminator,
       display_name: null,
       flags,
       username: extra?.masquerade?.name ?? username,

@@ -21,7 +21,10 @@ export default () => <Resource> {
     if (!rvBan || !user) throw new HTTPError("Ban not found", 404);
 
     res.json(await Ban.from_quark(rvBan, {
-      user,
+      user: user ? {
+        ...user,
+        discriminator: "0001",
+      } : null,
     }));
   },
   put: async (req: Request<any, any, RESTPutAPIGuildBanJSONBody>, res: Response<APIBan>) => {

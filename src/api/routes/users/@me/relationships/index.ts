@@ -2,7 +2,7 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable camelcase */
 import { Resource } from "express-automatic-routes";
-import { API } from "revolt.js";
+import API from "revolt-api";
 import { UserRelationshipType, DiscordErrorMessages, DiscordErrors } from "@reflectcord/common/sparkle";
 import { RelationshipType, User } from "@reflectcord/common/models";
 import { FieldError, HTTPError } from "@reflectcord/common/utils";

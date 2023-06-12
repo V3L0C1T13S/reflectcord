@@ -27,7 +27,7 @@ import {
   PermissionFlagsBits,
   PermissionsBitField,
 } from "discord.js";
-import { API } from "revolt.js";
+import API from "revolt-api";
 import {
   internalStatus, Member, Status, fromSnowflake, toSnowflake, createUserPresence,
 } from "@reflectcord/common/models";

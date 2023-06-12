@@ -2,7 +2,6 @@
 import { APIBan } from "discord.js";
 import { Response } from "express";
 import { Resource } from "express-automatic-routes";
-import { API } from "revolt.js";
 import { Ban, fromSnowflake } from "@reflectcord/common/models";
 import { HTTPError } from "@reflectcord/common/utils";
 
@@ -19,7 +18,10 @@ export default () => <Resource> {
       const user = bans.users.find((x) => x._id === ban._id.user);
 
       return Ban.from_quark(ban, {
-        user,
+        user: user ? {
+          ...user,
+          discriminator: "0001",
+        } : null,
       });
     }));
 

@@ -1,5 +1,5 @@
 import { APIUser } from "discord.js";
-import { API } from "revolt.js";
+import API from "revolt-api";
 import { isEqual } from "lodash";
 import { Logger } from "@reflectcord/common/utils";
 import { DbManager } from "@reflectcord/common/db";
@@ -21,6 +21,7 @@ export class UserManager extends BaseManager<string, UserContainer> {
       revolt: {
         _id: "00000000000000000000000000",
         username: "Revolt",
+        discriminator: "0001",
       },
       discord: {
         id: "0",

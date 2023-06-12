@@ -1,6 +1,6 @@
 /* eslint-disable no-nested-ternary */
 import { APIExtendedInvite, APIInvite, APIUser } from "discord.js";
-import { API } from "revolt.js";
+import API from "revolt-api";
 import { QuarkConversion } from "../QuarkConversion";
 import { PartialChannel } from "./channel";
 import { User } from "./user";
@@ -41,6 +41,7 @@ export const Invite: QuarkConversion<API.InviteResponse, APIInvite> = {
       inviter: await User.from_quark({
         username: invite.user_name,
         _id: systemUserID,
+        discriminator: "0001",
       }),
     };
 
@@ -121,6 +122,7 @@ API.Invite, APIInvite, InviteCreateATQ, InviteCreateAFQ
           : await User.from_quark({
             username: "fixme",
             _id: invite.creator,
+            discriminator: "0001",
           }),
     };
 

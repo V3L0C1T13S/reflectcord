@@ -1,7 +1,7 @@
 import {
   APIEmoji, APIPartialEmoji, APIReaction, APIUser,
 } from "discord.js";
-import { API } from "revolt.js";
+import API from "revolt-api";
 import { isBuiltinEmoji } from "../../emojilib";
 import { QuarkConversion } from "../QuarkConversion";
 import { tryFromSnowflake, tryToSnowflake, toSnowflake } from "../util";
@@ -72,6 +72,7 @@ export const Emoji: QuarkConversion<API.Emoji, APIEmoji, EmojiATQ, EmojiAFQ> = {
         : await User.from_quark(extra?.user ?? {
           _id: emoji.creator_id,
           username: "fixme",
+          discriminator: "0001",
         }),
     };
   },

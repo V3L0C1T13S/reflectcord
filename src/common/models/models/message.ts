@@ -12,8 +12,7 @@ import {
   ChannelType,
 } from "discord.js";
 import fileUpload from "express-fileupload";
-import { Message as RevoltMessage } from "revolt-api";
-import { API } from "revolt.js";
+import API, { Message as RevoltMessage } from "revolt-api";
 import { decodeTime } from "ulid";
 import { uploadFile } from "@reflectcord/cdn/util";
 import { systemUserID } from "@reflectcord/common/rvapi";
@@ -177,6 +176,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
       : await User.from_quark({
         _id: author,
         username: "fixme",
+        discriminator: "0001",
       }, {
         masquerade,
       });
@@ -236,6 +236,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
           ?.map((x) => User.from_quark(x)) ?? mentions.map((x) => User.from_quark({
           _id: x,
           username: "fixme",
+          discriminator: "0001",
         })),
       ) : [],
       attachments: attachments
@@ -349,6 +350,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
           discordMessage.mentions.push(await User.from_quark({
             _id: message.system.id,
             username: "fixme",
+            discriminator: "0001",
           }));
 
           break;

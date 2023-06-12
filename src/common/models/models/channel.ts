@@ -344,11 +344,13 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
         .map((x) => User.from_quark({
           _id: x,
           username: "fixme",
+          discriminator: "0001",
         })));
     } else if (channel.channel_type === "SavedMessages") {
       commonProperties.recipients = [await User.from_quark({
         _id: channel.user,
         username: "Saved Messages",
+        discriminator: "0001",
       })];
     } else if (channel.channel_type === "VoiceChannel") {
       commonProperties.bitrate = 0;
@@ -479,6 +481,7 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
             .map((x) => User.from_quark({
               _id: x,
               username: "fixme",
+              discriminator: "0001",
             }))),
         } as APIDMChannel;
       }
@@ -492,6 +495,7 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
             .map((x) => User.from_quark({
               _id: x,
               username: "fixme",
+              discriminator: "0001",
             }))),
           last_message_id: channel.last_message_id
             ? await toSnowflake(channel.last_message_id)
@@ -509,6 +513,7 @@ export const Channel: QuarkConversion<rvChannel, APIChannel, ChannelATQ, Channel
           recipients: [await User.from_quark({
             _id: channel.user,
             username: "Saved Messages",
+            discriminator: "0001",
           })],
         } as APIDMChannel;
       }

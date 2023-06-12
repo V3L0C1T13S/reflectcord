@@ -1,8 +1,7 @@
 import {
   APIApplication, APIUser, ApplicationFlags, ApplicationFlagsBitField,
 } from "discord.js";
-import { Bot, FetchBotResponse } from "revolt-api";
-import { API } from "revolt.js";
+import API, { Bot, FetchBotResponse } from "revolt-api";
 import { QuarkConversion } from "../QuarkConversion";
 import { fromSnowflake, toSnowflake } from "../util";
 import { PartialFile } from "./attachment";
@@ -62,6 +61,7 @@ export const Application: QuarkConversion<Bot, APIApplication, ApplicationATQ, A
         : await User.from_quark({
           _id: owner,
           username: "fixme",
+          discriminator: "0001",
         }),
       rpc_application_state: 0,
       redirect_uris: [],
@@ -91,6 +91,7 @@ export const OwnedApplication: QuarkConversion<
       user: {
         _id: id,
         username: name,
+        discriminator: "0001",
       },
     };
   },

@@ -3,7 +3,7 @@
 import {
   GatewayDispatchEvents,
 } from "discord.js";
-import { API } from "revolt.js";
+import API from "revolt-api";
 import { clamp } from "lodash";
 import {
   createUserPresence,

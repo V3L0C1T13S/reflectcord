@@ -8,8 +8,7 @@ import {
   GuildMemberFlagsBitField,
   RESTPatchAPIGuildMemberJSONBody,
 } from "discord.js";
-import { Member as RevoltMember } from "revolt-api";
-import { API } from "revolt.js";
+import API, { Member as RevoltMember } from "revolt-api";
 import { QuarkConversion } from "../QuarkConversion";
 import {
   fromSnowflake, multipleFromSnowflake, multipleToSnowflake,
@@ -59,6 +58,7 @@ export const Member: QuarkConversion<RevoltMember, APIGuildMember, APIUser, Memb
           _id: _id.user,
           username: member.nickname ?? "fixme",
           avatar: member.avatar ?? null,
+          discriminator: "0001",
         });
     const discordAvatar = member.avatar
       ? await PartialFile.from_quark(member.avatar, { skipConversion: true })
