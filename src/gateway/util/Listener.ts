@@ -23,6 +23,7 @@ import {
   GatewayMessageReactionRemoveDispatchData,
   GatewayMessageReactionRemoveEmojiDispatchData,
   GatewayTypingStartDispatchData,
+  GatewayWebhooksUpdateDispatchData,
   InteractionType,
 } from "discord.js";
 import API from "revolt-api";
@@ -81,6 +82,7 @@ import {
 import { reflectcordWsURL } from "@reflectcord/common/constants";
 import { VoiceState } from "@reflectcord/common/mongoose";
 import { MemberContainer, emojiMap as reactionMap } from "@reflectcord/common/managers";
+import { ClientboundNotification } from "revolt.js";
 import { WebSocket } from "../Socket";
 import { Dispatch } from "./send";
 import experiments from "./experiments.json";
@@ -110,11 +112,16 @@ function cacheServerCreateChannels(
   });
 }
 
+// TODO: Put this in actual revolt.js
+type ClientNotification = ClientboundNotification | API.Webhook & {
+  type: "WebhookCreate",
+}
+
 export async function startListener(
   this: WebSocket,
   token: string,
 ) {
-  this.rvClient.on("packet", async (data) => {
+  this.rvClient.on("packet", async (data: ClientNotification) => {
     try {
       const { identifyPayload } = this;
 
@@ -1308,6 +1315,19 @@ export async function startListener(
         }
         case "ChannelStopTyping": {
           // Discord wont handle this no matter what
+          break;
+        }
+        case "WebhookCreate": {
+          const channel = this.rvAPIWrapper.channels.get(data.channel_id);
+          if (!channel || !("guild_id" in channel.discord)) return;
+
+          const body: GatewayWebhooksUpdateDispatchData = {
+            guild_id: channel.discord.guild_id,
+            channel_id: channel.discord.id,
+          };
+
+          await Dispatch(this, GatewayDispatchEvents.WebhooksUpdate, body);
+
           break;
         }
         case "UserUpdate": {
