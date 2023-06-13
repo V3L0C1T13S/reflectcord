@@ -90,8 +90,8 @@ export type UserAFQ = {
 export const User: QuarkConversion<RevoltUser, APIUser, UserATQ, UserAFQ> = {
   async to_quark(user) {
     const {
-      bot, id, username, discriminator,
-    } = user;
+      bot, id, username, discriminator, global_name,
+    } = user as APIUser & { global_name?: string };
 
     const _id = await fromSnowflake(id);
 
@@ -99,6 +99,7 @@ export const User: QuarkConversion<RevoltUser, APIUser, UserATQ, UserAFQ> = {
       _id,
       username,
       discriminator,
+      display_name: global_name ?? null,
       relations: null,
       badges: null,
       status: null,
@@ -117,7 +118,7 @@ export const User: QuarkConversion<RevoltUser, APIUser, UserATQ, UserAFQ> = {
 
   async from_quark(user, extra) {
     const {
-      _id, username, discriminator,
+      _id, username, discriminator, display_name,
     } = user;
     const flags = await PublicFlags.from_quark(user.badges ?? 0, {
       id: _id,
@@ -136,7 +137,8 @@ export const User: QuarkConversion<RevoltUser, APIUser, UserATQ, UserAFQ> = {
         : null,
       banner_color: null,
       discriminator,
-      display_name: null,
+      display_name,
+      global_name: display_name,
       flags,
       username: extra?.masquerade?.name ?? username,
       public_flags: flags,
