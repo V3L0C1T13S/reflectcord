@@ -8,7 +8,7 @@ import { PartialFile } from "./attachment";
 export const Webhook: QuarkConversion<revoltWebhook, APIWebhook> = {
   async to_quark(data) {
     const {
-      id, name, channel_id, token,
+      id, name, channel_id, token, avatar,
     } = data;
 
     const [revoltId, rvChannelId] = await multipleFromSnowflake([id, channel_id]);
@@ -19,9 +19,8 @@ export const Webhook: QuarkConversion<revoltWebhook, APIWebhook> = {
       channel_id: rvChannelId!,
     };
 
-    if (token) {
-      webhook.token = token;
-    }
+    if (token) webhook.token = token;
+    if (avatar) webhook.avatar = await PartialFile.to_quark(avatar);
 
     return webhook;
   },
@@ -40,9 +39,7 @@ export const Webhook: QuarkConversion<revoltWebhook, APIWebhook> = {
       type: WebhookType.Incoming,
     };
 
-    if (token) {
-      discordWebhook.token = token;
-    }
+    if (token) discordWebhook.token = token;
 
     return discordWebhook;
   },
