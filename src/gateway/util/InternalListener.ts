@@ -41,8 +41,8 @@ async function internalConsumer(this: WebSocket, opts: eventOpts) {
         if (!this.voiceInfo.channel_id === data.channel_id) return;
 
         const channel = this.rvAPIWrapper.channels.get(await fromSnowflake(data.channel_id));
-        if (channel && ("server" in channel.revolt) && channel.revolt.server) {
-          data.guild_id = await toSnowflake(channel.revolt.server);
+        if (channel && ("guild_id" in channel.discord)) {
+          data.guild_id = channel.discord.guild_id;
         }
 
         break;
