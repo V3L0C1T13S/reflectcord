@@ -17,6 +17,7 @@ import {
   LazyItem,
   LazyRange,
   LazyOperators,
+  LazyOperatorInvalidate,
 } from "../../sparkle";
 
 export function calculateListId(str: string, seed?: number) {
@@ -182,6 +183,19 @@ export class MemberList {
     return {
       op: "DELETE",
       index,
+    };
+  }
+
+  invalidate(range: LazyRange): LazyOperatorInvalidate {
+    range.forEach((x, i) => {
+      const index = x + i;
+
+      delete this.items[index];
+    });
+
+    return {
+      op: "INVALIDATE",
+      range,
     };
   }
 
