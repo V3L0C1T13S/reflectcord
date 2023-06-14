@@ -1,6 +1,6 @@
 import { APIMessage } from "discord.js";
 import { API } from "revolt.js";
-import { invert, isEqual } from "lodash";
+import { isEqual } from "lodash";
 import { Logger } from "@reflectcord/common/utils";
 import {
   interactionTitle, Message, MessageAFQ, User,
@@ -177,15 +177,14 @@ export class MessageManager extends BaseManager<string, MessageContainer> {
           .filter((x): x is string => !!x);
 
         await Promise.all(reactions.map(async (x) => {
-        // @ts-ignore stfu
-          await this.rvAPI.put(encodeURI(`/channels/${channel as ""}/messages/${revoltResponse._id as ""}/reactions/${x as ""}`));
+          await this.rvAPI.put(`/channels/${channel as ""}/messages/${revoltResponse._id as ""}/reactions/${encodeURIComponent(x) as ""}`);
         }));
       } catch (e) {
         Logger.error(`Couldn't add interaction bridge ${e}`);
       }
     }
 
-    if (!this.apiWrapper.bot) await this.ack(channel, revoltResponse._id).catch(Logger.error);
+    if (!this.apiWrapper.bot) this.ack(channel, revoltResponse._id).catch(Logger.error);
 
     return {
       revolt: {
