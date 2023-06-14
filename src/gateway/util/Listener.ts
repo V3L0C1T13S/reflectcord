@@ -23,7 +23,6 @@ import {
   GatewayMessageReactionRemoveDispatchData,
   GatewayMessageReactionRemoveEmojiDispatchData,
   GatewayTypingStartDispatchData,
-  GatewayWebhooksUpdateDispatchData,
   InteractionType,
 } from "discord.js";
 import API from "revolt-api";
@@ -89,6 +88,7 @@ import experiments from "./experiments.json";
 import { updateMessage } from "./messages";
 import { createInternalListener } from "./InternalListener";
 import { Intents } from "./Intents";
+import { updateWebhook } from "./webhooks";
 
 // TODO: rework lol
 function cacheServerCreateChannels(
@@ -1318,15 +1318,7 @@ export async function startListener(
           break;
         }
         case "WebhookCreate": {
-          const channel = this.rvAPIWrapper.channels.get(data.channel_id);
-          if (!channel || !("guild_id" in channel.discord)) return;
-
-          const body: GatewayWebhooksUpdateDispatchData = {
-            guild_id: channel.discord.guild_id,
-            channel_id: channel.discord.id,
-          };
-
-          await Dispatch(this, GatewayDispatchEvents.WebhooksUpdate, body);
+          await updateWebhook.call(this, data);
 
           break;
         }
