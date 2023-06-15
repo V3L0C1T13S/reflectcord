@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
 import { Webhook as revoltWebhook, CreateWebhookBody } from "revolt-api";
 import { APIWebhook, RESTPostAPIChannelWebhookJSONBody, WebhookType } from "discord.js";
+import { uploadBase64File } from "@reflectcord/cdn/util";
 import { QuarkConversion } from "../QuarkConversion";
 import { multipleFromSnowflake, toSnowflake } from "../util";
 import { PartialFile } from "./attachment";
@@ -57,7 +58,11 @@ export const WebhookCreateBody: QuarkConversion<
     };
 
     if (avatar) {
-      body.avatar = avatar;
+      const avatarId = await uploadBase64File("avatars", {
+        file: avatar,
+      });
+
+      body.avatar = avatarId;
     }
 
     return body;
