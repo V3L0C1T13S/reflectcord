@@ -2,6 +2,8 @@
 /* eslint-disable camelcase */
 import {
   AccountInfo,
+  DataEditUser,
+  FieldsUser,
   Message,
   RelationshipStatus,
   User as RevoltUser,
@@ -12,13 +14,14 @@ import {
   ActivityType,
   APIUser,
   GatewayPresenceUpdateDispatchData,
-  PresenceData, UserFlags,
+  PresenceData, RESTPatchAPICurrentUserJSONBody, UserFlags,
   UserFlagsBitField,
   UserPremiumType,
 } from "discord.js";
 import Long from "long";
+import { uploadBase64File } from "@reflectcord/cdn/util";
 import { Badges } from "../../rvapi";
-import { UserRelationshipType } from "../../sparkle";
+import { PatchCurrentAccountBody, UserRelationshipType } from "../../sparkle";
 import { QuarkConversion } from "../QuarkConversion";
 import { fromSnowflake, toSnowflake } from "../util";
 import { priviligedUsers } from "../../constants/admin";
@@ -226,6 +229,35 @@ export const selfUser: QuarkConversion<revoltUserInfo, APIUser, selfUserATQ, sel
       analytics_token: extra?.genAnalyticsToken ? genAnalyticsToken(discordUser.id) : null,
       verified: true,
     };
+  },
+};
+
+export const UserPatchBody: QuarkConversion<
+  DataEditUser,
+  PatchCurrentAccountBody
+> = {
+  async to_quark(data) {
+    const { avatar, global_name } = data;
+    const body: DataEditUser = {};
+    const remove: FieldsUser[] = [];
+
+    if (avatar && avatar.startsWith("data:")) {
+      body.avatar = await uploadBase64File("avatars", {
+        file: avatar,
+      });
+    } else if (("avatar" in data) && !avatar) remove.push("Avatar");
+
+    if (global_name) {
+      body.display_name = global_name;
+    } else if ("global_name" in data && !global_name) remove.push("DisplayName");
+
+    if (remove.length > 0) body.remove = remove;
+
+    return body;
+  },
+
+  async from_quark(data) {
+    return {};
   },
 };
 

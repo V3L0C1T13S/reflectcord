@@ -8,6 +8,7 @@ export interface PatchCurrentUserBody extends RESTPatchAPICurrentUserJSONBody {
 }
 
 export interface PatchCurrentAccountBody extends RESTPatchAPICurrentUserJSONBody {
+  global_name?: string,
   password?: string,
   new_password?: string,
   email?: string,
