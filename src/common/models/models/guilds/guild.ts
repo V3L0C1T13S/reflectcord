@@ -350,11 +350,12 @@ export async function createInitialReadyGuild(
     ...await createUserGatewayGuild(guild, data),
     members: [
       ...data.members,
-      data.member,
     ],
     last_messages: [],
     has_threads_subscription: true,
   };
+
+  if (data.member) initialGuild.members.push(data.member);
 
   return initialGuild;
 }
