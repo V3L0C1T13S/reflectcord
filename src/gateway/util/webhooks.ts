@@ -1,5 +1,5 @@
 import API from "revolt-api";
-import { GatewayDispatchEvents, GatewayWebhooksUpdateDispatchData } from "discord.js";
+import { GatewayDispatchEvents, GatewayIntentBits, GatewayWebhooksUpdateDispatchData } from "discord.js";
 import { WebSocket } from "../Socket";
 import { Dispatch } from "./send";
 
@@ -12,5 +12,7 @@ export async function updateWebhook(this: WebSocket, data: API.Webhook) {
     channel_id: channel.discord.id,
   };
 
-  await Dispatch(this, GatewayDispatchEvents.WebhooksUpdate, body);
+  if (this.intentsManager.hasIntent(GatewayIntentBits.GuildWebhooks)) {
+    await Dispatch(this, GatewayDispatchEvents.WebhooksUpdate, body);
+  }
 }
