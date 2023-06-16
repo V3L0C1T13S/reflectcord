@@ -58,9 +58,7 @@ export async function Send(socket: WebSocket, data: Payload) {
 export function sendOp(socket: WebSocket, op: GatewayOpcodes, data: Payload["d"]) {
   return Send(socket, {
     op,
-    // @ts-ignore
     t: null,
-    // @ts-ignore
     s: null,
     d: data,
   });
