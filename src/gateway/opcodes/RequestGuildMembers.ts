@@ -43,6 +43,11 @@ async function HandleRequest(
 
   if (nonce) body.nonce = nonce;
 
+  const rvServer = await fromSnowflake(guildId);
+  const server = this.rvAPIWrapper.servers.get(rvServer);
+
+  if (!server?.extra?.members) throw new Error(`${rvServer} not in cache`);
+
   const rvUserIds = user_ids
     ? await multipleFromSnowflake(Array.isArray(user_ids) ? user_ids : [user_ids])
     : null;
@@ -65,7 +70,19 @@ async function HandleRequest(
 
     body.not_found = await multipleToSnowflake(notFound);
     body.members = await Promise.all(found
-      .map((m, i) => Member.from_quark(m.member, { user: m.user })));
+      .map(async (m, i) => {
+        const user = this.rvAPIWrapper.users.get(m.user._id)
+          ?? this.rvAPIWrapper.users.createObj({
+            revolt: m.user,
+            discord: await User.from_quark(m.user),
+          });
+        const member = server.extra!.members.createObj({
+          revolt: m.member,
+          discord: await Member.from_quark(m.member, { discordUser: user.discord }),
+        });
+
+        return member.discord;
+      }));
   } else if (query) {
     // Empty string means get all members
     if (query !== "") {

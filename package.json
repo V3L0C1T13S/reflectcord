@@ -76,7 +76,7 @@
     "nodejs-snowflake": "^2.0.1",
     "protobufjs": "^7.1.2",
     "rate-limiter-flexible": "^2.4.1",
-    "revolt-api": "^0.6.1",
+    "revolt-api": "^0.6.3",
     "revolt.js": "https://github.com/V3L0C1T13S/revolt.js/releases/download/6.0.20.revite-backports.patch1/package.tgz",
     "rfcNative": "github:V3L0C1T13S/rfcNative#76abf0f162c6515f9cb42702b6d5fea00bc305be",
     "semantic-sdp": "^3.25.1",

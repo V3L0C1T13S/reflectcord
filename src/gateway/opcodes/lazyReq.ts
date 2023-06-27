@@ -51,6 +51,15 @@ function partition<T>(array: T[], isValid: Function) {
   );
 }
 
+function findUserFromMembers(
+  fastUserFind: boolean | undefined,
+  members: API.AllMemberResponse,
+  i: number,
+  m: API.Member,
+) {
+  return fastUserFind ? members.users[i] : members.users.find((u) => u._id === m._id.user);
+}
+
 function calculateMemberPermissions(
   roles: APIRole[],
   overwrites: APIOverwrite[],
@@ -106,7 +115,7 @@ async function getMembers(
   const channel = this.rvAPIWrapper.channels.get(target_channel);
 
   members.members = members.members.filter((m, i) => {
-    const user = fastUserFind ? members.users[i] : members.users.find((u) => u._id === m._id.user);
+    const user = findUserFromMembers(fastUserFind, members, i, m);
 
     if (!user) return false;
 
@@ -152,13 +161,14 @@ async function getMembers(
   }
 
   type extendMemberContainer = MemberContainer & {
-    user?: API.User | undefined | null,
-    status?: internalStatus | null,
+    user: API.User,
+    status: internalStatus,
   }
 
   let discordMembers: extendMemberContainer[] = await Promise.all(members.members
     .map(async (member, i) => {
       const user = members.users.find((x) => x._id === member._id.user);
+      if (!user) throw new Error("No user object found for member");
 
       const discordMember = await Member.from_quark(member, { user });
 
@@ -168,8 +178,8 @@ async function getMembers(
         revolt: member,
         discord: discordMember,
         user,
-        status: await Status.from_quark(user?.status, {
-          online: user?.online,
+        status: await Status.from_quark(user.status, {
+          online: user.online,
         }),
       };
     }));
@@ -215,14 +225,14 @@ async function getMembers(
         offline: 4,
       };
 
-      const status = member.status?.status ?? "offline";
+      const status = member.status.status ?? "offline";
 
       const item = {
         member: {
           ...member.discord,
           roles: userRoles,
           presence: {
-            activities: activities ? member.status?.activities as any : [],
+            activities: activities ? member.status.activities as any : [],
             client_status: {
               web: status,
             },
@@ -232,7 +242,7 @@ async function getMembers(
         },
       };
 
-      if (member.status?.status === "invisible" || member.status?.status as string === "offline") {
+      if (member.status.status === "invisible" || member.status.status as string === "offline") {
         item.member.presence.status = "offline";
         offlineItems.push(item);
         group.count--;
@@ -253,7 +263,7 @@ async function getMembers(
         member: {
           ...discordMember,
           presence: {
-            activities: activities ? discordStatus?.activities as any : [],
+            activities: activities ? discordStatus.activities : [],
             client_status: {
               web: "offline",
             },
@@ -274,6 +284,15 @@ async function getMembers(
 
     items.push(...offlineItems);
   }
+
+  extendedMembers.forEach((member) => {
+    if (!member.discord.user) throw new Error(`Member ${member.revolt._id.user} has no user.`);
+
+    this.rvAPIWrapper.users.createObj({
+      revolt: member.user,
+      discord: member.discord.user,
+    });
+  });
 
   return {
     results: {

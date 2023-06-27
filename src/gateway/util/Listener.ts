@@ -115,6 +115,14 @@ function cacheServerCreateChannels(
 // TODO: Put this in actual revolt.js
 type ClientNotification = ClientboundNotification | API.Webhook & {
   type: "WebhookCreate",
+} | {
+  type: "WebhookUpdate",
+  id: string,
+  data: Partial<API.Webhook>,
+  remove: API.FieldsWebhook
+} | {
+  type: "WebhookDelete",
+  id: string,
 }
 
 export async function startListener(
@@ -1285,10 +1293,8 @@ export async function startListener(
           }
 
           const subscribedServer = this.subscribed_servers[data.id];
-          if (subscribedServer) {
-            const { memberList } = subscribedServer;
-            if (!memberList) return;
-
+          const memberList = subscribedServer?.memberList;
+          if (memberList) {
             const index = memberList.findMemberItemIndex(user.discord.id);
             if (index) {
               const ops = memberList.deleteAndRecalculate(index);
@@ -1323,7 +1329,8 @@ export async function startListener(
           break;
         }
         case "UserUpdate": {
-          const user = await this.rvAPIWrapper.users.fetch(data.id);
+          const user = this.rvAPIWrapper.users.get(data.id);
+          if (!user) return;
 
           // TODO: Make it so we don't have to do this to clear revolt beforehand
           this.rvAPIWrapper.users.update(data.id, {
