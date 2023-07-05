@@ -17,6 +17,17 @@
   },
   "homepage": "https://github.com/V3L0C1T13S/reflectcord#readme",
   "dependencies": {
-    "medooze-media-server": "^0.129.3"
+    "@reflectcord/common": "workspace:*",
+    "@reflectcord/gateway": "workspace:*",
+    "discord.js": "^14.11.0",
+    "medooze-media-server": "^0.129.3",
+    "missing-native-js-functions": "^1.4.3",
+    "msc-node": "^0.0.10",
+    "semantic-sdp": "^3.26.2",
+    "ws": "^8.13.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.3.3",
+    "@types/ws": "^8.5.5"
   }
 }

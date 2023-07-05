@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "pnpx patch-package"
   },
   "repository": {
     "type": "git",
@@ -16,5 +16,42 @@
   "bugs": {
     "url": "https://github.com/V3L0C1T13S/reflectcord/issues"
   },
-  "homepage": "https://github.com/V3L0C1T13S/reflectcord#readme"
+  "homepage": "https://github.com/V3L0C1T13S/reflectcord#readme",
+  "dependencies": {
+    "@reflectcord/cdn": "workspace:*",
+    "amqplib": "^0.10.3",
+    "axios": "^1.4.0",
+    "axios-rate-limit": "^1.3.0",
+    "discord-api-types": "^0.37.47",
+    "discord.js": "^14.11.0",
+    "dotenv": "^16.3.1",
+    "emojilib": "^3.0.10",
+    "express": "^4.18.2",
+    "express-fileupload": "^1.4.0",
+    "fastify": "^4.19.2",
+    "fastify-autoroutes": "^3.0.2",
+    "file-type": "^18.5.0",
+    "gifbox.js": "^0.9.0",
+    "lodash": "^4.17.21",
+    "mongodb": "^5.6.0",
+    "mongoose": "^7.3.1",
+    "murmurhash-js": "^1.0.0",
+    "node-html-parser": "^6.1.5",
+    "nodejs-snowflake": "^2.0.1",
+    "protobufjs": "^7.2.4",
+    "revolt-api": "^0.6.5",
+    "revolt.js": "https://github.com/V3L0C1T13S/revolt.js/releases/download/6.0.20.revite-backports.patch1/package.tgz",
+    "tiny-typed-emitter": "^2.1.0",
+    "twitter-api-v2": "^1.15.0",
+    "ulid": "^2.3.0",
+    "unicode-emoji-json": "^0.4.0"
+  },
+  "devDependencies": {
+    "@types/amqplib": "^0.10.1",
+    "@types/express": "^4.17.17",
+    "@types/express-fileupload": "^1.4.1",
+    "@types/lodash": "^4.14.195",
+    "@types/murmurhash-js": "^1.0.4",
+    "@types/node": "^20.3.3"
+  }
 }
