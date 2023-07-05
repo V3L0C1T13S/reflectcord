@@ -23,9 +23,6 @@ importers:
       '@ffmpeg/ffmpeg':
         specifier: ^0.11.6
         version: 0.11.6
-      '@reflectcord/common':
-        specifier: workspace:*
-        version: link:src/common
       ajv:
         specifier: ^8.12.0
         version: 8.12.0
@@ -119,6 +116,9 @@ importers:
       long:
         specifier: ^5.2.3
         version: 5.2.3
+      medooze-media-server:
+        specifier: ^0.139.22
+        version: 0.139.22
       missing-native-js-functions:
         specifier: ^1.4.3
         version: 1.4.3
@@ -5194,6 +5194,18 @@ packages:
     requiresBuild: true
     dependencies:
       clone-deep: 4.0.1
+      lfsr: 0.0.3
+      nan: 2.17.0
+      semantic-sdp: 3.26.2
+      uuid: 3.4.0
+    optionalDependencies:
+      netlink: 0.2.4
+    dev: false
+
+  /medooze-media-server@0.139.22:
+    resolution: {integrity: sha512-lH5aS8s22wtKfT5uXMn2OnuTbqpFfTpF95/QatqNZ49nww3Tm6RmfLdoLfYtjqhR51CR4ng4F0f4nDmDI52erw==}
+    requiresBuild: true
+    dependencies:
       lfsr: 0.0.3
       nan: 2.17.0
       semantic-sdp: 3.26.2
