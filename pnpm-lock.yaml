@@ -8,25 +8,226 @@ importers:
 
   .:
     dependencies:
+      '@fastify/express':
+        specifier: ^2.3.0
+        version: 2.3.0
+      '@fastify/formbody':
+        specifier: ^7.4.0
+        version: 7.4.0
+      '@fastify/multipart':
+        specifier: ^7.7.0
+        version: 7.7.0
+      '@ffmpeg/core':
+        specifier: ^0.11.0
+        version: 0.11.0
+      '@ffmpeg/ffmpeg':
+        specifier: ^0.11.6
+        version: 0.11.6
+      '@reflectcord/common':
+        specifier: workspace:*
+        version: link:src/common
+      ajv:
+        specifier: ^8.12.0
+        version: 8.12.0
+      amqplib:
+        specifier: ^0.10.3
+        version: 0.10.3
+      axios:
+        specifier: ^1.4.0
+        version: 1.4.0(debug@4.3.4)
+      axios-rate-limit:
+        specifier: ^1.3.0
+        version: 1.3.0(axios@1.4.0)
+      bitfield:
+        specifier: ^4.1.0
+        version: 4.1.0
+      body-parser:
+        specifier: ^1.20.2
+        version: 1.20.2
       concurrently:
         specifier: ^8.2.0
         version: 8.2.0
+      device-detector-js:
+        specifier: ^3.0.3
+        version: 3.0.3
+      discord-api-types:
+        specifier: ^0.37.47
+        version: 0.37.47
+      discord.js:
+        specifier: ^14.11.0
+        version: 14.11.0
+      dotenv:
+        specifier: ^16.3.1
+        version: 16.3.1
+      emojilib:
+        specifier: ^3.0.10
+        version: 3.0.10
+      erlpack:
+        specifier: ^0.1.4
+        version: 0.1.4
+      express:
+        specifier: ^4.18.2
+        version: 4.18.2
+      express-async-errors:
+        specifier: ^3.1.1
+        version: 3.1.1(express@4.18.2)
+      express-automatic-routes:
+        specifier: ^1.1.0
+        version: 1.1.0
+      express-fileupload:
+        specifier: ^1.4.0
+        version: 1.4.0
+      fast-zlib:
+        specifier: ^2.0.1
+        version: 2.0.1
+      fastify:
+        specifier: ^4.19.2
+        version: 4.19.2
+      fastify-autoroutes:
+        specifier: ^3.0.2
+        version: 3.0.2(fastify@4.19.2)(glob@7.2.3)
+      ffmpeg-static:
+        specifier: ^5.1.0
+        version: 5.1.0
+      file-type:
+        specifier: ^18.5.0
+        version: 18.5.0
       find-my-way:
         specifier: github:V3L0C1T13S/find-my-way#dev/reflectcord
         version: github.com/V3L0C1T13S/find-my-way/c98558ad692129fb5c1a044f81c0792264b20c37
+      fluent-ffmpeg:
+        specifier: ^2.1.2
+        version: 2.1.2
+      form-data:
+        specifier: ^4.0.0
+        version: 4.0.0
+      gifbox.js:
+        specifier: ^0.9.0
+        version: 0.9.0
+      gm:
+        specifier: ^1.25.0
+        version: 1.25.0
+      helmet:
+        specifier: ^7.0.0
+        version: 7.0.0
+      json-bigint:
+        specifier: ^1.0.0
+        version: 1.0.0
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
+      long:
+        specifier: ^5.2.3
+        version: 5.2.3
+      missing-native-js-functions:
+        specifier: ^1.4.3
+        version: 1.4.3
+      module-alias:
+        specifier: ^2.2.3
+        version: 2.2.3
+      mongodb:
+        specifier: ^5.6.0
+        version: 5.6.0
+      mongoose:
+        specifier: ^7.3.1
+        version: 7.3.1
+      morgan:
+        specifier: ^1.10.0
+        version: 1.10.0
+      msc-node:
+        specifier: ^0.0.10
+        version: 0.0.10
+      murmurhash-js:
+        specifier: ^1.0.0
+        version: 1.0.0
+      node-html-parser:
+        specifier: ^6.1.5
+        version: 6.1.5
+      nodejs-snowflake:
+        specifier: ^2.0.1
+        version: 2.0.1
+      protobufjs:
+        specifier: ^7.2.4
+        version: 7.2.4
+      rate-limiter-flexible:
+        specifier: ^2.4.1
+        version: 2.4.1
+      revolt-api:
+        specifier: ^0.6.5
+        version: 0.6.5
+      revolt.js:
+        specifier: https://github.com/V3L0C1T13S/revolt.js/releases/download/6.0.20.revite-backports.patch1/package.tgz
+        version: '@github.com/V3L0C1T13S/revolt.js/releases/download/6.0.20.revite-backports.patch1/package.tgz'
+      rfcNative:
+        specifier: github:V3L0C1T13S/rfcNative#76abf0f162c6515f9cb42702b6d5fea00bc305be
+        version: github.com/V3L0C1T13S/rfcNative/76abf0f162c6515f9cb42702b6d5fea00bc305be
+      semantic-sdp:
+        specifier: ^3.26.2
+        version: 3.26.2
       serve-favicon:
         specifier: ^2.5.0
         version: 2.5.0
+      sharp:
+        specifier: ^0.32.1
+        version: 0.32.1
+      tiny-typed-emitter:
+        specifier: ^2.1.0
+        version: 2.1.0
       tslib:
         specifier: ^2.6.0
         version: 2.6.0
+      twitter-api-v2:
+        specifier: ^1.15.0
+        version: 1.15.0
+      ulid:
+        specifier: ^2.3.0
+        version: 2.3.0
+      unicode-emoji-json:
+        specifier: ^0.4.0
+        version: 0.4.0
+      ws:
+        specifier: ^8.13.0
+        version: 8.13.0
+      zlib:
+        specifier: ^1.0.5
+        version: 1.0.5
     devDependencies:
+      '@types/amqplib':
+        specifier: ^0.10.1
+        version: 0.10.1
+      '@types/body-parser':
+        specifier: ^1.19.2
+        version: 1.19.2
+      '@types/express':
+        specifier: ^4.17.17
+        version: 4.17.17
+      '@types/express-fileupload':
+        specifier: ^1.4.1
+        version: 1.4.1
+      '@types/fluent-ffmpeg':
+        specifier: ^2.1.21
+        version: 2.1.21
+      '@types/gm':
+        specifier: ^1.25.1
+        version: 1.25.1
+      '@types/lodash':
+        specifier: ^4.14.195
+        version: 4.14.195
+      '@types/morgan':
+        specifier: ^1.9.4
+        version: 1.9.4
+      '@types/murmurhash-js':
+        specifier: ^1.0.4
+        version: 1.0.4
       '@types/node':
         specifier: ^20.3.3
         version: 20.3.3
       '@types/serve-favicon':
         specifier: ^2.5.4
         version: 2.5.4
+      '@types/ws':
+        specifier: ^8.5.5
+        version: 8.5.5
       '@typescript-eslint/eslint-plugin':
         specifier: ^5.61.0
         version: 5.61.0(@typescript-eslint/parser@5.61.0)(eslint@8.44.0)(typescript@5.1.6)
@@ -61,368 +262,25 @@ importers:
         specifier: ^5.1.6
         version: 5.1.6
 
-  src/api:
-    dependencies:
-      '@reflectcord/cdn':
-        specifier: workspace:*
-        version: link:../cdn
-      '@reflectcord/common':
-        specifier: workspace:*
-        version: link:../common
-      axios:
-        specifier: ^1.4.0
-        version: 1.4.0(debug@4.3.4)
-      body-parser:
-        specifier: ^1.20.2
-        version: 1.20.2
-      device-detector-js:
-        specifier: ^3.0.3
-        version: 3.0.3
-      discord.js:
-        specifier: ^14.11.0
-        version: 14.11.0
-      express:
-        specifier: ^4.18.2
-        version: 4.18.2
-      express-async-errors:
-        specifier: ^3.1.1
-        version: 3.1.1(express@4.18.2)
-      express-automatic-routes:
-        specifier: ^1.1.0
-        version: 1.1.0
-      express-fileupload:
-        specifier: ^1.4.0
-        version: 1.4.0
-      gifbox.js:
-        specifier: ^0.9.0
-        version: 0.9.0
-      lodash:
-        specifier: ^4.17.21
-        version: 4.17.21
-      missing-native-js-functions:
-        specifier: ^1.4.3
-        version: 1.4.3
-      morgan:
-        specifier: ^1.10.0
-        version: 1.10.0
-      protobufjs:
-        specifier: ^7.2.4
-        version: 7.2.4
-      rate-limiter-flexible:
-        specifier: ^2.4.1
-        version: 2.4.1
-      revolt-api:
-        specifier: ^0.6.5
-        version: 0.6.5
-      revolt.js:
-        specifier: https://github.com/V3L0C1T13S/revolt.js/releases/download/6.0.20.revite-backports.patch1/package.tgz
-        version: '@github.com/V3L0C1T13S/revolt.js/releases/download/6.0.20.revite-backports.patch1/package.tgz'
-      ulid:
-        specifier: ^2.3.0
-        version: 2.3.0
-    devDependencies:
-      '@types/body-parser':
-        specifier: ^1.19.2
-        version: 1.19.2
-      '@types/express':
-        specifier: ^4.17.17
-        version: 4.17.17
-      '@types/express-fileupload':
-        specifier: ^1.4.1
-        version: 1.4.1
-      '@types/lodash':
-        specifier: ^4.14.195
-        version: 4.14.195
-      '@types/morgan':
-        specifier: ^1.9.4
-        version: 1.9.4
-      '@types/node':
-        specifier: ^20.3.3
-        version: 20.3.3
+  src/api: {}
 
-  src/cdn:
-    dependencies:
-      '@fastify/express':
-        specifier: ^2.3.0
-        version: 2.3.0
-      '@fastify/multipart':
-        specifier: ^7.7.0
-        version: 7.7.0
-      '@reflectcord/common':
-        specifier: workspace:*
-        version: link:../common
-      axios:
-        specifier: ^1.4.0
-        version: 1.4.0(debug@4.3.4)
-      body-parser:
-        specifier: ^1.20.2
-        version: 1.20.2
-      express-fileupload:
-        specifier: ^1.4.0
-        version: 1.4.0
-      fastify:
-        specifier: ^4.19.2
-        version: 4.19.2
-      fastify-autoroutes:
-        specifier: ^3.0.2
-        version: 3.0.2(fastify@4.19.2)(glob@7.2.3)
-      ffmpeg-static:
-        specifier: ^5.1.0
-        version: 5.1.0
-      file-type:
-        specifier: ^18.5.0
-        version: 18.5.0
-      fluent-ffmpeg:
-        specifier: ^2.1.2
-        version: 2.1.2
-      form-data:
-        specifier: ^4.0.0
-        version: 4.0.0
-      gm:
-        specifier: ^1.25.0
-        version: 1.25.0
-      missing-native-js-functions:
-        specifier: ^1.4.3
-        version: 1.4.3
-      sharp:
-        specifier: ^0.32.1
-        version: 0.32.1
-    devDependencies:
-      '@types/body-parser':
-        specifier: ^1.19.2
-        version: 1.19.2
-      '@types/express-fileupload':
-        specifier: ^1.4.1
-        version: 1.4.1
-      '@types/fluent-ffmpeg':
-        specifier: ^2.1.21
-        version: 2.1.21
-      '@types/gm':
-        specifier: ^1.25.1
-        version: 1.25.1
-      '@types/node':
-        specifier: ^20.3.3
-        version: 20.3.3
+  src/cdn: {}
 
-  src/common:
-    dependencies:
-      '@reflectcord/cdn':
-        specifier: workspace:*
-        version: link:../cdn
-      amqplib:
-        specifier: ^0.10.3
-        version: 0.10.3
-      axios:
-        specifier: ^1.4.0
-        version: 1.4.0(debug@4.3.4)
-      axios-rate-limit:
-        specifier: ^1.3.0
-        version: 1.3.0(axios@1.4.0)
-      discord-api-types:
-        specifier: ^0.37.47
-        version: 0.37.47
-      discord.js:
-        specifier: ^14.11.0
-        version: 14.11.0
-      dotenv:
-        specifier: ^16.3.1
-        version: 16.3.1
-      emojilib:
-        specifier: ^3.0.10
-        version: 3.0.10
-      express:
-        specifier: ^4.18.2
-        version: 4.18.2
-      express-fileupload:
-        specifier: ^1.4.0
-        version: 1.4.0
-      fastify:
-        specifier: ^4.19.2
-        version: 4.19.2
-      fastify-autoroutes:
-        specifier: ^3.0.2
-        version: 3.0.2(fastify@4.19.2)(glob@7.2.3)
-      file-type:
-        specifier: ^18.5.0
-        version: 18.5.0
-      gifbox.js:
-        specifier: ^0.9.0
-        version: 0.9.0
-      lodash:
-        specifier: ^4.17.21
-        version: 4.17.21
-      mongodb:
-        specifier: ^5.6.0
-        version: 5.6.0
-      mongoose:
-        specifier: ^7.3.1
-        version: 7.3.1
-      murmurhash-js:
-        specifier: ^1.0.0
-        version: 1.0.0
-      node-html-parser:
-        specifier: ^6.1.5
-        version: 6.1.5
-      nodejs-snowflake:
-        specifier: ^2.0.1
-        version: 2.0.1
-      protobufjs:
-        specifier: ^7.2.4
-        version: 7.2.4
-      revolt-api:
-        specifier: ^0.6.5
-        version: 0.6.5
-      revolt.js:
-        specifier: https://github.com/V3L0C1T13S/revolt.js/releases/download/6.0.20.revite-backports.patch1/package.tgz
-        version: '@github.com/V3L0C1T13S/revolt.js/releases/download/6.0.20.revite-backports.patch1/package.tgz'
-      tiny-typed-emitter:
-        specifier: ^2.1.0
-        version: 2.1.0
-      twitter-api-v2:
-        specifier: ^1.15.0
-        version: 1.15.0
-      ulid:
-        specifier: ^2.3.0
-        version: 2.3.0
-      unicode-emoji-json:
-        specifier: ^0.4.0
-        version: 0.4.0
-    devDependencies:
-      '@types/amqplib':
-        specifier: ^0.10.1
-        version: 0.10.1
-      '@types/express':
-        specifier: ^4.17.17
-        version: 4.17.17
-      '@types/express-fileupload':
-        specifier: ^1.4.1
-        version: 1.4.1
-      '@types/lodash':
-        specifier: ^4.14.195
-        version: 4.14.195
-      '@types/murmurhash-js':
-        specifier: ^1.0.4
-        version: 1.0.4
-      '@types/node':
-        specifier: ^20.3.3
-        version: 20.3.3
+  src/common: {}
 
-  src/evil:
-    dependencies:
-      '@reflectcord/common':
-        specifier: workspace:*
-        version: link:../common
-      axios:
-        specifier: ^1.4.0
-        version: 1.4.0(debug@4.3.4)
-      express:
-        specifier: ^4.18.2
-        version: 4.18.2
-      express-automatic-routes:
-        specifier: ^1.1.0
-        version: 1.1.0
-      morgan:
-        specifier: ^1.10.0
-        version: 1.10.0
-    devDependencies:
-      '@types/express':
-        specifier: ^4.17.17
-        version: 4.17.17
-      '@types/morgan':
-        specifier: ^1.9.4
-        version: 1.9.4
-      '@types/node':
-        specifier: ^20.3.3
-        version: 20.3.3
+  src/evil: {}
 
   src/gateway:
-    dependencies:
-      '@reflectcord/common':
-        specifier: workspace:*
-        version: link:../common
-      amqplib:
-        specifier: ^0.10.3
-        version: 0.10.3
-      discord.js:
-        specifier: ^14.11.0
-        version: 14.11.0
-      erlpack:
-        specifier: ^0.1.4
-        version: 0.1.4
-      fast-zlib:
-        specifier: ^2.0.1
-        version: 2.0.1
-      json-bigint:
-        specifier: ^1.0.0
-        version: 1.0.0
-      lodash:
-        specifier: ^4.17.21
-        version: 4.17.21
-      missing-native-js-functions:
-        specifier: ^1.4.3
-        version: 1.4.3
-      revolt-api:
-        specifier: ^0.6.5
-        version: 0.6.5
-      revolt.js:
-        specifier: https://github.com/V3L0C1T13S/revolt.js/releases/download/6.0.20.revite-backports.patch1/package.tgz
-        version: '@github.com/V3L0C1T13S/revolt.js/releases/download/6.0.20.revite-backports.patch1/package.tgz'
-      rfcNative:
-        specifier: github:V3L0C1T13S/rfcNative#76abf0f162c6515f9cb42702b6d5fea00bc305be
-        version: github.com/V3L0C1T13S/rfcNative/76abf0f162c6515f9cb42702b6d5fea00bc305be
-      ws:
-        specifier: ^8.13.0
-        version: 8.13.0
     devDependencies:
-      '@types/amqplib':
-        specifier: ^0.10.1
-        version: 0.10.1
       '@types/json-bigint':
         specifier: ^1.0.1
         version: 1.0.1
-      '@types/lodash':
-        specifier: ^4.14.195
-        version: 4.14.195
-      '@types/node':
-        specifier: ^20.3.3
-        version: 20.3.3
-      '@types/ws':
-        specifier: ^8.5.5
-        version: 8.5.5
 
   src/voice:
     dependencies:
-      '@reflectcord/common':
-        specifier: workspace:*
-        version: link:../common
-      '@reflectcord/gateway':
-        specifier: workspace:*
-        version: link:../gateway
-      discord.js:
-        specifier: ^14.11.0
-        version: 14.11.0
       medooze-media-server:
         specifier: ^0.129.3
         version: 0.129.3
-      missing-native-js-functions:
-        specifier: ^1.4.3
-        version: 1.4.3
-      msc-node:
-        specifier: ^0.0.10
-        version: 0.0.10
-      semantic-sdp:
-        specifier: ^3.26.2
-        version: 3.26.2
-      ws:
-        specifier: ^8.13.0
-        version: 8.13.0
-    devDependencies:
-      '@types/node':
-        specifier: ^20.3.3
-        version: 20.3.3
-      '@types/ws':
-        specifier: ^8.5.5
-        version: 8.5.5
 
 packages:
 
@@ -1161,6 +1019,13 @@ packages:
       fast-json-stringify: 5.7.0
     dev: false
 
+  /@fastify/formbody@7.4.0:
+    resolution: {integrity: sha512-H3C6h1GN56/SMrZS8N2vCT2cZr7mIHzBHzOBa5OPpjfB/D6FzP9mMpE02ZzrFX0ANeh0BAJdoXKOF2e7IbV+Og==}
+    dependencies:
+      fast-querystring: 1.1.2
+      fastify-plugin: 4.5.0
+    dev: false
+
   /@fastify/multipart@7.7.0:
     resolution: {integrity: sha512-lE5v6+MVbLYmPL8yUHrvyezEOLQbZulEPL8itwGqPbNxL2pWdAN1HWEZ7f3VdwyR6wmQdOcpfZ0zdCU4BbWKzw==}
     dependencies:
@@ -1219,6 +1084,22 @@ packages:
       yaml: 2.3.1
     transitivePeerDependencies:
       - supports-color
+    dev: false
+
+  /@ffmpeg/core@0.11.0:
+    resolution: {integrity: sha512-9Tt/+2PMpkGPXUK8n6He9G8Y+qR6qmCPSCw9iEKZxHHOvJ9BE/r0Fccj+YgDZTlyu6rXxc9x6EqCaFBIt7qzjA==}
+    dev: false
+
+  /@ffmpeg/ffmpeg@0.11.6:
+    resolution: {integrity: sha512-uN8J8KDjADEavPhNva6tYO9Fj0lWs9z82swF3YXnTxWMBoFLGq3LZ6FLlIldRKEzhOBKnkVfA8UnFJuvGvNxcA==}
+    engines: {node: '>=12.16.1'}
+    dependencies:
+      is-url: 1.2.4
+      node-fetch: 2.6.12
+      regenerator-runtime: 0.13.11
+      resolve-url: 0.2.1
+    transitivePeerDependencies:
+      - encoding
     dev: false
 
   /@fidm/asn1@1.0.4:
@@ -2612,6 +2493,11 @@ packages:
     resolution: {integrity: sha512-p2q/t/mhvuOj/UeLlV6566GD/guowlr0hHxClI0W9m7MWYkL1F0hLo+0Aexs9HSPCtR1SXQ0TD3MMKrXZajbiQ==}
     dependencies:
       file-uri-to-path: 1.0.0
+    dev: false
+
+  /bitfield@4.1.0:
+    resolution: {integrity: sha512-6cEDG3K+PK9f+B7WyhWYjp09bqSa+uaAaecVA7Y5giFixyVe1s6HKGnvOqYNR4Mi4fBMjfDPLBpHkKvzzgP7kg==}
+    engines: {node: '>=8'}
     dev: false
 
   /bl@4.1.0:
@@ -4308,6 +4194,11 @@ packages:
     hasBin: true
     dev: false
 
+  /helmet@7.0.0:
+    resolution: {integrity: sha512-MsIgYmdBh460ZZ8cJC81q4XJknjG567wzEmv46WOBblDb6TUd3z8/GhgmsM9pn8g2B80tAJ4m5/d3Bi1KrSUBQ==}
+    engines: {node: '>=16.0.0'}
+    dev: false
+
   /hmac-drbg@1.0.1:
     resolution: {integrity: sha512-Tti3gMqLdZfhOQY1Mzf/AanLiqh1WTiJgEj26ZuYQ9fbkLomzGchCws4FyrSd4VkpBfiNhaE1On+lOz894jvXg==}
     dependencies:
@@ -4591,6 +4482,10 @@ packages:
       gopd: 1.0.1
       has-tostringtag: 1.0.0
     dev: true
+
+  /is-url@1.2.4:
+    resolution: {integrity: sha512-ITvGim8FhRiYe4IQ5uHSkj7pVaPDrCTkNd3yq3cV7iZAcJdHTUMPMEHcqSOy9xZ9qFenQCvi+2wjH9a1nXqHww==}
+    dev: false
 
   /is-weakref@1.0.2:
     resolution: {integrity: sha512-qctsuLZmIQ0+vSSMfoVvyFe2+GSEvnmZ2ezTup1SBse9+twCCeial6EEi3Nc2KFcf6+qz2FBPnjXsk8xhKSaPQ==}
@@ -5451,6 +5346,10 @@ packages:
     resolution: {integrity: sha512-HdKewQEREEJgsWnErClfbFoVebze6rGazxFLU/XUyrII8dORfVszN1V0BMRnQSzcgsNNtkX8DHj3nC6cdWE9YQ==}
     dev: false
 
+  /module-alias@2.2.3:
+    resolution: {integrity: sha512-23g5BFj4zdQL/b6tor7Ji+QY4pEfNH784BMslY9Qb0UnJWRAt+lQGLYmRaM0KDBwIG23ffEBELhZDP2rhi9f/Q==}
+    dev: false
+
   /mongodb-connection-string-url@2.6.0:
     resolution: {integrity: sha512-WvTZlI9ab0QYtTYnuMLgobULWhokRjtC7db9LtcVfJ+Hsnyr5eo6ZtNAt3Ly24XZScGMelOcGtm7lSn0332tPQ==}
     dependencies:
@@ -5619,6 +5518,18 @@ packages:
 
   /node-api-headers@0.0.2:
     resolution: {integrity: sha512-YsjmaKGPDkmhoNKIpkChtCsPVaRE0a274IdERKnuc/E8K1UJdBZ4/mvI006OijlQZHCfpRNOH3dfHQs92se8gg==}
+    dev: false
+
+  /node-fetch@2.6.12:
+    resolution: {integrity: sha512-C/fGU2E8ToujUivIO0H+tpQ6HWo4eEmchoPIoXtxCrVghxdKq+QOHqEZW7tuP3KlV3bC8FRMO5nMCC7Zm1VP6g==}
+    engines: {node: 4.x || >=6.0.0}
+    peerDependencies:
+      encoding: ^0.1.0
+    peerDependenciesMeta:
+      encoding:
+        optional: true
+    dependencies:
+      whatwg-url: 5.0.0
     dev: false
 
   /node-gyp-build@4.6.0:
@@ -6246,6 +6157,11 @@ packages:
     resolution: {integrity: sha512-seS2Tj26TBVOC2NIc2rOe2y2ZO7efxITtLZcGSOnHHNOQ7CkiUBfw0Iw2ck6xkIhPwLhKNLS8BO+hEpngQlqzw==}
     dev: true
 
+  /resolve-url@0.2.1:
+    resolution: {integrity: sha512-ZuF55hVUQaaczgOIwqWzkEcEidmlD/xl44x1UZnhOXcYuFN2S6+rcxpG+C1N3So0wvNI3DmJICUFfu2SxhBmvg==}
+    deprecated: https://github.com/lydell/resolve-url#deprecated
+    dev: false
+
   /resolve.exports@2.0.2:
     resolution: {integrity: sha512-X2UW6Nw3n/aMgDVy+0rSqgHlv39WZAlZrXCdnbyEiKm17DSqHX4MmQMaST3FbeWR5FTuRcUwYAziZajji0Y7mg==}
     engines: {node: '>=10'}
@@ -6871,6 +6787,10 @@ packages:
       nopt: 1.0.10
     dev: true
 
+  /tr46@0.0.3:
+    resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
+    dev: false
+
   /tr46@3.0.0:
     resolution: {integrity: sha512-l7FvfAHlcmulp8kr+flpQZmVwtu7nfRV7NZujtN0OqES8EL4O4e0qqzL0DC5gAvx/ZC/9lk6rhcUwYvkBnBnYA==}
     engines: {node: '>=12'}
@@ -7154,6 +7074,10 @@ packages:
       tslib: 2.6.0
     dev: false
 
+  /webidl-conversions@3.0.1:
+    resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
+    dev: false
+
   /webidl-conversions@7.0.0:
     resolution: {integrity: sha512-VwddBukDzu71offAQR975unBIGqfKZpM+8ZX6ySk8nYhVoo5CYaZyzt3YBvYtRtO+aoGlqxPg/B87NGVZ/fu6g==}
     engines: {node: '>=12'}
@@ -7193,6 +7117,13 @@ packages:
     dependencies:
       tr46: 3.0.0
       webidl-conversions: 7.0.0
+    dev: false
+
+  /whatwg-url@5.0.0:
+    resolution: {integrity: sha512-saE57nupxk6v3HY35+jzBwYa0rKSy0XR8JSxZPwgLr7ys0IBzhGviA1/TUGJLmSVqs8pb9AnvICXEuOHLprYTw==}
+    dependencies:
+      tr46: 0.0.3
+      webidl-conversions: 3.0.1
     dev: false
 
   /which-boxed-primitive@1.0.2:
@@ -7317,6 +7248,11 @@ packages:
   /yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
+
+  /zlib@1.0.5:
+    resolution: {integrity: sha512-40fpE2II+Cd3k8HWTWONfeKE2jL+P42iWJ1zzps5W51qcTsOUKM5Q5m2PFb0CLxlmFAaUuUdJGc3OfZy947v0w==}
+    engines: {node: '>=0.2.0'}
+    dev: false
 
   '@github.com/V3L0C1T13S/revolt.js/releases/download/6.0.20.revite-backports.patch1/package.tgz':
     resolution: {tarball: https://github.com/V3L0C1T13S/revolt.js/releases/download/6.0.20.revite-backports.patch1/package.tgz}

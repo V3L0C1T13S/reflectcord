@@ -6,6 +6,9 @@
   "directories": {
     "test": "tests"
   },
+  "devDependencies": {
+    "@types/json-bigint": "^1.0.1"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -18,26 +21,5 @@
   "bugs": {
     "url": "https://github.com/V3L0C1T13S/reflectcord/issues"
   },
-  "homepage": "https://github.com/V3L0C1T13S/reflectcord#readme",
-  "dependencies": {
-    "@reflectcord/common": "workspace:*",
-    "amqplib": "^0.10.3",
-    "discord.js": "^14.11.0",
-    "erlpack": "^0.1.4",
-    "fast-zlib": "^2.0.1",
-    "json-bigint": "^1.0.0",
-    "lodash": "^4.17.21",
-    "missing-native-js-functions": "^1.4.3",
-    "revolt-api": "^0.6.5",
-    "revolt.js": "https://github.com/V3L0C1T13S/revolt.js/releases/download/6.0.20.revite-backports.patch1/package.tgz",
-    "rfcNative": "github:V3L0C1T13S/rfcNative#76abf0f162c6515f9cb42702b6d5fea00bc305be",
-    "ws": "^8.13.0"
-  },
-  "devDependencies": {
-    "@types/amqplib": "^0.10.1",
-    "@types/json-bigint": "^1.0.1",
-    "@types/lodash": "^4.14.195",
-    "@types/node": "^20.3.3",
-    "@types/ws": "^8.5.5"
-  }
+  "homepage": "https://github.com/V3L0C1T13S/reflectcord#readme"
 }
