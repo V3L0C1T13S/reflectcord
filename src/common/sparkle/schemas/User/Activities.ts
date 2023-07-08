@@ -70,4 +70,5 @@ export const ActivitySchema = {
   ],
   $since: Number,
   $game: null,
+  $broadcast: Object,
 };
