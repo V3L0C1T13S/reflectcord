@@ -1,7 +1,9 @@
 /dist
-/node_modules
 /.env
 /coverage
 /assets/cache
 /cache
 /gw_dumps
+
+# Ignore all folders named node_modules
+node_modules
