@@ -22,6 +22,8 @@ import {
   ApiError, HTTPError, FieldError, Logger,
 } from "@reflectcord/common/utils";
 import { isAxiosError } from "axios";
+import { DiscordErrorMap, DiscordErrorMessages } from "@reflectcord/common/sparkle";
+import API from "revolt-api";
 
 const EntityNotFoundErrorRegex = /"(\w+)"/;
 
@@ -75,6 +77,11 @@ export function ErrorHandler(error: Error, req: Request, res: Response, next: Ne
             code: 0,
           });
         }
+
+        const discordErrorCode = DiscordErrorMap[message as API.Error["type"]] ?? 0;
+        const discordMessage = DiscordErrorMessages[discordErrorCode] ?? message;
+
+        return res.status(httpcode).json({ message: discordMessage, code: discordErrorCode });
       }
     }
 

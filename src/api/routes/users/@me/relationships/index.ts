@@ -49,7 +49,7 @@ export default () => <Resource> {
         if (error.response?.data.type === "AlreadyFriends") {
           throw new FieldError(
             DiscordErrors.AlreadyFriendsError,
-            DiscordErrorMessages.AlreadyFriendsError,
+            DiscordErrorMessages[DiscordErrors.AlreadyFriendsError],
           );
         }
       }

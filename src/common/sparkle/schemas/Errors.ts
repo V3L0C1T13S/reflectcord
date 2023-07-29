@@ -9,14 +9,26 @@ export enum DiscordErrors {
   TooManyUsingUsername = 30006,
   TooManyEmoji = 30008,
   TooManyAttachments = 30015,
+  Unauthorized = 40001,
   InvalidPermissions = 50013,
   AlreadyFriendsError = 80007,
   AutomodInvalidRustServiceResponse = 200002,
 }
 
-export enum DiscordErrorMessages {
-  AlreadyFriendsError = "You are already friends with that user.",
-}
+export const DiscordErrorMessages: Record<DiscordErrors, string> = {
+  [DiscordErrors.AlreadyFriendsError]: "You are already friends with that user.",
+  [DiscordErrors.UnknownChannel]: "Unknown channel",
+  [DiscordErrors.UnknownGuild]: "Unknown guild",
+  [DiscordErrors.UnknownInvite]: "Unknown invite",
+  [DiscordErrors.UnknownMessage]: "Unknown message",
+  [DiscordErrors.BotDisallowed]: "This route cannot be accessed by bots",
+  [DiscordErrors.TooManyUsingUsername]: "This username is already taken",
+  [DiscordErrors.TooManyEmoji]: "Too many emojis",
+  [DiscordErrors.TooManyAttachments]: "Too many attachments",
+  [DiscordErrors.Unauthorized]: "Unauthorized",
+  [DiscordErrors.InvalidPermissions]: "Invalid permissions",
+  [DiscordErrors.AutomodInvalidRustServiceResponse]: "Automod invalid rust service response",
+};
 
 export const BaseTypeRequiredError = {
   code: "BASE_TYPE_REQUIRED",
@@ -52,7 +64,7 @@ export const DiscordErrorMap: Record<RevoltError["type"], DiscordErrors> = {
   InvalidRole: DiscordErrors.AlreadyFriendsError,
   Banned: DiscordErrors.AlreadyFriendsError,
   TooManyServers: DiscordErrors.AlreadyFriendsError,
-  TooManyEmoji: DiscordErrors.AlreadyFriendsError,
+  TooManyEmoji: DiscordErrors.TooManyEmoji,
   TooManyRoles: DiscordErrors.AlreadyFriendsError,
   ReachedMaximumBots: DiscordErrors.AlreadyFriendsError,
   IsBot: DiscordErrors.BotDisallowed,
@@ -60,8 +72,8 @@ export const DiscordErrorMap: Record<RevoltError["type"], DiscordErrors> = {
   CannotReportYourself: DiscordErrors.AlreadyFriendsError,
   MissingPermission: DiscordErrors.InvalidPermissions,
   MissingUserPermission: DiscordErrors.InvalidPermissions,
-  NotElevated: DiscordErrors.InvalidPermissions,
-  NotPrivileged: DiscordErrors.InvalidPermissions,
+  NotElevated: DiscordErrors.Unauthorized,
+  NotPrivileged: DiscordErrors.Unauthorized,
   CannotGiveMissingPermissions: DiscordErrors.InvalidPermissions,
   NotOwner: DiscordErrors.InvalidPermissions,
   DatabaseError: DiscordErrors.AlreadyFriendsError,
@@ -76,4 +88,5 @@ export const DiscordErrorMap: Record<RevoltError["type"], DiscordErrors> = {
   NoEffect: DiscordErrors.AlreadyFriendsError,
   FailedValidation: DiscordErrors.AlreadyFriendsError,
   TooManyEmbeds: DiscordErrors.AlreadyFriendsError,
+  DiscriminatorChangeRatelimited: DiscordErrors.AlreadyFriendsError,
 };

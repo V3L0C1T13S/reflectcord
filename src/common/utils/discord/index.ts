@@ -6,4 +6,5 @@ export * from "./regex";
 export * from "./revolt_regex";
 export * from "./analytics";
 // wtf? exporting causes crash
-// export * from "./MemberList";
+export * from "./MemberList";
+export * from "./MemberListManager";
