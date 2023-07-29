@@ -18,6 +18,7 @@ export const Webhook: QuarkConversion<revoltWebhook, APIWebhook> = {
       id: revoltId!,
       name: name ?? "fixme",
       channel_id: rvChannelId!,
+      permissions: 0,
     };
 
     if (token) webhook.token = token;

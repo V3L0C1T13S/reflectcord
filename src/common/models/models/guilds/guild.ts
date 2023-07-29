@@ -152,6 +152,7 @@ export const Guild: QuarkConversion<Server, APIGuild, GuildATQ, GuildAFQ> = {
           managed: false,
           mentionable: false,
           color: 0,
+          flags: 0,
         };
 
         discordRoles.push(everyoneStub);
@@ -193,6 +194,7 @@ export const Guild: QuarkConversion<Server, APIGuild, GuildATQ, GuildAFQ> = {
       icon: icon ? await hashToSnowflake(icon._id) : null,
       splash: null,
       guild_scheduled_events: [],
+      safety_alerts_channel_id: null,
     };
   },
 };

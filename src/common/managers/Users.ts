@@ -28,6 +28,7 @@ export class UserManager extends BaseManager<string, UserContainer> {
         username: "Revolt",
         discriminator: "0001",
         avatar: null,
+        global_name: null,
       },
     });
   }

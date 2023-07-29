@@ -1,4 +1,4 @@
-import { APIRole, RESTPatchAPIGuildRoleJSONBody } from "discord.js";
+import { APIRole, RESTPatchAPIGuildRoleJSONBody, RoleFlags } from "discord.js";
 import { API } from "revolt.js";
 import { hexToRgbCode, rgbToHex } from "../../utils";
 import { QuarkConversion } from "../QuarkConversion";
@@ -33,6 +33,7 @@ export const Role: QuarkConversion<API.Role, APIRole> = {
       position: maxRoleCount - (role.rank ?? 0),
       managed: false,
       mentionable: false,
+      flags: 0 as RoleFlags,
     };
 
     return discordRole;

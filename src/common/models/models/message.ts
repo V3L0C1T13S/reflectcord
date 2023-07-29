@@ -207,6 +207,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
                 username: "System",
                 discriminator: "1",
                 avatar: null,
+                global_name: null,
               };
             }
             if (message.system.type === "user_added" || message.system.type === "user_remove") {
@@ -218,6 +219,7 @@ export const Message: QuarkConversion<RevoltMessage, APIMessage, MessageATQ, Mes
                 username: "System",
                 discriminator: "1",
                 avatar: null,
+                global_name: null,
               };
             }
           }
