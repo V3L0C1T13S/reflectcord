@@ -378,7 +378,8 @@ export async function startListener(
               version: 0,
               client: identifyClient(identifyPayload.properties?.browser ?? "Discord Client"),
             },
-            status: identifyPayload?.presence?.status.toString() ?? sessionStatus.status ?? "offline",
+            // TODO (tests)
+            status: sessionStatus.status ?? identifyPayload?.presence?.status.toString() ?? "offline",
             session_id: this.session_id,
           };
           if (identifyPayload.properties?.os) {
