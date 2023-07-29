@@ -141,7 +141,7 @@ export const User: QuarkConversion<RevoltUser, APIUser, UserATQ, UserAFQ> = {
       banner_color: null,
       discriminator,
       display_name,
-      global_name: display_name,
+      global_name: display_name ?? null,
       flags,
       username: extra?.masquerade?.name ?? username,
       public_flags: flags,
