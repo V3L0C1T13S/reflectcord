@@ -60,6 +60,20 @@ export class MemberListManager {
   deleteMemberAndRecalculate(id: string): GatewayLazyRequestDispatchData[] {
     const data: GatewayLazyRequestDispatchData[] = [];
 
+    Object.values(this.lists).forEach((list) => {
+      const ops = list.deleteMemberAndRecalculate(id);
+      if (!ops?.length) return;
+
+      data.push({
+        ops,
+        groups: list.groups,
+        guild_id: list.guildId,
+        id: list.id,
+        member_count: list.memberCount,
+        online_count: list.onlineCount,
+      });
+    });
+
     return data;
   }
 }

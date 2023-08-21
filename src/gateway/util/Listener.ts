@@ -1294,25 +1294,15 @@ export async function startListener(
           }
 
           const subscribedServer = this.subscribed_servers[data.id];
-          const memberList = subscribedServer?.memberListManager?.getList("everyone");
-          if (memberList) {
-            const ops = memberList.deleteMemberAndRecalculate(user.discord.id);
-            if (ops) {
-              const memberListUpdateBody: GatewayLazyRequestDispatchData = {
-                ops,
-                guild_id: memberList.guildId,
-                groups: memberList.groups,
-                id: memberList.id,
-                member_count: memberList.memberCount,
-                online_count: memberList.onlineCount,
-              };
+          const dispatches = subscribedServer?.memberListManager
+            ?.deleteMemberAndRecalculate(user.discord.id);
 
-              await Dispatch(
-                this,
-                GatewayDispatchCodes.GuildMemberListUpdate,
-                memberListUpdateBody,
-              );
-            }
+          if (dispatches) {
+            await Promise.all(dispatches.map((listData) => Dispatch(
+              this,
+              GatewayDispatchCodes.GuildMemberListUpdate,
+              listData,
+            )));
           }
 
           server?.extra?.members.delete(data.user);
