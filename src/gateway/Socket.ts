@@ -23,7 +23,7 @@ import { API, ResponseLogin } from "revolt-api";
 import { Client } from "revolt.js";
 import WS from "ws";
 import { Deflate, Inflate } from "fast-zlib";
-import { MemberList } from "@reflectcord/common/utils/discord/MemberList";
+import { MemberList, MemberListManager } from "@reflectcord/common/utils";
 import { CapabilitiesObject, IdentifySchema } from "@reflectcord/common/sparkle";
 import { Tracer } from "@reflectcord/common/debug";
 import { APIWrapper } from "@reflectcord/common/rvapi";
@@ -51,7 +51,7 @@ interface subscribedServer {
    * Members we're subscribed to
    */
   members?: string[];
-  memberList?: MemberList,
+  memberListManager?: MemberListManager
 }
 
 /**

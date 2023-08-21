@@ -4,7 +4,9 @@
 /* eslint-disable max-len */
 /* eslint-disable no-bitwise */
 import {
-  APIGuildMember,
+  APIChannel,
+  APIGuild,
+  APIGuildMember, PermissionFlagsBits,
 } from "discord.js";
 import murmur from "murmurhash-js/murmurhash3_gc";
 import {
@@ -20,9 +22,31 @@ import {
   LazyOperatorInvalidate,
 } from "../../sparkle";
 
-export function calculateListId(str: string, seed?: number) {
+export function createMemberListId(str: string, seed?: number) {
   return murmur(str, seed);
 }
+
+export function createChannelMemberListId(channel: APIChannel) {
+  return "permission_overwrites" in channel ? (() => {
+    const perms: string[] = [];
+    channel.permission_overwrites.forEach((x) => {
+      const { id, allow, deny } = x;
+
+      if (allow.toBigInt() & PermissionFlagsBits.ViewChannel) perms.push(`allow:${id}`);
+      else if (deny.toBigInt() & PermissionFlagsBits.ViewChannel) perms.push(`deny:${id}`);
+    });
+
+    return perms.length > 0 ? createMemberListId(perms.sort().join(",")).toString() : "everyone";
+  })() : "everyone";
+}
+
+const statusPriority = {
+  online: 1,
+  idle: 2,
+  dnd: 3,
+  invisible: 4,
+  offline: 5,
+};
 
 /**
  * Generic member list using only lazy items.
@@ -35,10 +59,12 @@ export class MemberList {
   members = new Map<string, APIGuildMember>();
   onlineCount: number = 0;
   memberCount: number = 0;
+  guild: APIGuild;
 
-  constructor(guildId: string, id: string) {
+  constructor(guildId: string, id: string, guild: APIGuild) {
     this.guildId = guildId;
     this.id = id;
+    this.guild = guild;
   }
 
   update(index: number, item: LazyItem): LazyOperatorUpdate {
@@ -68,16 +94,27 @@ export class MemberList {
     const member = this.items[index];
     if (!member || !("member" in member) || !member.member.user) return;
 
+    const roles = this.guild.roles.filter((role) => member.member.roles.includes(role.id)
+      && role.hoist).sort((x, y) => y.position - x.position);
+    const highestRole = roles[0];
+
     const currentGroup = this.getMemberGroup(member.member.user.id);
-    let highestGroupId = this.groups.find((x) => member.member.roles.includes(x.id))?.id
-      ?? "online";
-    if (member.member.presence.status === "offline") highestGroupId = "offline";
-    if (!highestGroupId || !currentGroup) return;
+    const highestGroupId = member.member.presence.status === "offline"
+      ? "offline" : highestRole?.id ?? "online";
+    if (!currentGroup) return;
     if (highestGroupId === currentGroup.group.id) return;
+
+    if (currentGroup.group.id === "offline") {
+      // User just came online
+      this.onlineCount += 1;
+    } else if (highestGroupId === "offline") {
+      // User is going offline
+      this.onlineCount -= 1;
+    }
 
     ops.push(
       ...this.deleteAndRecalculate(index),
-      ...this.addItemToGroup(highestGroupId, member) ?? [],
+      ...this.addItemToGroup(highestGroupId, member, true) ?? [],
     );
 
     return ops;
@@ -224,6 +261,13 @@ export class MemberList {
     ops.push(this.delete(newIndex));
 
     return ops;
+  }
+
+  deleteMemberAndRecalculate(id: string) {
+    const index = this.findMemberItemIndex(id);
+    if (!index) return;
+
+    return this.deleteAndRecalculate(index);
   }
 
   setGroups(groups: LazyGroup[]) {

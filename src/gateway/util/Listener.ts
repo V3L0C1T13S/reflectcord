@@ -1156,7 +1156,7 @@ export async function startListener(
             await Dispatch(this, GatewayDispatchEvents.GuildMemberAdd, body);
           }
 
-          const memberList = this.subscribed_servers[data.id]?.memberList;
+          const memberList = this.subscribed_servers[data.id]?.memberListManager?.getList("everyone");
           if (memberList) {
             const ops = memberList.addItemToGroup("online", {
               member: {
@@ -1224,7 +1224,7 @@ export async function startListener(
             );
           }
 
-          const memberList = this.subscribed_servers[data.id.server]?.memberList;
+          const memberList = this.subscribed_servers[data.id.server]?.memberListManager?.getList("everyone");
 
           if (memberList) {
             const memberIndex = memberList.findMemberItemIndex(member.discord.user!.id);
@@ -1294,11 +1294,10 @@ export async function startListener(
           }
 
           const subscribedServer = this.subscribed_servers[data.id];
-          const memberList = subscribedServer?.memberList;
+          const memberList = subscribedServer?.memberListManager?.getList("everyone");
           if (memberList) {
-            const index = memberList.findMemberItemIndex(user.discord.id);
-            if (index) {
-              const ops = memberList.deleteAndRecalculate(index);
+            const ops = memberList.deleteMemberAndRecalculate(user.discord.id);
+            if (ops) {
               const memberListUpdateBody: GatewayLazyRequestDispatchData = {
                 ops,
                 guild_id: memberList.guildId,
@@ -1363,32 +1362,6 @@ export async function startListener(
               ) {
                 await Dispatch(this, GatewayDispatchEvents.PresenceUpdate, updated);
               }
-
-              await Promise.all(Object.entries(this.subscribed_servers)
-                .filter(([_, server]) => server.members?.includes(data.id))
-                .map(async ([_, server]) => {
-                  const { memberList } = server;
-                  if (!memberList) return;
-
-                  const index = memberList.findMemberItemIndex(user.discord.id);
-
-                  const ops = memberList.updatePresence(index, {
-                    ...updated,
-                    user: { id: user.discord.id },
-                  });
-                  if (!ops) return;
-
-                  const updatedList: GatewayLazyRequestDispatchData = {
-                    ops,
-                    groups: memberList.groups,
-                    guild_id: memberList.guildId,
-                    id: memberList.id,
-                    member_count: memberList.memberCount,
-                    online_count: memberList.onlineCount,
-                  };
-
-                  await Dispatch(this, GatewayDispatchCodes.GuildMemberListUpdate, updatedList);
-                }));
             } else {
               // TODO: what is this mysterious "all" session for?
               await Dispatch(this, GatewayDispatchCodes.SessionsReplace, [{
@@ -1412,6 +1385,24 @@ export async function startListener(
                 status: updated.status,
               }]);
             }
+
+            await Promise.all(Object.entries(this.subscribed_servers)
+              .filter(([_, server]) => server.members?.includes(data.id)
+                || this.rv_user_id === data.id)
+              .map(async ([_, server]) => {
+                const dispatches = server.memberListManager?.updatePresence(user.discord.id, {
+                  ...updated,
+                  user: { id: user.discord.id },
+                });
+
+                if (!dispatches?.length) return;
+
+                await Promise.all(dispatches.map((dispatchData) => Dispatch(
+                  this,
+                  GatewayDispatchCodes.GuildMemberListUpdate,
+                  dispatchData,
+                )));
+              }));
 
             return;
           }

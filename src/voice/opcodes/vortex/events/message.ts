@@ -115,8 +115,6 @@ export function connectTransport(this: WebSocket, id: string, dtls: DtlsParamete
  * https://github.com/ShadowLp174/revoice.js/blob/dfc648403d4aa3d1c8da6d380dad31aa6555b43f/Signaling.js#L76
 */
 export async function onVortexMessage(this: WebSocket, data: VortexDataPacket) {
-  console.log(data);
-
   const consumers = new Map<string, { audio: Consumer }>();
 
   switch (data.type) {

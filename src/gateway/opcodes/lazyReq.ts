@@ -29,14 +29,26 @@ import {
 } from "discord.js";
 import API from "revolt-api";
 import {
-  internalStatus, Member, Status, fromSnowflake, toSnowflake, createUserPresence,
+  internalStatus,
+  Member,
+  Status,
+  fromSnowflake,
+  toSnowflake,
+  createUserPresence,
+  rvPermission,
 } from "@reflectcord/common/models";
 import {
   LazyRequest, GatewayDispatchCodes, LazyRange, SyncItem, LazyGroup, LazyItem,
 } from "@reflectcord/common/sparkle";
 import { MemberContainer } from "@reflectcord/common/managers";
-import { Logger } from "@reflectcord/common/utils";
-import { MemberList, calculateListId } from "@reflectcord/common/utils/discord/MemberList";
+import {
+  Logger,
+  getServerRoles,
+  createChannelMemberListId,
+  MemberListManager,
+  calculateRevoltMemberPermissions,
+} from "@reflectcord/common/utils";
+import { Permission } from "revolt.js";
 import { Payload, Dispatch } from "../util";
 import { WebSocket } from "../Socket";
 import { check } from "./instanceOf";
@@ -113,11 +125,34 @@ async function getMembers(
 
   const server = this.rvAPIWrapper.servers.get(guild_id);
   const channel = this.rvAPIWrapper.channels.get(target_channel);
+  const rvChannel = channel?.revolt;
+  if (!server || !channel || !rvChannel || !("server" in rvChannel)) throw new Error("Server or channel not found.");
 
+  const eligibleRevoltRoles = Object.entries(server.revolt.roles ?? [])
+    .filter(([_, role]) => role.hoist)
+    .map(([id]) => id);
   members.members = members.members.filter((m, i) => {
+    const roles = m.roles && server.revolt.roles
+      ? getServerRoles(server.revolt.roles, m.roles)
+      : [];
+    const overrides: rvPermission[] = [];
     const user = findUserFromMembers(fastUserFind, members, i, m);
 
     if (!user) return false;
+
+    if (rvChannel.role_permissions) {
+      m.roles?.forEach((role) => {
+        const override = rvChannel.role_permissions![role];
+        if (override) overrides.push(override);
+      });
+    }
+    if (rvChannel.default_permissions) overrides.push(rvChannel.default_permissions);
+    const permissions = calculateRevoltMemberPermissions(
+      roles,
+      overrides,
+      server.revolt.default_permissions,
+    );
+    if (!permissions.has(Permission.ViewChannel)) return false;
 
     if (!user.online) {
       // Backout if we're out of range
@@ -129,7 +164,8 @@ async function getMembers(
       counts.realOffline += 1;
     } else {
       counts.online += 1;
-      if ((m.roles?.length ?? 0) <= 0) counts.onlineGroup += 1;
+      if (!m.roles?.filter((role) => eligibleRevoltRoles
+        .includes(role)).length) counts.onlineGroup += 1;
     }
 
     return user.online;
@@ -137,9 +173,19 @@ async function getMembers(
   members.members.sort((x, y) => {
     const extractRoles = (r: string) => server?.revolt.roles?.[r];
 
-    const userRoles = x.roles?.map(extractRoles);
-    const otherUserRoles = y.roles?.map(extractRoles);
+    const userRoles = x.roles?.map(extractRoles)
+      .filter((r) => r?.hoist)
+      .sort((r1, r2) => r1?.rank ?? 200 - (r2?.rank ?? 200));
+    const otherUserRoles = y.roles?.map(extractRoles)
+      .filter((r) => r?.hoist)
+      .sort((r1, r2) => r1?.rank ?? 200 - (r2?.rank ?? 200));
 
+    const highestUserRole = userRoles?.[0];
+    const highestOtherUserRole = otherUserRoles?.[0];
+
+    return highestUserRole?.rank ?? 200 - (highestOtherUserRole?.rank ?? 200);
+
+    /*
     const roleRanks = userRoles
       ?.filter((r) => r?.hoist)
       ?.map((r) => r?.rank!).filter((r) => r !== undefined) ?? [999];
@@ -153,6 +199,7 @@ async function getMembers(
     // eslint-disable-next-line no-nested-ternary
     return (highestRank > otherHighest
       ? 0 : highestRank < otherHighest ? -1 : 1);
+    */
   });
 
   if (newMembers) {
@@ -165,14 +212,18 @@ async function getMembers(
     status: internalStatus,
   }
 
+  const eligibleRoles = [...server.discord.roles.filter((x) => x.hoist)
+    .map((x) => x.id), discordGuildId];
   let discordMembers: extendMemberContainer[] = await Promise.all(members.members
     .map(async (member, i) => {
       const user = members.users.find((x) => x._id === member._id.user);
       if (!user) throw new Error("No user object found for member");
 
       const discordMember = await Member.from_quark(member, { user });
+      const hoistedRoles = discordMember.roles
+        .filter((role) => eligibleRoles.includes(role));
 
-      if (discordMember.roles?.length <= 0) discordMember.roles.push(discordGuildId);
+      if (!hoistedRoles.length) discordMember.roles.push(discordGuildId);
 
       return {
         revolt: member,
@@ -189,7 +240,8 @@ async function getMembers(
   const memberRoles = discordMembers
     .map((x) => x.discord.roles)
     .flat()
-    .unique((r) => r);
+    .unique((r) => r)
+    .filter((r) => eligibleRoles.includes(r));
 
   memberRoles.push(
     memberRoles.splice(
@@ -248,6 +300,14 @@ async function getMembers(
         group.count--;
       } else items.push(item);
     });
+
+    if (!group.count) {
+      const itemIndex = items.findIndex((x) => "group" in x && x.group.id === group.id);
+      const groupIndex = groups.findIndex((x) => x.id === group.id);
+
+      items.splice(itemIndex, 1);
+      groups.splice(groupIndex, 1);
+    }
     discordMembers = other_members;
   });
 
@@ -329,8 +389,6 @@ export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
   // eslint-disable-next-line no-multi-assign
   const subscribedServer = this.subscribed_servers[rvServerId] ??= {};
   subscribedServer.members ??= [];
-  // eslint-disable-next-line no-multi-assign
-  const memberList = subscribedServer.memberList ??= new MemberList(guild_id, "everyone");
 
   const server = this.rvAPIWrapper.servers.get(rvServerId);
   if (!server) throw new Error(`Server ${server} is not in RVAPI cache`);
@@ -425,6 +483,13 @@ export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
     });
   }
 
+  const listId = createChannelMemberListId(channel.discord);
+
+  // eslint-disable-next-line no-multi-assign
+  const memberListManager = subscribedServer.memberListManager ??= new MemberListManager();
+  const memberList = memberListManager.getList(listId)
+    ?? memberListManager.createList(guild_id, listId, server.discord);
+
   const onlineCount = newOps[0]?.results.counts.online ?? 0;
   newOps.forEach((x) => {
     x.extendedMembers.forEach((member) => subscribeToMember
@@ -435,18 +500,6 @@ export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
   memberList.onlineCount = onlineCount;
   memberList.memberCount = member_count;
 
-  const listId = "permission_overwrites" in channel.discord ? (() => {
-    const perms: string[] = [];
-    channel.discord.permission_overwrites.forEach((x) => {
-      const { id, allow, deny } = x;
-
-      if (allow.toBigInt() & PermissionFlagsBits.ViewChannel) perms.push(`allow:${id}`);
-      else if (deny.toBigInt() & PermissionFlagsBits.ViewChannel) perms.push(`deny:${id}`);
-    });
-
-    return perms.length > 0 ? calculateListId(perms.sort().join(",")).toString() : "everyone";
-  })() : "everyone";
-
   await Dispatch(this, GatewayDispatchCodes.GuildMemberListUpdate, {
     ops: newOps.map((x) => ({
       op: "SYNC",
@@ -455,8 +508,8 @@ export async function lazyReq(this: WebSocket, data: Payload<LazyRequest>) {
     })),
     online_count: onlineCount,
     member_count,
-    id: listId,
-    guild_id,
+    id: memberList.id,
+    guild_id: memberList.guildId,
     groups,
   });
 }

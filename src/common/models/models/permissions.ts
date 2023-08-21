@@ -111,6 +111,12 @@ export function calculatePermissions(perm: rvPermission) {
   return calculated.toNumber();
 }
 
+export function resolvePermissions(perms: rvPermission[]) {
+  return perms.map((p) => calculatePermissions(p))
+  // eslint-disable-next-line no-bitwise
+    .reduce((prev, p) => prev | p, 0);
+}
+
 export function calculateRolePermission(role: API.Role) {
   return calculatePermissions(role.permissions);
 }

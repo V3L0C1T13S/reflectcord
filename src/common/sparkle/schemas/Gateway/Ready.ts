@@ -117,6 +117,8 @@ export interface ReadyData extends Omit<GatewayReadyDispatchData, "application" 
   session_type: "normal",
 }
 
+export type ReadyPayload = ReadyData | GatewayReadyDispatchData;
+
 export interface ReadySupplementalData {
   merged_presences: MergedPresences,
   /**
