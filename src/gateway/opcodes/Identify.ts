@@ -22,11 +22,11 @@ import { Logger } from "@reflectcord/common/utils";
 import { IdentifySchema } from "@reflectcord/common/sparkle";
 import { revoltApiURL } from "@reflectcord/common/constants";
 import { RevoltSession } from "@reflectcord/common/mongoose";
+import { identifyClient } from "@reflectcord/common/models";
 import { startListener } from "../util/Listener";
 import { Payload } from "../util";
 import { WebSocket } from "../Socket";
 import { check } from "./instanceOf";
-import { Intents } from "../util/Intents";
 
 export async function onIdentify(this: WebSocket, data: Payload<IdentifySchema>) {
   clearTimeout(this.readyTimeout);
@@ -62,6 +62,10 @@ export async function onIdentify(this: WebSocket, data: Payload<IdentifySchema>)
   }
 
   this.intents = intents;
+
+  this.clientInfo = {
+    client: identifyClient(this.identifyPayload.properties?.browser ?? "Unknown"),
+  };
 
   await startListener.call(this, token);
 

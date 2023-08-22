@@ -63,6 +63,10 @@ interface lazyChannel {
   messages?: boolean;
 }
 
+interface clientInfo {
+  client: string,
+}
+
 export interface WebSocket extends WS {
   pendingMessages?: any[];
   bot: boolean;
@@ -105,6 +109,8 @@ export interface WebSocket extends WS {
   capabilities: CapabilitiesObject;
   trace: Tracer;
   rvSession?: ResponseLogin & { result: "Success" };
+
   identifyPayload: IdentifySchema;
+  clientInfo: clientInfo;
   intentsManager: Intents;
 }

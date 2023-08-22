@@ -51,7 +51,6 @@ import {
   convertDescriptorToComponent,
   multipleToSnowflake,
   GatewaySessionDTO,
-  identifyClient,
   createUserGatewayGuild,
   MergedMemberDTO,
   GatewayPrivateChannelDTO,
@@ -376,7 +375,7 @@ export async function startListener(
             activities: sessionStatus.activities ?? [],
             client_info: {
               version: 0,
-              client: identifyClient(identifyPayload.properties?.browser ?? "Discord Client"),
+              client: this.clientInfo.client,
             },
             // TODO (tests)
             status: sessionStatus.status ?? identifyPayload?.presence?.status.toString() ?? "offline",
@@ -1367,8 +1366,8 @@ export async function startListener(
               }, {
                 activities: updated.activities,
                 client_info: {
-                  client: identifyClient(identifyPayload.properties?.browser ?? "Discord Client"),
-                  os: identifyPayload?.properties?.os ?? "linux",
+                  client: this.clientInfo.client,
+                  os: this.identifyPayload.properties?.os ?? "linux",
                   version: 0,
                 },
                 session_id: this.session_id,
