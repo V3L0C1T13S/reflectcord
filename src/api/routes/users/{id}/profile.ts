@@ -3,16 +3,17 @@ import { Request } from "express";
 import { Resource } from "express-automatic-routes";
 import API from "revolt-api";
 import { decodeTime } from "ulid";
-import { HTTPError } from "@reflectcord/common/utils";
+import { HTTPError, toCompatibleISO } from "@reflectcord/common/utils";
 import {
-  UserProfile, fromSnowflake, toSnowflake, hashToSnowflake, PartialFile,
+  UserProfile,
+  fromSnowflake,
+  toSnowflake, hashToSnowflake, PartialFile, createBadgeArray, Member,
 } from "@reflectcord/common/models";
 import { uploadBase64File } from "@reflectcord/cdn/util";
-import { PatchCurrentUserBody, ProfileThemesExperimentBucket } from "@reflectcord/common/sparkle";
+import { PatchCurrentUserBody, ProfileThemesExperimentBucket, APIUserProfile } from "@reflectcord/common/sparkle";
 import { UserPremiumType } from "discord.js";
+import { enableProfileThemes } from "@reflectcord/common/constants";
 import { fetchUser } from ".";
-import { enableProfileThemes } from "../../../../common/constants/features";
-import { toCompatibleISO } from "../../../../common/utils/date";
 
 export async function getProfile(api: API.API, id: string) {
   // why cant it just be /users/@me/profile ???
@@ -30,13 +31,17 @@ export async function getProfile(api: API.API, id: string) {
 
 export default () => <Resource> {
   get: async (req, res) => {
-    const { guild_id, with_mutuals, with_mutual_guilds } = req.query;
+    const {
+      guild_id, with_mutuals, with_mutual_guilds, with_mutual_friends_count,
+    } = req.query;
     const { id } = req.params;
 
     if (!id) throw new HTTPError("Invalid params");
+    if (guild_id && typeof guild_id !== "string") throw new HTTPError("bad query");
 
     const currentId = await res.rvAPIWrapper.users.getSelfId();
     const rvId = id !== "@me" ? await fromSnowflake(id) : currentId;
+    const server = guild_id ? await fromSnowflake(guild_id) : null;
 
     const api = res.rvAPI;
 
@@ -62,18 +67,36 @@ export default () => <Resource> {
       }));
     }
 
-    res.json({
+    const member = server ? await api.get(`/servers/${server as ""}/members/${rvId as ""}`)
+      : null;
+
+    const badges = user.flags ? createBadgeArray(user.flags) : [];
+    const discordProfile = await UserProfile.from_quark(rvProfile, {
+      guild_id,
+    });
+
+    const body: APIUserProfile = {
       connected_accounts: [],
       user,
-      user_profile: await UserProfile.from_quark(rvProfile),
+      user_profile: discordProfile,
+      badges,
       premium_since: toCompatibleISO(new Date(decodeTime(rvId)).toISOString()),
       premium_type: UserPremiumType.Nitro,
-      mutual_friends_count,
-      mutual_guilds,
+      premium_guild_since: null,
       profile_themes_experiment_bucket: enableProfileThemes
         ? ProfileThemesExperimentBucket.ViewAndEditWithTryItOut
         : ProfileThemesExperimentBucket.Disabled,
-    });
+      guild_badges: [],
+    };
+    if (with_mutuals
+      || with_mutual_friends_count) body.mutual_friends_count = mutual_friends_count ?? 0;
+    if (with_mutual_guilds) body.mutual_guilds = mutual_guilds ?? [];
+    if (member) {
+      body.guild_member = await Member.from_quark(member);
+      body.guild_member_profile = discordProfile;
+    }
+
+    res.json(body);
   },
   patch: async (
     req: Request<any, any, PatchCurrentUserBody>,

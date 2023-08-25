@@ -269,14 +269,6 @@ async function getMembers(
     role_members.forEach((member) => {
       const userRoles = member.discord.roles.filter((x) => x !== discordGuildId);
 
-      const statusPriority = {
-        online: 0,
-        idle: 1,
-        dnd: 2,
-        invisible: 3,
-        offline: 4,
-      };
-
       const status = member.status.status ?? "offline";
 
       const item = {

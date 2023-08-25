@@ -151,6 +151,7 @@ export type ImageQuery = Request<
       guildId?: string,
       iconId?: string,
       avatarId?: string,
+      bannerId?: string,
       background_id?: string,
     },
   }

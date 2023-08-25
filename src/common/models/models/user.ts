@@ -5,35 +5,39 @@ import {
   DataEditUser,
   FieldsUser,
   Message,
-  RelationshipStatus,
   User as RevoltUser,
   UserProfile as RevoltUserProfile,
 } from "revolt-api";
 import {
   ActivitiesOptions,
   ActivityType,
+  APIEmoji,
   APIUser,
   GatewayPresenceUpdateDispatchData,
-  PresenceData, PresenceUpdateStatus, RESTPatchAPICurrentUserJSONBody, UserFlags,
+  PresenceData, PresenceUpdateStatus, UserFlags,
   UserFlagsBitField,
   UserPremiumType,
 } from "discord.js";
 import Long from "long";
 import { uploadBase64File } from "@reflectcord/cdn/util";
 import { Badges } from "../../rvapi";
-import { PatchCurrentAccountBody, UserRelationshipType } from "../../sparkle";
+import { PatchCurrentAccountBody } from "../../sparkle";
 import { QuarkConversion } from "../QuarkConversion";
 import { fromSnowflake, toSnowflake } from "../util";
 import { priviligedUsers } from "../../constants/admin";
 import { genAnalyticsToken } from "../../utils/discord";
 import { Omit } from "../../utils";
 import { PartialFile } from "./attachment";
-import { RelationshipType } from "./relationship";
 
 export type APIUserProfile = {
-  bio: string | null,
-  accent_color: any | null,
-  banner: string | null,
+  bio?: string,
+  accent_color?: number | null,
+  banner?: string | null,
+  pronouns: string,
+  guild_id?: string,
+  theme_colors?: [number, number],
+  popout_animation_particle_type?: string,
+  emoji?: APIEmoji | null,
 }
 
 export type MFAInfo = {
@@ -50,6 +54,8 @@ export type revoltUserInfo = {
   authInfo: AccountInfo;
   mfaInfo?: MFAInfo | null;
 }
+
+const pronounsRegex = /(s|t)?he(y?)\/(t?)h(er|im|em)/gi;
 
 export const PublicFlags: QuarkConversion<
   Badges,
@@ -89,6 +95,49 @@ export type UserATQ = {};
 export type UserAFQ = {
   masquerade: Message["masquerade"],
 };
+
+interface APIBadge {
+  id: string,
+  description: string,
+  icon: string,
+  link?: string,
+}
+
+export function createBadgeArray(flags: UserFlags): APIBadge[] {
+  const badges: APIBadge[] = [];
+
+  if (flags & UserFlags.Partner) {
+    badges.push({
+      id: "3",
+      description: "Partnered Server Owner",
+      icon: "3f9748e53446a137a052f3454e2de41e",
+      link: "https://discord.com/partners",
+    });
+  }
+  if (flags & UserFlags.Staff) {
+    badges.push({
+      id: "2",
+      description: "Discord Staff",
+      icon: "5e74e9b61934fc1f67c65515d1f7e60d",
+    });
+  }
+  if (flags & UserFlags.CertifiedModerator) {
+    badges.push({
+      id: "4",
+      description: "Moderator Programs Alumni",
+      icon: "fee1624003e2fee35cb398e125dc479b",
+      link: "https://discord.com/safety",
+    });
+    badges.push({
+      id: "10001",
+      description: "Revolt Platform Moderation",
+      icon: "",
+      link: "https://revolt.chat",
+    });
+  }
+
+  return badges;
+}
 
 export const User: QuarkConversion<RevoltUser, APIUser, UserATQ, UserAFQ> = {
   async to_quark(user) {
@@ -151,12 +200,23 @@ export const User: QuarkConversion<RevoltUser, APIUser, UserATQ, UserAFQ> = {
   },
 };
 
-export const UserProfile: QuarkConversion<RevoltUserProfile, APIUserProfile> = {
+type UserProfileATQ = {};
+type UserProfileAFQ = {
+  server?: string | null | undefined,
+
+  guild_id?: string | null | undefined,
+};
+
+export const UserProfile: QuarkConversion<
+  RevoltUserProfile,
+  APIUserProfile,
+  UserProfileATQ,
+  UserProfileAFQ
+> = {
   async to_quark(profile) {
     const { bio, banner } = profile;
 
-    return {
-      content: bio,
+    const revoltProfile: RevoltUserProfile = {
       background: banner ? {
         _id: banner,
         tag: "avatars",
@@ -170,14 +230,27 @@ export const UserProfile: QuarkConversion<RevoltUserProfile, APIUserProfile> = {
         size: 0,
       } : null,
     };
+    if (bio) revoltProfile.content = bio;
+
+    return revoltProfile;
   },
 
-  async from_quark(profile) {
-    return {
-      bio: profile.content ?? null,
+  async from_quark(profile, extra) {
+    let guildId: string | null = null;
+    if (extra?.guild_id) guildId = extra.guild_id;
+    else if (extra?.server) guildId = await toSnowflake(extra.server);
+
+    const pronouns = profile.content?.match(pronounsRegex)?.[0] ?? "";
+
+    const discordProfile: APIUserProfile = {
       accent_color: null,
       banner: profile.background ? await PartialFile.from_quark(profile.background) : null,
+      pronouns,
     };
+    if (profile.content) discordProfile.bio = profile.content;
+    if (guildId) discordProfile.guild_id = guildId;
+
+    return discordProfile;
   },
 };
 
