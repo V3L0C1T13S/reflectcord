@@ -11,6 +11,11 @@ import { AutumnURL, getAutumnConfig } from "@reflectcord/common/constants";
 import { HTTPError, Logger } from "@reflectcord/common/utils";
 import { hashFromSnowflake } from "@reflectcord/common/models";
 import sharp from "sharp";
+import ffmpegPath from "ffmpeg-static";
+
+if (ffmpegPath) {
+  Ffmpeg.setFfmpegPath(ffmpegPath);
+}
 
 const DisallowedTypes = ["text/html", "text/mhtml", "multipart/related", "application/xhtml+xml"];
 
@@ -177,8 +182,8 @@ export async function handleImgRequest(
 
   if (req.query?.format === "jpeg") {
     if (mimeType.startsWith("video")) {
-      const thumbnailDir = join(imageCacheDir, "thumbnails", type);
-      const thumbnailFile = join(thumbnailDir, realId, "tn.png");
+      const thumbnailDir = join(imageCacheDir, "thumbnails", type, realId);
+      const thumbnailFile = join(thumbnailDir, "tn.jpeg");
       if (!existsSync(thumbnailDir)) mkdirSync(thumbnailDir, { recursive: true });
 
       if (existsSync(thumbnailFile)) {
@@ -190,7 +195,13 @@ export async function handleImgRequest(
         return res.send(tbData);
       }
 
-      return Ffmpeg(join(imageCacheDir, type, realId))
+      return Ffmpeg()
+        .input(join(imageCacheDir, type, realId))
+        .takeScreenshots({
+          count: 1,
+          filename: "tn.jpeg",
+          timestamps: ["0"],
+        }, thumbnailDir)
         .on("end", async () => {
           const tbData = readFileSync(thumbnailFile);
 
@@ -199,11 +210,12 @@ export async function handleImgRequest(
 
           return res.send(tbData);
         })
-        .takeScreenshots({
-          count: 1,
-          filename: "tn.png",
-          timemarks: ["0"],
-        }, join(thumbnailDir, realId));
+        .on("error", (e) => {
+          Logger.error("Thumbnail error: ", e);
+
+          return res.status(500).send();
+        })
+        .run();
     }
   }
 
