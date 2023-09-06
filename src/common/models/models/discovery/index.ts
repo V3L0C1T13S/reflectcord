@@ -95,7 +95,10 @@ export const DiscoverableBot: QuarkConversion<DiscoveryBot, App> = {
 
     const id = await toSnowflake(_id);
 
-    const icon = app.avatar ? await PartialFile.from_quark(app.avatar) : null;
+    const icon = app.avatar ? await PartialFile.from_quark(
+      app.avatar,
+      { skipConversion: true },
+    ) : null;
 
     return {
       type: 1,
