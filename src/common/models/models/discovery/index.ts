@@ -77,6 +77,7 @@ export const DiscoverableBot: QuarkConversion<DiscoveryBot, App> = {
           bio: description,
           accent_color: null,
           banner: null,
+          pronouns: "",
         }),
         content: description,
         background: null,
