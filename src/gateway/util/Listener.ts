@@ -378,7 +378,7 @@ export async function startListener(
               client: this.clientInfo.client,
             },
             // TODO (tests)
-            status: sessionStatus.status ?? identifyPayload?.presence?.status.toString() ?? "offline",
+            status: sessionStatus.status ?? identifyPayload?.presence?.status?.toString() ?? "offline",
             session_id: this.session_id,
           };
           if (identifyPayload.properties?.os) {
