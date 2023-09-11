@@ -16,6 +16,7 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { internalStatus } from "../../../models";
 import { Tuple } from "../../../utils/check";
 
 export const ActivitySchema = {
@@ -72,3 +73,6 @@ export const ActivitySchema = {
   $game: null,
   $broadcast: Object,
 };
+
+// eslint-disable-next-line no-redeclare
+export type ActivitySchema = internalStatus

@@ -86,7 +86,7 @@ export interface IdentifySchema {
     system_locale?: string;
   };
   intents?: number,
-  presence?: typeof ActivitySchema,
+  presence?: ActivitySchema,
   compress?: boolean,
   large_threshold?: number,
   largeThreshold?: number;

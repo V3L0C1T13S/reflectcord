@@ -22,11 +22,8 @@ class RichPresence {
   }
 }
 
-export async function presenceUpdate(this: WebSocket, data: Payload<internalStatus>) {
-  if (!data.d) return;
-
-  const presence = data.d;
-
+// TODO: move into rvapi
+export async function updatePresence(this: WebSocket, presence: internalStatus) {
   const activity = presence.activities?.[0];
 
   const remove: API.FieldsUser[] = [];
@@ -67,4 +64,12 @@ export async function presenceUpdate(this: WebSocket, data: Payload<internalStat
   }
 
   await this.rvAPI.patch("/users/@me", body);
+}
+
+export async function presenceUpdate(this: WebSocket, data: Payload<internalStatus>) {
+  if (!data.d) return;
+
+  const presence = data.d;
+
+  await updatePresence.call(this, presence);
 }

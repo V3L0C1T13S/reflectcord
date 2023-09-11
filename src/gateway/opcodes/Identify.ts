@@ -27,6 +27,7 @@ import { startListener } from "../util/Listener";
 import { Payload } from "../util";
 import { WebSocket } from "../Socket";
 import { check } from "./instanceOf";
+import { updatePresence } from "./PresenceUpdate";
 
 export async function onIdentify(this: WebSocket, data: Payload<IdentifySchema>) {
   clearTimeout(this.readyTimeout);
@@ -94,4 +95,17 @@ export async function onIdentify(this: WebSocket, data: Payload<IdentifySchema>)
   // HACK!
   // @ts-ignore
   this.rvClient.api = this.rvAPI;
+
+  if (this.identifyPayload.presence) {
+    this.trace.startTrace("set_presence");
+    try {
+      await updatePresence.call(
+        this,
+        this.identifyPayload.presence,
+      );
+    } catch (e) {
+      Logger.error("Unable to set status on identify.");
+    }
+    this.trace.stopTrace("set_presence");
+  }
 }
