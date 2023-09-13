@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 import { AddUndefinedToPossiblyUndefinedPropertiesOfInterface } from "discord-api-types/utils/internals";
 import {
-  APIEmbed, APIEmbedImage, APIEmbedVideo,
+  APIEmbed, APIEmbedImage, APIEmbedVideo, EmbedType,
 } from "discord.js";
 import { API } from "revolt.js";
 import axios from "axios";
@@ -36,13 +36,11 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
   // FIXME: Spaghetti momento
   async from_quark(embed) {
     if (embed.type === "None") {
-      const discordEmbed = {
+      const discordEmbed: APIEmbed = {
         title: "Unknown",
         description: "Unparsable embed",
+        type: EmbedType.Rich,
       };
-
-      // @ts-ignore
-      discordEmbed.type = "rich";
 
       return discordEmbed;
     }
@@ -58,11 +56,9 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
         discordEmbed.footer.icon_url = embed.icon_url;
         discordEmbed.footer.proxy_icon_url = proxyFile(embed.icon_url);
       }
-      // @ts-ignore
-      if (embed.type === "Website") discordEmbed.type = "link";
+      if (embed.type === "Website") discordEmbed.type = EmbedType.Link;
       if (embed.type === "Text") {
-        // @ts-ignore
-        discordEmbed.type = "rich";
+        discordEmbed.type = EmbedType.Rich;
 
         if (embed.media) {
           const imgUrl = `${urlScheme}://${reflectcordCDNURL}/attachments/${await hashToSnowflake(embed.media._id)}`;
@@ -108,8 +104,7 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
       };
       if (embed.type === "Image") {
         discordEmbed.image = mediaInfo as APIEmbedImage;
-        // @ts-ignore
-        discordEmbed.type = "image";
+        discordEmbed.type = EmbedType.Image;
       } else if (embed.type === "Video") {
         const attachmentId = embed.url.split("/").at(-2);
         const isAutumn = mediaInfo.url?.startsWith(AutumnURL);
@@ -128,8 +123,7 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
         };
         if (isAutumn) delete discordEmbed.thumbnail.proxy_url;
 
-        // @ts-ignore
-        discordEmbed.type = "video";
+        discordEmbed.type = EmbedType.Video;
       }
     }
 
@@ -165,8 +159,7 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
 
             discordEmbed.url = embed.url;
 
-            // @ts-ignore
-            discordEmbed.type = "video";
+            discordEmbed.type = EmbedType.Video;
           }
 
           break;
@@ -183,8 +176,7 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
             discordEmbed.url = embed.url;
           }
 
-          // @ts-ignore
-          discordEmbed.type = "link";
+          discordEmbed.type = EmbedType.Link;
 
           break;
         }
@@ -218,8 +210,7 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
 
           delete discordEmbed.image;
 
-          // @ts-ignore
-          discordEmbed.type = "video";
+          discordEmbed.type = EmbedType.Video;
 
           break;
         }
@@ -247,14 +238,12 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
 
           delete discordEmbed.image;
 
-          // @ts-ignore
-          discordEmbed.type = "video";
+          discordEmbed.type = EmbedType.Video;
 
           break;
         }
         case "Bandcamp": {
-          // @ts-ignore
-          discordEmbed.type = "link";
+          discordEmbed.type = EmbedType.Link;
 
           discordEmbed.provider = {
             name: embed.site_name ?? "Bandcamp",
@@ -293,8 +282,7 @@ export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
 
           const tweetRegexp = /\/status\/(\d+)/gs;
 
-          // @ts-ignore
-          discordEmbed.type = "rich";
+          discordEmbed.type = EmbedType.Rich;
 
           const extractedAuthor = embed.title?.split("(").pop();
           const extractedAuthorName = extractedAuthor?.substring(0, extractedAuthor.length - 1)!;
