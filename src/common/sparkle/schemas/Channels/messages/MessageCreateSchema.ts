@@ -19,9 +19,11 @@ export const MessageCreateSchema = {
   // These usually exist when attachments are present
   $channel_id: String,
   $type: Number,
+  $mobile_network_type: String,
 };
 
 // eslint-disable-next-line no-redeclare
 export interface MessageCreateSchema extends Omit<RESTPostAPIChannelMessageJSONBody, "attachments"> {
   attachments?: RESTPostAPIChannelMessageJSONBody["attachments"] | AttachmentSchema[],
+  mobile_network_type?: string,
 }
