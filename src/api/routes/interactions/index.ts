@@ -36,8 +36,7 @@ export default () => <Resource> {
     const emoji = digitMap[selectedNumber];
     if (!emoji) throw new HTTPError("Emoji index out of range");
 
-    // @ts-ignore
-    await res.rvAPI.put(encodeURI(`/channels/${channelId as ""}/messages/${rvMessageId as ""}/reactions/${emoji as ""}`));
+    await res.rvAPI.put(`/channels/${channelId as ""}/messages/${rvMessageId as ""}/reactions/${encodeURIComponent(emoji) as ""}`);
 
     const currentUser = await res.rvAPIWrapper.users.fetchSelf();
     await emitEvent({
