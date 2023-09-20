@@ -76,6 +76,7 @@ import {
   APIPrivateChannel,
   GatewayLazyRequestDispatchData,
   LazyItem,
+  SettingsType,
 } from "@reflectcord/common/sparkle";
 import { reflectcordWsURL } from "@reflectcord/common/constants";
 import { VoiceState } from "@reflectcord/common/mongoose";
@@ -1592,15 +1593,19 @@ export async function startListener(
               : null,
           });
 
-          const settingsProto = await settingsToProtoBuf(discordSettings, {
-            customStatusText: user.revolt.status?.text,
-          });
+          const settingsType = data.update["frecency_user_settings"] ? SettingsType.FrecencyUserSettings : SettingsType.UserSettings;
+          const settingsProto = settingsType === SettingsType.UserSettings
+            ? Buffer.from(await settingsToProtoBuf(discordSettings, {
+              customStatusText: user.revolt.status?.text,
+            })).toString("base64")
+            : data.update["frecency_user_settings"]?.[1];
+          if (!settingsProto) throw new Error("no settings proto.");
 
           const body: GatewayUserSettingsProtoUpdateDispatchData = {
             partial: false,
             settings: {
-              proto: Buffer.from(settingsProto).toString("base64"),
-              type: data.update["frecency_user_settings"] ? 2 : 1,
+              proto: settingsProto,
+              type: settingsType,
             },
           };
 

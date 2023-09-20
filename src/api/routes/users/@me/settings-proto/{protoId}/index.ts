@@ -7,13 +7,15 @@ import {
 import { HTTPError, Logger } from "@reflectcord/common/utils";
 import protobuf from "protobufjs";
 import { join } from "path";
+import { SettingsType } from "@reflectcord/common/sparkle";
 
 const settingsProtoFile = join(__dirname, "../../../../../../../resources/FrecencyUserSettings.proto");
 
 export default () => <Resource> {
   get: async (req, res) => {
-    switch (req.params.protoId!) {
-      case "1": {
+    const { protoId } = req.params;
+    switch (protoId?.toNumber()) {
+      case SettingsType.UserSettings: {
         const rvSettings = await res.rvAPI.post("/sync/settings/fetch", {
           keys: SettingsKeys,
         });
@@ -26,7 +28,7 @@ export default () => <Resource> {
 
         break;
       }
-      case "2": {
+      case SettingsType.FrecencyUserSettings: {
         const rvSettings = await res.rvAPI.post("/sync/settings/fetch", {
           keys: ["frecency_user_settings"],
         });
@@ -49,18 +51,18 @@ export default () => <Resource> {
 
     const settingsData = Buffer.from(settings, "base64");
 
-    const currentSettings = await res.rvAPI.post("/sync/settings/fetch", {
-      keys: SettingsKeys,
-    });
+    switch (protoId?.toNumber()) {
+      case SettingsType.UserSettings: {
+        const currentSettings = await res.rvAPI.post("/sync/settings/fetch", {
+          keys: SettingsKeys,
+        });
 
-    const settingsJSON = await settingsProtoToJSON(
-      settingsData,
-      await UserSettings.from_quark(currentSettings),
-    );
-    const user = await res.rvAPIWrapper.users.getSelf(true);
+        const settingsJSON = await settingsProtoToJSON(
+          settingsData,
+          await UserSettings.from_quark(currentSettings),
+        );
+        const user = await res.rvAPIWrapper.users.getSelf(true);
 
-    switch (protoId) {
-      case "1": {
         const revoltSettings = await UserSettings.to_quark(settingsJSON);
 
         const discordSettings = await UserSettings.from_quark(revoltSettings, {
@@ -80,26 +82,44 @@ export default () => <Resource> {
         });
         break;
       }
-      case "2": {
+      case SettingsType.FrecencyUserSettings: {
+        // TODO: convert to JSON when revolts official client supports these settings
+
         const root = await protobuf.load(settingsProtoFile);
-
         const frecencySettings = root.lookupType("FrecencyUserSettings");
-
         frecencySettings.verify(settingsData);
 
+        const partialSettings = frecencySettings.decode(settingsData).toJSON();
+        const currentSettings = await res.rvAPI.post("/sync/settings/fetch", {
+          keys: ["frecency_user_settings"],
+        });
+
+        let combinedSettings: any = partialSettings;
+
+        if (currentSettings["frecency_user_settings"]?.[1]) {
+          const currentSettingsJSON = frecencySettings.decode(Buffer.from(currentSettings["frecency_user_settings"][1], "base64")).toJSON();
+
+          combinedSettings = {
+            ...currentSettingsJSON,
+            ...partialSettings,
+          };
+        }
+
+        const finalSettings = Buffer.from(frecencySettings.encode(combinedSettings).finish()).toString("base64");
+
         await res.rvAPI.post("/sync/settings/set", createSettingsSyncPOST({
-          frecency_user_settings: [Date.now(), settings],
+          frecency_user_settings: [Date.now(), finalSettings],
         }));
 
         res.json({
-          settings,
+          settings: finalSettings,
         });
 
         break;
       }
       default: {
-        Logger.warn(`unhandled proto ${protoId}`);
-        res.sendStatus(500);
+        Logger.debug(`Unknown protobuf type ${protoId}`);
+        throw new HTTPError(`Unimplemented protobuf type ${protoId}`, 500);
       }
     }
   },
