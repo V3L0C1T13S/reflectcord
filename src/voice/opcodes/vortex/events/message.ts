@@ -5,10 +5,6 @@ import SemanticSDP from "semantic-sdp";
 import { toSnowflake } from "@reflectcord/common/models";
 import { PublicIP } from "@reflectcord/common/constants";
 import { VoiceOPCodes } from "@reflectcord/common/sparkle";
-import { emitEvent } from "@reflectcord/common/Events";
-import { fromSnowflake } from "@reflectcord/common/models/util";
-import { GatewayDispatchEvents } from "discord.js";
-import { UserContainer } from "@reflectcord/common/managers";
 import { Consumer } from "msc-node/lib/Consumer";
 import { Logger } from "@reflectcord/common/utils";
 import { VortexPacketType } from "../types/vortex";
@@ -138,6 +134,7 @@ export async function onVortexMessage(this: WebSocket, data: VortexDataPacket) {
       };
       this.vortex_ws.send(JSON.stringify(req));
 
+      // @ts-ignore
       const sdp = SemanticSDP.SDPInfo.expand(defaultsdp);
       sdp.setDTLS(SemanticSDP.DTLSInfo.expand({
         setup: "actpass",

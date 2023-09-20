@@ -54,6 +54,7 @@ export async function onIdentify(this: WebSocket, data: Payload) {
   this.rv_user_id = user.revolt._id;
   this.user_id = user.discord.id;
 
+  // @ts-ignore
   const sdp = SemanticSDP.SDPInfo.expand(defaultsdp);
   sdp.setDTLS(SemanticSDP.DTLSInfo.expand({
     setup: "actpass",
