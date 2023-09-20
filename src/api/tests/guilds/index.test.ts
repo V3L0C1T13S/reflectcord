@@ -14,5 +14,11 @@ describe("/guilds", () => {
 
       expect(channels.data).toBeInstanceOf(Array);
     });
+    test("/threads", async () => {
+      const activeThreads = await getFromAPI(`guilds/${TestServerId}/threads/active`);
+
+      expect(activeThreads.data.members).toBeInstanceOf(Array);
+      expect(activeThreads.data.threads).toBeInstanceOf(Array);
+    });
   });
 });
