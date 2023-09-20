@@ -9,6 +9,12 @@ export const ChannelCreateBody = {
   $permission_overwrites: [],
   $type: Number,
   $parent_id: new Tuple(String, Number),
+  $nsfw: Boolean,
+  $topic: String,
+  $bitrate: Number,
+  $user_limit: Number,
+  $position: Number,
+  $rtc_region: String,
 };
 
 export interface APIChannelPatchBody extends RESTPatchAPIChannelJSONBody {
