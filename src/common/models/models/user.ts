@@ -12,6 +12,7 @@ import {
   ActivitiesOptions,
   ActivityType,
   APIEmoji,
+  APIPartialEmoji,
   APIUser,
   GatewayPresenceUpdateDispatchData,
   PresenceData, PresenceUpdateStatus, UserFlags,
@@ -143,11 +144,11 @@ export const User: QuarkConversion<RevoltUser, APIUser, UserATQ, UserAFQ> = {
   async to_quark(user) {
     const {
       bot, id, username, discriminator, global_name,
-    } = user as APIUser & { global_name?: string };
+    } = user;
 
     const _id = await fromSnowflake(id);
 
-    return {
+    const revoltUser: RevoltUser = {
       _id,
       username,
       discriminator,
@@ -160,12 +161,17 @@ export const User: QuarkConversion<RevoltUser, APIUser, UserATQ, UserAFQ> = {
       }, // FIXME
       flags: null,
       privileged: false,
-      bot: bot ? {
-        owner: "0",
-      } : null,
       relationship: null,
       online: null,
     };
+
+    if (bot) {
+      revoltUser.bot = {
+        owner: "0",
+      };
+    }
+
+    return revoltUser;
   },
 
   async from_quark(user, extra) {
@@ -348,6 +354,7 @@ export interface activityMetadata {
 }
 
 export interface internalActivity extends Omit<ActivitiesOptions, "type"> {
+  emoji?: APIPartialEmoji | null,
   created_at?: number,
   state?: string,
   details?: string,
@@ -356,6 +363,7 @@ export interface internalActivity extends Omit<ActivitiesOptions, "type"> {
   assets?: activityAssets,
   buttons?: string[],
   metadata?: activityMetadata,
+  id?: string,
 }
 
 export interface internalStatus extends Omit<PresenceData, "activities"> {
@@ -390,7 +398,10 @@ export const Status: QuarkConversion<RevoltUser["status"], internalStatus, Statu
           return `Competing in ${activity.name}`;
         }
         case ActivityType.Custom: {
-          return `${activity.state}`;
+          // FIXME: no custom emoji support
+          const emoji = !activity.emoji?.id ? activity.emoji?.name : null;
+
+          return `${emoji ? `${emoji} ` : ""}${activity.state}`;
         }
         default: {
           return null;
@@ -398,7 +409,7 @@ export const Status: QuarkConversion<RevoltUser["status"], internalStatus, Statu
       }
     })();
 
-    return {
+    const revoltStatus: RevoltUser["status"] = {
       presence: (() => {
         switch (status.status) {
           case "online": {
@@ -420,6 +431,8 @@ export const Status: QuarkConversion<RevoltUser["status"], internalStatus, Statu
       })(),
       text,
     };
+
+    return revoltStatus;
   },
 
   async from_quark(status, extra) {
@@ -458,8 +471,8 @@ export const Status: QuarkConversion<RevoltUser["status"], internalStatus, Statu
         id: "custom",
         name: "Custom Status",
         state: status.text,
-        type: ActivityType.Custom as any,
-      } as any);
+        type: ActivityType.Custom,
+      });
     }
 
     if (discordStatus.status === "idle") {
