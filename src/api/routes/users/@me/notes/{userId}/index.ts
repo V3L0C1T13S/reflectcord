@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { Application, Request, Response } from "express";
+import { Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { HTTPError } from "@reflectcord/common/utils";
 import { fromSnowflake, toSnowflake } from "@reflectcord/common/models";
@@ -20,17 +20,17 @@ export default () => <Resource> {
     const selfUser = await res.rvAPI.get("/auth/account/");
 
     const note = await UserNote.findOne({ owner_id: selfUser._id, "note.user_id": userId });
-    if (!note) throw new HTTPError("Unknown User", 10013);
+    if (!note) throw new HTTPError("Unknown User", 404);
 
     res.json(note.note);
   },
   put: async (req: Request<any, any, noteRequest>, res: Response<noteResponse>) => {
     const { userId } = req.params;
     const { note } = req.body;
-    if (!userId || typeof note !== "string") throw new HTTPError("Invalid request", 422);
+    if (!userId || typeof note !== "string") throw new HTTPError("Invalid request");
 
     const ulid = await fromSnowflake(userId);
-    if (!ulid) throw new HTTPError("User does not exist.");
+    if (!ulid) throw new HTTPError("User does not exist.", 404);
 
     const selfUser = await res.rvAPI.get("/auth/account/");
     const user = await fetchUser(res.rvAPI, ulid);
