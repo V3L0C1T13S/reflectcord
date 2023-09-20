@@ -9,14 +9,22 @@ export namespace Logger {
   export function log(...args: any) {
     if (!enableLogging) return;
 
-    console.log(`${prependDate(args)}`);
+    console.log(`${prependDate(...args)}`);
   }
 
   export function warn(...args: any) {
-    log(`[WARN] ${args}`);
+    console.warn(prependDate("[WARN]:"), ...args);
   }
 
   export function error(...args: any) {
-    log(`[ERROR] ${args}`);
+    console.error(prependDate("[ERROR]:"), ...args);
+  }
+
+  export function info(...args: any) {
+    log("[INFO]:", ...args);
+  }
+
+  export function debug(...args: any) {
+    console.debug(prependDate("[DEBUG]:"), ...args);
   }
 }
