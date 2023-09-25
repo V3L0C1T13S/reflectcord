@@ -25,6 +25,8 @@ export namespace Logger {
   }
 
   export function debug(...args: any) {
+    if (!enableLogging) return;
+
     console.debug(prependDate("[DEBUG]:"), ...args);
   }
 }
