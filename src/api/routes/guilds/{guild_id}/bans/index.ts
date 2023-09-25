@@ -18,10 +18,7 @@ export default () => <Resource> {
       const user = bans.users.find((x) => x._id === ban._id.user);
 
       return Ban.from_quark(ban, {
-        user: user ? {
-          ...user,
-          discriminator: "0001",
-        } : null,
+        user,
       });
     }));
 
