@@ -60,7 +60,7 @@ export const DiscordErrorMap: Record<RevoltError["type"], DiscordErrors> = {
   GroupTooLarge: DiscordErrors.AlreadyFriendsError,
   AlreadyInGroup: DiscordErrors.AlreadyFriendsError,
   NotInGroup: DiscordErrors.AlreadyFriendsError,
-  UnknownServer: DiscordErrors.AlreadyFriendsError,
+  UnknownServer: DiscordErrors.UnknownGuild,
   InvalidRole: DiscordErrors.AlreadyFriendsError,
   Banned: DiscordErrors.AlreadyFriendsError,
   TooManyServers: DiscordErrors.AlreadyFriendsError,
