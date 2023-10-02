@@ -1,7 +1,7 @@
 import { APIGuild } from "discord.js";
 import { API } from "revolt.js";
 import { isEqual } from "lodash";
-import { Logger } from "../utils";
+import { Logger, calculateRolePermissions } from "../utils";
 import { DbManager } from "../db";
 import {
   Guild, RevoltOrderingSetting,
@@ -17,6 +17,11 @@ export type ServerContainer = QuarkContainer<API.Server, APIGuild, {
 }>;
 
 export type serverI = QuarkContainer<Partial<API.Server>, Partial<APIGuild>>;
+
+export type createServerProperties = API.DataCreateServer & {
+  channels?: API.DataCreateChannel[] | null,
+  roles?: API.DataCreateRole[] | null,
+}
 
 export class ServerManager extends BaseManager<string, ServerContainer> {
   $get(id: string, data?: serverI) {
@@ -220,6 +225,58 @@ export class ServerManager extends BaseManager<string, ServerContainer> {
     });
 
     return res;
+  }
+
+  calculateMemberPermissions(_id: string, user: string) {
+    const server = this.get(_id);
+    if (!server) throw new Error("Server does not exist");
+
+    const member = server.extra?.members.get(user);
+    if (!member) throw new Error("Member does not exist");
+
+    const memberRoles = server.discord.roles
+      .filter((x) => member.discord.roles.includes(x.id));
+
+    return {
+      // TODO: Revolt perms
+      // revolt: "0",
+      discord: calculateRolePermissions(memberRoles).toJSON(),
+    };
+  }
+
+  async createServer(properties: createServerProperties) {
+    const {
+      name, description, nsfw, channels, roles,
+    } = properties;
+
+    const initialProperties: API.DataCreateServer = {
+      name,
+    };
+    if (description) initialProperties.description = description;
+    if (nsfw) initialProperties.nsfw = nsfw;
+
+    const result = await this.rvAPI.post("/servers/create", initialProperties);
+
+    if (channels) {
+      const initialChannels = await Promise.all(channels.map((channel) => this.rvAPI.post(`/servers/${result.server._id as ""}/channels`, channel)));
+
+      result.server.channels.push(...initialChannels.map((x) => x._id));
+      result.channels.push(...initialChannels);
+    }
+
+    if (roles) {
+      const initialRoles = await Promise.all(roles.map((role) => this.rvAPI.post(`/servers/${result.server._id as ""}/roles`, role)));
+
+      result.server.roles ??= {};
+      initialRoles.forEach((role) => {
+        result.server.roles![role.id] = role.role;
+      });
+    }
+
+    return this.createObj({
+      revolt: result.server,
+      discord: await Guild.from_quark(result.server),
+    });
   }
 
   update(id: string, data: serverI) {
