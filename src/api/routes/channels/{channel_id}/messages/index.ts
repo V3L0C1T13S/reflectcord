@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import { APIMessage } from "discord.js";
-import { Application, Request, Response } from "express";
+import { Request, Response } from "express";
 import { Resource } from "express-automatic-routes";
 import { API } from "revolt.js";
 import {
@@ -68,28 +68,26 @@ export default () => <Resource> {
 
     return res.json(convMessages);
   },
-  post: {
-    handler: async (req: sendReq, res: Response<APIMessage>) => {
-      const { channel_id } = req.params;
+  post: async (req: sendReq, res: Response<APIMessage>) => {
+    const { channel_id } = req.params;
 
-      if (req.body.payload_json) {
-        req.body = JSON.parse(req.body.payload_json);
-      }
+    if (req.body.payload_json) {
+      req.body = JSON.parse(req.body.payload_json);
+    }
 
-      validateBody(MessageCreateSchema, req.body);
+    validateBody(MessageCreateSchema, req.body);
 
-      const rvId = await fromSnowflake(channel_id);
+    const rvId = await fromSnowflake(channel_id);
 
-      const files = req.files ? req.files : req.body.attachments;
+    const files = req.files ? req.files : req.body.attachments;
 
-      const msg = await res.rvAPIWrapper.messages.sendMessage(
-        rvId,
-        await MessageSendData.to_quark(req.body, {
-          files,
-        }),
-      );
+    const msg = await res.rvAPIWrapper.messages.sendMessage(
+      rvId,
+      await MessageSendData.to_quark(req.body, {
+        files,
+      }),
+    );
 
-      res.json(msg.discord);
-    },
+    res.json(msg.discord);
   },
 };
