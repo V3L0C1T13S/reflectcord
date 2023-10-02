@@ -30,7 +30,7 @@ export async function CallSync(this: WebSocket, data: Payload<{ channel_id: stri
 
   const states = await VoiceState.find({ channel_id });
 
-  if (states.length < 1) return;
+  if (!states.length) return;
 
   await Dispatch(this, GatewayDispatchCodes.CallCreate, {
     channel_id,
