@@ -72,21 +72,6 @@ function findUserFromMembers(
   return fastUserFind ? members.users[i] : members.users.find((u) => u._id === m._id.user);
 }
 
-function calculateMemberPermissions(
-  roles: APIRole[],
-  overwrites: APIOverwrite[],
-) {
-  const permissions = new PermissionsBitField(roles.map((x) => x.permissions.toBigInt()));
-
-  if (permissions.has(PermissionFlagsBits.Administrator)) {
-    return new PermissionsBitField(PermissionsBitField.All);
-  }
-
-  return permissions
-    .remove(overwrites.map((role) => role.deny.toBigInt()))
-    .add(overwrites.map((role) => role.allow.toBigInt()));
-}
-
 async function getMembers(
   this: WebSocket,
   guild_id: string,
