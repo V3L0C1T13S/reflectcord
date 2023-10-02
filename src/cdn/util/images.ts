@@ -1,6 +1,6 @@
 import { join } from "path";
 import {
-  existsSync, mkdirSync, readFileSync, writeFileSync,
+  existsSync, mkdirSync,
 } from "fs";
 import { FastifyRequest as Request, FastifyReply as Response } from "fastify";
 import FormData from "form-data";
@@ -12,6 +12,7 @@ import { HTTPError, Logger } from "@reflectcord/common/utils";
 import { hashFromSnowflake } from "@reflectcord/common/models";
 import sharp from "sharp";
 import ffmpegPath from "ffmpeg-static";
+import { readFile, writeFile } from "fs/promises";
 
 if (ffmpegPath) {
   Ffmpeg.setFfmpegPath(ffmpegPath);
@@ -40,7 +41,7 @@ export async function downloadImage(type: ImageType, id: string) {
     try {
       Logger.log(`Downloading uncached ${type} ${id}`);
       const res: Buffer = (await axios.get(rvURL, { responseType: "arraybuffer" })).data;
-      writeFileSync(imgDir, res);
+      await writeFile(imgDir, res);
       return res;
     } catch (e) {
       if (isAxiosError(e)) {
@@ -51,7 +52,7 @@ export async function downloadImage(type: ImageType, id: string) {
     }
   }
 
-  const cachedImage = readFileSync(imgDir);
+  const cachedImage = await readFile(imgDir);
 
   return cachedImage;
 }
@@ -187,7 +188,7 @@ export async function handleImgRequest(
       if (!existsSync(thumbnailDir)) mkdirSync(thumbnailDir, { recursive: true });
 
       if (existsSync(thumbnailFile)) {
-        const tbData = readFileSync(thumbnailFile);
+        const tbData = await readFile(thumbnailFile);
 
         res.header("Content-Type", await getMimeType(tbData));
         res.header("Cache-Control", "public, max-age=31536000");
@@ -203,7 +204,7 @@ export async function handleImgRequest(
           timestamps: ["0"],
         }, thumbnailDir)
         .on("end", async () => {
-          const tbData = readFileSync(thumbnailFile);
+          const tbData = await readFile(thumbnailFile);
 
           res.header("Content-Type", await getMimeType(tbData));
           res.header("Cache-Control", "public, max-age=31536000");
