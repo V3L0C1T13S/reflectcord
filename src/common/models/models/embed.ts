@@ -382,13 +382,17 @@ export const SendableEmbed: QuarkConversion<
           realDescription += `**${author.name}**\n\n`;
         }
 
-        realDescription += description;
+        if (description) realDescription += description;
 
-        fields?.forEach((field) => {
-          realDescription += `\n\n**${field.name}**\n${field.value}`;
-        });
+        const fieldsString = fields?.map((field) => `**${field.name}**\n${field.value}`).join("\n\n");
 
-        if (footer) realDescription += `\n\n${footer.text}`;
+        if (fieldsString) {
+          // add seperator if main description is present
+          if (description) realDescription += "\n\n";
+          realDescription += fieldsString;
+        }
+
+        if (footer) realDescription += `\n\n##### ${footer.text}`;
 
         return realDescription;
       })(),
