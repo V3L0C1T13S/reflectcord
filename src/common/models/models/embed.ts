@@ -18,6 +18,8 @@ import {
 } from "../../constants";
 import { hashToSnowflake } from "../util";
 
+const maxIconURLLength = 128;
+
 export const Embed: QuarkConversion<API.Embed, APIEmbed> = {
   async to_quark(embed) {
     const {
@@ -379,7 +381,7 @@ export const SendableEmbed: QuarkConversion<
         let realDescription = "";
 
         if (author) {
-          realDescription += `**${author.name}**\n\n`;
+          realDescription += `**${author.url ? `[${author.name}](${author.url})` : author.name}**\n\n`;
         }
 
         if (description) realDescription += description;
@@ -398,7 +400,6 @@ export const SendableEmbed: QuarkConversion<
       })(),
       url: url ?? null,
       colour: color ? rgbToHex(color) : null,
-      icon_url: embed.footer?.icon_url ?? null,
     };
 
     if (image?.url) {
@@ -418,7 +419,11 @@ export const SendableEmbed: QuarkConversion<
       }
     }
 
-    if (embed.author?.icon_url) {
+    if (embed.footer?.icon_url && embed.footer.icon_url.length <= maxIconURLLength) {
+      rvEmbed.icon_url = embed.footer.icon_url;
+    }
+
+    if (embed.author?.icon_url && embed.author.icon_url.length <= maxIconURLLength) {
       rvEmbed.icon_url = embed.author.icon_url;
     }
 
