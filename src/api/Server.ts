@@ -27,7 +27,7 @@ import { Server, RabbitMQ } from "@reflectcord/common/utils";
 import { initDb } from "@reflectcord/common/db";
 import { enableLogging } from "@reflectcord/common/constants";
 import {
-  Authentication, BodyParser, CORS, ErrorHandler, Versioning,
+  Authentication, BodyParser, CORS, ErrorHandler,
 } from "./middleware";
 import "express-async-errors";
 import { reflectcordAPIPort } from "../common/constants/index";
@@ -55,7 +55,6 @@ export class ReflectcordAPI extends Server {
     if (enableLogging) this.app.use(morgan("combined"));
 
     api.use(Authentication);
-    api.use(Versioning);
     api.use(fileUpload());
 
     this.registerRoutesDirectory(join(__dirname, "routes"));
