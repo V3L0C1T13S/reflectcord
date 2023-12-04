@@ -4,24 +4,35 @@ import {
   SessionInfo,
 } from "revolt-api";
 import { decodeTime } from "ulid";
+import { toSnowflake } from "@reflectcord/common/models";
+import { systemUserID } from "@reflectcord/common/rvapi";
 import { QuarkConversion } from "../../QuarkConversion";
 import { LoginSchema, MFALoginSchema, UserSession } from "../../../sparkle";
 import { toCompatibleISO } from "../../../utils/date";
 
-export type APILoginResponse = {
+export type APIMFALoginResponse = {
+  user_id: string,
+  ticket: string | undefined, // MFA ticket
+  sms: boolean | undefined,
+  mfa: boolean | undefined,
+  backup: boolean,
+  totp: boolean,
+  webauthn: null, // FIXME: what type is this?
+}
+
+export type APISuccessfulLoginResponse = {
   token: string | null,
   settings: any,
-  ticket?: string | undefined, // MFA ticket
-  sms?: boolean | undefined,
-  mfa?: boolean | undefined,
+  user_settings: any,
 }
+
+export type APILoginResponse = APISuccessfulLoginResponse | APIMFALoginResponse;
 
 export const ResponseLogin: QuarkConversion<RevoltLoginResponse, APILoginResponse> = {
   async to_quark(login) {
-    const { token } = login;
-
+    // TODO: mfa
     return {
-      token: token ?? "",
+      token: "token" in login ? login.token ?? "" : "",
       result: "Success",
       user_id: "", // FIXME,
       name: "",
@@ -34,11 +45,13 @@ export const ResponseLogin: QuarkConversion<RevoltLoginResponse, APILoginRespons
 
     if (isMFA) {
       return {
-        token: null,
-        settings: undefined,
+        user_id: await toSnowflake(systemUserID),
         ticket: login.ticket,
         sms: false,
         mfa: true,
+        backup: login.allowed_methods.includes("Recovery"),
+        totp: login.allowed_methods.includes("Totp"),
+        webauthn: null,
       };
     }
 
@@ -46,12 +59,14 @@ export const ResponseLogin: QuarkConversion<RevoltLoginResponse, APILoginRespons
       return {
         token: null,
         settings: undefined,
+        user_settings: undefined,
       };
     }
 
     return {
       token: login.token,
       settings: undefined,
+      user_settings: {},
     };
   },
 };
