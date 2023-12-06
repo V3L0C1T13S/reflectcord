@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import {
-  Category, Channel as rvChannel, DataCreateChannel, DataEditChannel, FieldsChannel,
+  Category, Channel as rvChannel, DataCreateServerChannel, DataEditChannel, FieldsChannel,
 } from "revolt-api";
 import {
   APIChannel,
@@ -559,7 +559,7 @@ export async function HandleChannelsAndCategories(
 }
 
 export const ChannelCreateBody: QuarkConversion<
-DataCreateChannel, RESTPostAPIGuildChannelJSONBody
+DataCreateServerChannel, RESTPostAPIGuildChannelJSONBody
 > = {
   async to_quark(data) {
     const { name, type, nsfw } = data;

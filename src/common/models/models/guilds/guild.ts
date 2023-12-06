@@ -109,7 +109,8 @@ export const Guild: QuarkConversion<Server, APIGuild, GuildATQ, GuildAFQ> = {
         : 0,
       icon: icon ? await PartialFile.to_quark(icon) : null,
       banner: banner ? await PartialFile.to_quark(banner) : null,
-      flags: null,
+      // TODO
+      // flags: null,
       nsfw: !!(nsfw_level & GuildNSFWLevel.AgeRestricted),
       analytics: false,
       discoverable: guild.features.includes(GuildFeature.Discoverable),

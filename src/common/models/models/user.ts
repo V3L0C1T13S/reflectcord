@@ -15,7 +15,7 @@ import {
   APIPartialEmoji,
   APIUser,
   GatewayPresenceUpdateDispatchData,
-  PresenceData, PresenceUpdateStatus, UserFlags,
+  PresenceData, PresenceUpdateReceiveStatus, PresenceUpdateStatus, UserFlags,
   UserFlagsBitField,
   UserPremiumType,
 } from "discord.js";
@@ -516,7 +516,7 @@ export async function createUserPresence(
   const presence: GatewayFullUserPresence = {
     activities: status.activities as any ?? [],
     client_status: {
-      web: realStatus as PresenceUpdateStatus,
+      web: realStatus as PresenceUpdateReceiveStatus,
     },
     status: realStatus as any,
     last_modified: Date.now(),

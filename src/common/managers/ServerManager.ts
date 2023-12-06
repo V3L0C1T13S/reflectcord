@@ -1,5 +1,5 @@
 import { APIGuild } from "discord.js";
-import { API } from "revolt.js";
+import API from "revolt-api";
 import { isEqual } from "lodash";
 import { Logger, calculateRolePermissions } from "../utils";
 import { DbManager } from "../db";
@@ -19,7 +19,7 @@ export type ServerContainer = QuarkContainer<API.Server, APIGuild, {
 export type serverI = QuarkContainer<Partial<API.Server>, Partial<APIGuild>>;
 
 export type createServerProperties = API.DataCreateServer & {
-  channels?: API.DataCreateChannel[] | null,
+  channels?: API.DataCreateServerChannel[] | null,
   roles?: API.DataCreateRole[] | null,
 }
 
@@ -58,9 +58,13 @@ export class ServerManager extends BaseManager<string, ServerContainer> {
   /**
    * Fetch server without caching or conversion
   */
-  fetchRaw(id: string) {
-    // @ts-ignore
-    return this.rvAPI.get(`/servers/${id as ""}`);
+  async fetchRaw(id: string) {
+    // TODO (types)
+    const server = await this.rvAPI.get(`/servers/${id as ""}`, {
+      include_channels: true,
+    }) as API.Server;
+
+    return server;
   }
 
   /**

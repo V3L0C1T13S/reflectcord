@@ -775,6 +775,7 @@ export async function startListener(
                   message: message.discord,
                   locale: "en-US",
                   app_permissions: "0", // TODO (interactions): App permissions
+                  entitlements: [],
                 };
 
                 if (server) {

@@ -1,7 +1,9 @@
 import {
-  APIUser, GatewayActivity, GatewayPresenceClientStatus, PresenceUpdateStatus,
+  APIUser,
+  GatewayActivity,
+  GatewayPresenceClientStatus,
+  PresenceUpdateReceiveStatus,
 } from "discord.js";
-import { API } from "revolt.js";
 import { GatewayFullUserPresence, internalStatus } from "./user";
 
 export interface RevoltPresenceData {
@@ -14,7 +16,7 @@ export interface RevoltPresenceData {
 
 // TODO
 export class ReadyMergedPresenceDTO implements GatewayFullUserPresence {
-  status?: PresenceUpdateStatus;
+  status?: PresenceUpdateReceiveStatus;
   activities: GatewayActivity[];
   since?: number;
   afk?: boolean;

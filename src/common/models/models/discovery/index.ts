@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { GuildFeature } from "discord.js";
+import { GuildFeature, UserFlagsBitField } from "discord.js";
 import { QuarkConversion } from "../../../models/QuarkConversion";
 import { fromSnowflake, toSnowflake } from "../../../models/util";
 import { DiscoveryServer, DiscoveryBot } from "../../../rvapi";
@@ -120,8 +120,9 @@ export const DiscoverableBot: QuarkConversion<DiscoveryBot, App> = {
         username,
         avatar: icon,
         discriminator: "1",
-        public_flags: 0,
+        public_flags: new UserFlagsBitField().toJSON(),
         bot: true,
+        global_name: username, // FIXME: incorrect
       },
     };
   },
