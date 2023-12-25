@@ -510,6 +510,12 @@ export async function startListener(
             tutorial: null,
             session_type: "normal",
             api_code_version: 1,
+            auth: {
+              authenticator_types: [2, 3],
+            },
+            notification_settings: {
+              flags: 0,
+            },
             consents: {
               personalization: {
                 consented: false, // never gonna fix this lol
@@ -625,6 +631,7 @@ export async function startListener(
                 embedded_activities: [],
               }))),
               disclose: [],
+              game_invites: [],
             };
 
             await Dispatch(this, GatewayDispatchCodes.ReadySupplemental, supplementalData);
