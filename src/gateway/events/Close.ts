@@ -24,5 +24,5 @@ export async function Close(this: WebSocket, code: number, reason: string) {
   Logger.log(`WS Closed ${code} ${reason}`);
 
   // TODO: Figure out when to immediately cleanup
-  SessionManager.removeSession(this.session_id);
+  SessionManager.removeSession(this.session_id, code);
 }

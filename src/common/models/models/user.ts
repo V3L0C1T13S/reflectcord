@@ -52,7 +52,9 @@ export type MFAInfo = {
 
 export type revoltUserInfo = {
   user: RevoltUser,
-  authInfo: AccountInfo;
+  authInfo: Omit<AccountInfo, "email"> & {
+    email?: string | null
+  };
   mfaInfo?: MFAInfo | null;
 }
 
@@ -296,7 +298,7 @@ export const selfUser: QuarkConversion<revoltUserInfo, APIUser, selfUserATQ, sel
 
     return {
       ...discordUser,
-      email: user.authInfo.email,
+      email: user.authInfo.email ?? null,
       mfa_enabled,
       // Revolt doesn't require age verification
       nsfw_allowed: true,

@@ -1,5 +1,6 @@
 /* eslint-disable no-param-reassign */
 import { Logger, RabbitMQ } from "@reflectcord/common/utils";
+import { GatewayCloseCodes } from "discord.js";
 import { startListener } from "../util/Listener";
 import { WebSocket } from "../Socket";
 import { createInternalListener } from "../util/InternalListener";
@@ -46,9 +47,14 @@ export namespace SessionManager {
     return [...connections.values()].find((x) => x.token === token);
   }
 
-  export function removeSession(id: string) {
+  export function removeSession(id: string, code: number) {
     const session = getSession(id);
     if (!session) throw new Error(`session ${id} not found`);
+
+    if ([GatewayCloseCodes.AuthenticationFailed].includes(code)) {
+      cleanupSession(session);
+      return;
+    }
 
     Logger.log(`Cleaning up ${id} in ${deleteTime} MS`);
 

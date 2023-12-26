@@ -136,6 +136,7 @@ export async function startListener(
       switch (data.type) {
         case "Error": {
           if (["InvalidSession", "AlreadyAuthenticated", "InvalidSession"].includes(data.error)) {
+            Logger.error(`Invalid session: ${this.session_id}`);
             this.close(GatewayCloseCodes.AuthenticationFailed);
           }
           this.close(GatewayCloseCodes.UnknownError);
@@ -143,6 +144,7 @@ export async function startListener(
         }
         // @ts-ignore
         case "NotFound": {
+          Logger.error(`Session ${this.session_id} not found.`);
           this.close(GatewayCloseCodes.AuthenticationFailed);
           break;
         }
@@ -272,7 +274,7 @@ export async function startListener(
             user: currentUser,
             authInfo: authInfo ?? {
               _id: currentUser._id,
-              email: "fixme@gmail.com",
+              email: null,
             },
             mfaInfo,
           });
