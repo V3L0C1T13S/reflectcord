@@ -11,7 +11,8 @@ export const ClientCapabilities = {
   */
   LazyUserNotes: 1 << 0,
   /**
-   * TODO: does anybody actually know what this is for?
+   * Disable receiving presences for implicit relationships, such as mutual friends and
+   * incoming/outgoing friend requests.
   */
   NoAffineUserIds: 1 << 1,
   /**
