@@ -115,6 +115,12 @@ export interface ReadyData extends Omit<GatewayReadyDispatchData, "application" 
     indicators_confirmed: tutorialTypes[],
   } | null,
   session_type: "normal",
+  auth: {
+    authenticator_types: number[],
+  },
+  notification_settings: {
+    flags: number,
+  }
 }
 
 export type ReadyPayload = ReadyData | GatewayReadyDispatchData;
@@ -140,4 +146,5 @@ export interface ReadySupplementalData {
     embedded_activities: unknown[],
   }[],
   disclose: unknown[],
+  game_invites: unknown[],
 }
