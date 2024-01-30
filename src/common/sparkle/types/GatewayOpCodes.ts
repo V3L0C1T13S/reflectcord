@@ -99,4 +99,9 @@ export enum GatewayOpcodes {
   SpeedTestDelete=33,
   // REQUEST_LAST_MESSAGES
   RequestLastMessages=34,
+  // SEARCH_RECENT_MEMBERS
+  SearchRecentMembers = 35,
+  // REQUEST_CHANNEL_STATUSES
+  RequestChannelStatuses = 36,
+  BulkSubscription = 37,
 }

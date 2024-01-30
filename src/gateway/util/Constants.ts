@@ -16,7 +16,7 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { GatewayOpcodes } from "discord.js";
+import { GatewayOpcodes } from "@reflectcord/common/sparkle";
 
 export interface Payload<T = any> {
   op: GatewayOpcodes;

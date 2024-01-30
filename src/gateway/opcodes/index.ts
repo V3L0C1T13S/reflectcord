@@ -18,6 +18,7 @@ import { StreamDelete } from "./StreamDelete";
 import { StreamWatch } from "./StreamWatch";
 import { ActivityClose } from "./ActivityClose";
 import { RemoteCommand } from "./RemoteCommand";
+import { BulkSubscription } from "./BulkSubscription";
 
 export type OPCodeHandler = (this: WebSocket, data: Payload) => any;
 
@@ -39,4 +40,5 @@ export const OPCodeHandlers: { [key: number ]: OPCodeHandler } = {
   [GatewayOpcodes.QueryApplicationCommands]: QueryApplicationCommands,
   [GatewayOpcodes.EmbeddedActivityClose]: ActivityClose,
   [GatewayOpcodes.RemoteCommand]: RemoteCommand,
+  [GatewayOpcodes.BulkSubscription]: BulkSubscription,
 };

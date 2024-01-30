@@ -21,11 +21,7 @@
 /* eslint-disable no-plusplus */
 /* eslint-disable camelcase */
 import {
-  APIOverwrite,
-  APIRole,
   GatewayDispatchEvents,
-  PermissionFlagsBits,
-  PermissionsBitField,
 } from "discord.js";
 import API from "revolt-api";
 import {

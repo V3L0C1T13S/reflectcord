@@ -25,6 +25,7 @@ export interface LazyRequest {
   typing?: true;
   members?: string[];
   thread_member_lists?: any[];
+  member_updates?: boolean,
 }
 
 export const LazyRequest = {
@@ -35,4 +36,5 @@ export const LazyRequest = {
   $threads: Boolean,
   $members: [String],
   $thread_member_lists: [],
+  $member_updates: Boolean,
 };
