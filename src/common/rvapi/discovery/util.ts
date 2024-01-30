@@ -12,6 +12,7 @@ export async function getNextData() {
   const data = parse(String(rvDiscoveryPage.data));
 
   const nextData = data.getElementById("__NEXT_DATA__");
+  if (!nextData) throw new Error("nextData not found.");
 
   const jsonData = JSON.parse(nextData.textContent);
 
